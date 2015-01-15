@@ -1,0 +1,2 @@
+# sc-notifications
+Notifications engine
