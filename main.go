@@ -12,6 +12,6 @@ func sysInit() {
 
 func main() {
 	go sysInit()
-	registerHandler("hello", "/hello/\\w{3,5}/?$", new(SampleHandler))
+	registerHandler("hello", "/hello/(?P<user_name>\\w+$)", new(SampleHandler))
 	gottp.MakeServer(&settings)
 }
