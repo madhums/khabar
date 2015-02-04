@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/Simversity/gottp"
+	"gopkg.in/simversity/gottp.v1"
 )
 
 type NotificationHandler struct {

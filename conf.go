@@ -1,11 +1,15 @@
 package main
 
 import (
-	"github.com/Simversity/gottp/conf"
+	"gopkg.in/simversity/gottp.v1/conf"
 )
 
 type config struct {
-	Gottp conf.GottpSettings
+	Gottp            conf.GottpSettings
+	Sc_Notifications struct {
+		DBName    string
+		DBAddress string
+	}
 }
 
 func (self *config) MakeConfig(configPath string) {

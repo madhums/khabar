@@ -1,21 +1,23 @@
 package main
 
 import (
-	"github.com/Simversity/gottp"
+	"github.com/parthdesai/sc-notifications/db"
 	"github.com/parthdesai/sc-notifications/handlers"
+	"gopkg.in/simversity/gottp.v1"
 	"log"
 )
 
 func sysInit() {
 	<-(gottp.SysInitChan) //Buffered Channel to receive the server upstart boolean
-	log.Println("System is ready to Serve")
+	db.DbConnection = db.GetConn(settings.Sc_Notifications.DBName, settings.Sc_Notifications.DBAddress)
+	log.Println("Database Connected :" + settings.Sc_Notifications.DBName + " " + "at address:" + settings.Sc_Notifications.DBAddress)
 }
 
 func main() {
 	go sysInit()
-	registerHandler("notification", "/notifications/(?P<id>\\w+$)", new(handlers.NotificationHandler))
-	registerHandler("channel", "/channel/(?P<id>\\w+$)", new(handlers.ChannelHandler))
-	registerHandler("notification settings with channel", "/notification_setting/(?P<notification_id>\\w+)/(?P<channel_id>\\w+)/?$", new(handlers.NotificationSettingWithChannelHandler))
-	registerHandler("notification settings", "/notification_setting/(?P<notification_id>\\w+)/?$", new(handlers.NotificationSettingHandler))
+	registerHandler("notification", "^/notifications/(?P<ident>\\w+$)", new(handlers.NotificationHandler))
+	registerHandler("channel", "^/channel/(?P<ident>\\w+$)", new(handlers.ChannelHandler))
+	registerHandler("notification settings with channel", "^/notification_setting/(?P<notification_type>\\w+)/(?P<channel_ident>\\w+)/?$", new(handlers.NotificationSettingWithChannelHandler))
+	registerHandler("notification settings", "^/notification_setting/(?P<notification_ident>\\w+)/?$", new(handlers.NotificationSettingHandler))
 	gottp.MakeServer(&settings)
 }
