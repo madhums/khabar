@@ -18,11 +18,8 @@ func (self *ChannelHandler) Post(request *gottp.Request) {
 	request.ConvertArguments(channel)
 	channel.PrepareSave(db.DbConnection)
 
-	hasData := db.DbConnection.Get("channels", db.M{"app_id": channel.ApplicationID,
-		"org_id": channel.OrganizationID, "user_id": channel.UserID, "ident": channel.Ident}).Next(channel)
-
-	if hasData {
-		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "Channel already exists"})
+	if !channel.IsValid() {
+		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "Atleast one of the user_id, org_id and app_id must be present."})
 		return
 	}
 
@@ -30,8 +27,10 @@ func (self *ChannelHandler) Post(request *gottp.Request) {
 		return
 	}
 
-	if !channel.IsValid() {
-		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "Atleast one of the user_id, org_id and app_id must be present."})
+	hasData := channel.GetFromDatabase(db.DbConnection)
+
+	if hasData {
+		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "Channel already exists"})
 		return
 	}
 
@@ -46,8 +45,7 @@ func (self *ChannelHandler) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "Atleast one of the user_id, org_id and app_id must be present."})
 		return
 	}
-	err := db.DbConnection.Delete("channels", db.M{"app_id": channel.ApplicationID,
-		"org_id": channel.OrganizationID, "user_id": channel.UserID, "ident": channel.Ident})
+	err := channel.DeleteFromDatabase(db.DbConnection)
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}

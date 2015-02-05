@@ -26,17 +26,6 @@ func ValidateAndRaiseError(request *gottp.Request, structure interface{}) bool {
 	return true
 }
 
-func RemoveElement(arr *[]string, elem string) {
-	j := 0
-	for i, x := range *arr {
-		if x != elem {
-			(*arr)[j] = (*arr)[i]
-			j++
-		}
-	}
-	*arr = (*arr)[:j]
-}
-
 func RemoveDuplicates(arr *[]string) {
 	found := make(map[string]bool)
 	j := 0

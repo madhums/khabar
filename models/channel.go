@@ -28,3 +28,13 @@ func (self *Channel) IsValid() bool {
 
 	return true
 }
+
+func (self *Channel) GetFromDatabase(dbConn *db.MConn) bool {
+	return dbConn.Get("channels", db.M{"app_id": self.ApplicationID,
+		"org_id": self.OrganizationID, "user_id": self.UserID, "ident": self.Ident}).Next(self)
+}
+
+func (self *Channel) DeleteFromDatabase(dbConn *db.MConn) error {
+	return dbConn.Delete("channels", db.M{"app_id": self.ApplicationID,
+		"org_id": self.OrganizationID, "user_id": self.UserID, "ident": self.Ident})
+}
