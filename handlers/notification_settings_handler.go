@@ -21,7 +21,7 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 
 	request.ConvertArguments(notification)
 
-	hasData := db.DbConnection.Get("notifications", map[string]interface{}{"app_id": notification.ApplicationID,
+	hasData := db.DbConnection.Get("notifications", db.M{"app_id": notification.ApplicationID,
 		"org_id": notification.OrganizationID, "user_id": notification.UserID, "type": notification.Type}).Next(notification)
 
 	newChannels := make([]string, len(notification.Channels)+1)
@@ -37,6 +37,7 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 	}
 
 	if !utils.ValidateAndRaiseError(request, notification) {
+		log.Println("Validation Failed")
 		return
 	}
 
@@ -51,10 +52,12 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 			})
 
 	} else {
+		log.Println("Successfull call: Inserting document")
 		db.DbConnection.Insert("notifications", notification)
 	}
 
 	if err != nil {
+		log.Println("Error while inserting document :" + err.Error())
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
 	}
 
@@ -68,11 +71,11 @@ func (self *NotificationSettingWithChannelHandler) Delete(request *gottp.Request
 
 	request.ConvertArguments(notification)
 
-	hasData := db.DbConnection.Get("notifications", map[string]interface{}{"app_id": notification.ApplicationID,
+	hasData := db.DbConnection.Get("notifications", db.M{"app_id": notification.ApplicationID,
 		"org_id": notification.OrganizationID, "user_id": notification.UserID, "type": notification.Type}).Next(notification)
 
 	if !hasData {
-		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "notification setting does not exists." + notification.Type})
+		request.Raise(gottp.HttpError{http.StatusNotFound, "notification setting does not exists." + notification.Type})
 		return
 	}
 
@@ -82,7 +85,7 @@ func (self *NotificationSettingWithChannelHandler) Delete(request *gottp.Request
 
 	if len(notification.Channels) == 0 {
 
-		err = db.DbConnection.Delete("notifications", map[string]interface{}{"_id": notification.Id})
+		err = db.DbConnection.Delete("notifications", db.M{"_id": notification.Id})
 
 	} else {
 
@@ -95,6 +98,7 @@ func (self *NotificationSettingWithChannelHandler) Delete(request *gottp.Request
 	}
 
 	if err != nil {
+
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
 	}
 
@@ -111,7 +115,7 @@ func (self *NotificationSettingHandler) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "Atleast one of the user_id, org_id and app_id must be present."})
 		return
 	}
-	err := db.DbConnection.Delete("notifications", map[string]interface{}{"app_id": notification.ApplicationID,
+	err := db.DbConnection.Delete("notifications", db.M{"app_id": notification.ApplicationID,
 		"org_id": notification.OrganizationID, "user_id": notification.UserID, "type": notification.Type})
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
