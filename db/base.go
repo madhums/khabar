@@ -6,7 +6,7 @@ import (
 )
 
 type BaseInterface interface {
-	PrepareSave(conn *MConn)
+	PrepareSave()
 }
 
 type BaseModel struct {
@@ -15,7 +15,7 @@ type BaseModel struct {
 	ModifiedOn int64         `json:"updated_on" bson:"updated_on" required:"true"`
 }
 
-func (self *BaseModel) PrepareSave(conn *MConn) {
+func (self *BaseModel) PrepareSave() {
 	if !self.Id.Valid() {
 		self.Id = bson.NewObjectId()
 	}

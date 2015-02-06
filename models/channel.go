@@ -4,6 +4,10 @@ import (
 	"github.com/parthdesai/sc-notifications/db"
 )
 
+const (
+	ChannelCollection = "channels"
+)
+
 type Channel struct {
 	db.BaseModel   `bson:",inline"`
 	UserID         string                 `json:"user_id" bson:"user_id"`
@@ -30,11 +34,15 @@ func (self *Channel) IsValid() bool {
 }
 
 func (self *Channel) GetFromDatabase(dbConn *db.MConn) bool {
-	return dbConn.Get("channels", db.M{"app_id": self.ApplicationID,
+	return dbConn.Get(ChannelCollection, db.M{"app_id": self.ApplicationID,
 		"org_id": self.OrganizationID, "user_id": self.UserID, "ident": self.Ident}).Next(self)
 }
 
 func (self *Channel) DeleteFromDatabase(dbConn *db.MConn) error {
-	return dbConn.Delete("channels", db.M{"app_id": self.ApplicationID,
+	return dbConn.Delete(ChannelCollection, db.M{"app_id": self.ApplicationID,
 		"org_id": self.OrganizationID, "user_id": self.UserID, "ident": self.Ident})
+}
+
+func (self *Channel) InsertIntoDatabase(dbConn *db.MConn) string {
+	return dbConn.Insert(ChannelCollection, self)
 }

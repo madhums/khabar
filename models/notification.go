@@ -5,6 +5,10 @@ import (
 	"github.com/parthdesai/sc-notifications/utils"
 )
 
+const (
+	NotificationCollection = "notifications"
+)
+
 type Notification struct {
 	db.BaseModel   `bson:",inline"`
 	UserID         string   `json:"user_id" bson:"user_id"`
@@ -34,7 +38,7 @@ func (self *Notification) IsValid(op_type int) bool {
 }
 
 func (self *Notification) UpdateChannels(dbConn *db.MConn) error {
-	return db.DbConnection.Update("notifications", db.M{"_id": self.Id},
+	return dbConn.Update(NotificationCollection, db.M{"_id": self.Id},
 		db.M{
 			"$set": db.M{
 				"channels": self.Channels,
@@ -42,13 +46,17 @@ func (self *Notification) UpdateChannels(dbConn *db.MConn) error {
 		})
 }
 
+func (self *Notification) InsertIntoDatabase(dbConn *db.MConn) string {
+	return dbConn.Insert(NotificationCollection, self)
+}
+
 func (self *Notification) DeleteFromDatabase(dbConn *db.MConn) error {
-	return dbConn.Delete("notifications", db.M{"app_id": self.ApplicationID,
+	return dbConn.Delete(NotificationCollection, db.M{"app_id": self.ApplicationID,
 		"org_id": self.OrganizationID, "user_id": self.UserID, "type": self.Type})
 }
 
 func (self *Notification) GetFromDatabase(dbConn *db.MConn) bool {
-	return dbConn.Get("notifications", db.M{"app_id": self.ApplicationID,
+	return dbConn.Get(NotificationCollection, db.M{"app_id": self.ApplicationID,
 		"org_id": self.OrganizationID, "user_id": self.UserID, "type": self.Type}).Next(self)
 }
 

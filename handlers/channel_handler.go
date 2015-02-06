@@ -16,10 +16,10 @@ func (self *ChannelHandler) Post(request *gottp.Request) {
 
 	channel := new(models.Channel)
 	request.ConvertArguments(channel)
-	channel.PrepareSave(db.DbConnection)
+	channel.PrepareSave()
 
 	if !channel.IsValid() {
-		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "Atleast one of the user_id, org_id and app_id must be present."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user_id, org_id and app_id must be present."})
 		return
 	}
 
@@ -30,11 +30,11 @@ func (self *ChannelHandler) Post(request *gottp.Request) {
 	hasData := channel.GetFromDatabase(db.DbConnection)
 
 	if hasData {
-		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "Channel already exists"})
+		request.Raise(gottp.HttpError{http.StatusConflict, "Channel already exists"})
 		return
 	}
 
-	db.DbConnection.Insert("channels", channel)
+	channel.InsertIntoDatabase(db.DbConnection)
 	request.Write(channel)
 }
 
@@ -42,7 +42,7 @@ func (self *ChannelHandler) Delete(request *gottp.Request) {
 	channel := new(models.Channel)
 	request.ConvertArguments(channel)
 	if !channel.IsValid() {
-		request.Raise(gottp.HttpError{http.StatusPreconditionFailed, "Atleast one of the user_id, org_id and app_id must be present."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user_id, org_id and app_id must be present."})
 		return
 	}
 	err := channel.DeleteFromDatabase(db.DbConnection)
