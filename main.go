@@ -15,8 +15,8 @@ func sysInit() {
 
 func main() {
 	go sysInit()
-	registerHandler("notification", "^/notifications/(?P<ident>\\w+$)", new(handlers.NotificationHandler))
-	registerHandler("channel", "^/channel/(?P<ident>\\w+$)", new(handlers.ChannelHandler))
+	registerHandler("notification", "^/notifications/(?P<generic_id>\\w+)/?$", new(handlers.NotificationHandler))
+	registerHandler("channel", "^/channel/(?P<ident>\\w+)/?$", new(handlers.ChannelHandler))
 	registerHandler("notification settings with channel", "^/notification_setting/(?P<notification_type>\\w+)/(?P<channel_ident>\\w+)/?$", new(handlers.NotificationSettingWithChannelHandler))
 	registerHandler("notification settings", "^/notification_setting/(?P<notification_ident>\\w+)/?$", new(handlers.NotificationSettingHandler))
 	registerHandler("User locale handler", "^/user_locale/(?P<user_id>\\w+)/?$", new(handlers.UserLocalHandler))

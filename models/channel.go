@@ -33,6 +33,98 @@ func (self *Channel) IsValid() bool {
 	return true
 }
 
+func (self *Channel) FindAppropriateChannelForUser(dbConn *db.MConn) bool {
+	var hasData bool
+	hasData = dbConn.Get(ChannelCollection, db.M{
+		"user_id": self.UserID,
+		"app_id":  self.ApplicationID,
+		"org_id":  self.OrganizationID,
+		"ident":   self.Ident,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	hasData = dbConn.Get(ChannelCollection, db.M{
+		"user_id": self.UserID,
+		"app_id":  self.ApplicationID,
+		"ident":   self.Ident,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	hasData = dbConn.Get(ChannelCollection, db.M{
+		"user_id": self.UserID,
+		"org_id":  self.OrganizationID,
+		"ident":   self.Ident,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+	return false
+}
+
+func (self *Channel) FindAppropriateOrganizationChannel(dbConn *db.MConn) bool {
+	var hasData bool
+	hasData = dbConn.Get(ChannelCollection, db.M{
+		"app_id": self.ApplicationID,
+		"org_id": self.OrganizationID,
+		"ident":  self.Ident,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	hasData = dbConn.Get(ChannelCollection, db.M{
+		"org_id": self.OrganizationID,
+		"ident":  self.Ident,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	return false
+
+}
+
+func (self *Channel) FindGlobalChannel(dbConn *db.MConn) bool {
+	var hasData bool
+	hasData = dbConn.Get(ChannelCollection, db.M{
+		"ident": self.Ident,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	return false
+
+}
+
+func (self *Channel) FindAppropriateChannel(dbConn *db.MConn) bool {
+
+	if self.FindAppropriateChannelForUser(dbConn) {
+		return true
+	}
+
+	if self.FindAppropriateOrganizationChannel(dbConn) {
+		return true
+	}
+
+	if self.FindGlobalChannel(dbConn) {
+		return true
+	}
+
+	return false
+
+}
+
 func (self *Channel) GetFromDatabase(dbConn *db.MConn) bool {
 	return dbConn.Get(ChannelCollection, db.M{"app_id": self.ApplicationID,
 		"org_id": self.OrganizationID, "user_id": self.UserID, "ident": self.Ident}).Next(self)

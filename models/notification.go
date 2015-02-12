@@ -79,3 +79,95 @@ func (self *Notification) RemoveChannelFromNotification(channel string) {
 	}
 	self.Channels = self.Channels[:j]
 }
+
+func (self *Notification) FindAppropriateNotificationForUser(dbConn *db.MConn) bool {
+	var hasData bool
+	hasData = dbConn.Get(NotificationCollection, db.M{
+		"user_id": self.UserID,
+		"app_id":  self.ApplicationID,
+		"org_id":  self.OrganizationID,
+		"type":    self.Type,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	hasData = dbConn.Get(NotificationCollection, db.M{
+		"user_id": self.UserID,
+		"app_id":  self.ApplicationID,
+		"type":    self.Type,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	hasData = dbConn.Get(NotificationCollection, db.M{
+		"user_id": self.UserID,
+		"org_id":  self.OrganizationID,
+		"type":    self.Type,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+	return false
+}
+
+func (self *Notification) FindAppropriateOrganizationNotification(dbConn *db.MConn) bool {
+	var hasData bool
+	hasData = dbConn.Get(NotificationCollection, db.M{
+		"app_id": self.ApplicationID,
+		"org_id": self.OrganizationID,
+		"type":   self.Type,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	hasData = dbConn.Get(NotificationCollection, db.M{
+		"org_id": self.OrganizationID,
+		"type":   self.Type,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	return false
+
+}
+
+func (self *Notification) FindGlobalNotification(dbConn *db.MConn) bool {
+	var hasData bool
+	hasData = dbConn.Get(NotificationCollection, db.M{
+		"type": self.Type,
+	}).Next(self)
+
+	if hasData {
+		return true
+	}
+
+	return false
+
+}
+
+func (self *Notification) FindAppropriateNotification(dbConn *db.MConn) bool {
+
+	if self.FindAppropriateNotificationForUser(dbConn) {
+		return true
+	}
+
+	if self.FindAppropriateOrganizationNotification(dbConn) {
+		return true
+	}
+
+	if self.FindGlobalNotification(dbConn) {
+		return true
+	}
+
+	return false
+
+}
