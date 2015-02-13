@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"log"
 	"sync"
 	"time"
 )
@@ -22,7 +21,6 @@ func (self *TimedWaitGroup) TimedWait() bool {
 
 	select {
 	case <-completionChannel:
-		log.Println("Success!!!!")
 		return true
 	case <-time.After(self.TimeOut):
 		return false

@@ -10,13 +10,13 @@ const (
 
 type UserLocale struct {
 	db.BaseModel `bson:",inline"`
-	UserId       string `json:"user_id" bson:"user_id" required:"true"`
-	LanguageId   string `json:"language_id" bson:"language_id" required:"true"`
-	RegionId     string `json:"region_id" bson:"region_id" required:"true"`
+	UserID       string `json:"user_id" bson:"user_id" required:"true"`
+	LanguageID   string `json:"language_id" bson:"language_id" required:"true"`
+	RegionID     string `json:"region_id" bson:"region_id" required:"true"`
 }
 
 func (self *UserLocale) GetFromDatabase(dbConn *db.MConn) bool {
-	return dbConn.Get(UserLocaleCollection, db.M{"user_id": self.UserId}).Next(self)
+	return dbConn.Get(UserLocaleCollection, db.M{"user_id": self.UserID}).Next(self)
 }
 
 func (self *UserLocale) InsertIntoDatabase(dbConn *db.MConn) string {
@@ -24,7 +24,7 @@ func (self *UserLocale) InsertIntoDatabase(dbConn *db.MConn) string {
 }
 
 func (self *UserLocale) IsValid() bool {
-	if len(self.LanguageId) == 0 || len(self.RegionId) == 0 || len(self.UserId) == 0 {
+	if len(self.LanguageID) == 0 || len(self.RegionID) == 0 || len(self.UserID) == 0 {
 		return false
 	}
 	return true
@@ -34,8 +34,8 @@ func (self *UserLocale) Update(dbConn *db.MConn) error {
 	return dbConn.Update(UserLocaleCollection, db.M{"_id": self.Id},
 		db.M{
 			"$set": db.M{
-				"region_id":   self.RegionId,
-				"language_id": self.LanguageId,
+				"region_id":   self.RegionID,
+				"language_id": self.LanguageID,
 			},
 		})
 

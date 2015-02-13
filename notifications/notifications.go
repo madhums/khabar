@@ -1,12 +1,19 @@
 package notifications
 
 import (
+	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/parthdesai/sc-notifications/db"
 	"github.com/parthdesai/sc-notifications/models"
 	"github.com/parthdesai/sc-notifications/utils"
 	"log"
+	"os"
+	"strings"
 	"time"
 )
+
+func PrepareTemplateIdentifier(channelIdent string, orgID string, regionID string, languageID string) string {
+	return languageID + "-" + strings.ToUpper(regionID) + "." + channelIdent + "." + orgID + "." + "json"
+}
 
 func SendToAppropriateChannel(chanelIdent string, applicationID string, organizationID string, userID string, dbConn *db.MConn, wg *utils.TimedWaitGroup) {
 
@@ -21,7 +28,29 @@ func SendToAppropriateChannel(chanelIdent string, applicationID string, organiza
 		UserID:         userID,
 	}
 	channelSetting.FindAppropriateChannel(dbConn)
-	log.Println("Sending notification to " + chanelIdent + " using channel setting _id:" + channelSetting.Id.Hex() + " " + "user id:" + channelSetting.UserID + " " + "app id:" + channelSetting.ApplicationID + " " + "org id:" + channelSetting.OrganizationID)
+	userLocale := models.UserLocale{
+		UserID: userID,
+	}
+	if !userLocale.GetFromDatabase(dbConn) {
+		log.Println("Unable to find locale for user:" + userLocale.UserID)
+		userLocale.RegionID = "US"
+		userLocale.LanguageID = "en"
+	}
+	filename := PrepareTemplateIdentifier(chanelIdent, organizationID, userLocale.RegionID, userLocale.LanguageID)
+	err := i18n.LoadTranslationFile(filename)
+	if err != nil {
+		log.Println(os.Getenv("PWD"))
+		log.Println("Error occured while opening file:" + err.Error())
+	}
+
+	T, _ := i18n.Tfunc(userLocale.LanguageID + "-" + strings.ToUpper(userLocale.RegionID))
+
+	log.Println(T("notification_setting_text", map[string]interface{}{
+		"ChannelIdent":   chanelIdent,
+		"ApplicationID":  applicationID,
+		"UserID":         userID,
+		"OrganizationID": organizationID,
+	}))
 
 }
 
