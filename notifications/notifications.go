@@ -6,13 +6,16 @@ import (
 	"github.com/parthdesai/sc-notifications/models"
 	"github.com/parthdesai/sc-notifications/utils"
 	"log"
-	"os"
 	"strings"
 	"time"
 )
 
-func PrepareTemplateIdentifier(channelIdent string, orgID string, regionID string, languageID string) string {
+func PrepareTemplateFilename(channelIdent string, orgID string, regionID string, languageID string) string {
 	return languageID + "-" + strings.ToUpper(regionID) + "." + channelIdent + "." + orgID + "." + "json"
+}
+
+func PrepareTemplateIdentifier(templateID string, channelIdent string, orgID string, regionID string, languageID string) string {
+	return templateID + "." + languageID + "-" + strings.ToUpper(regionID) + "." + channelIdent + "." + orgID
 }
 
 func SendToAppropriateChannel(chanelIdent string, applicationID string, organizationID string, userID string, dbConn *db.MConn, wg *utils.TimedWaitGroup) {
@@ -36,16 +39,15 @@ func SendToAppropriateChannel(chanelIdent string, applicationID string, organiza
 		userLocale.RegionID = "US"
 		userLocale.LanguageID = "en"
 	}
-	filename := PrepareTemplateIdentifier(chanelIdent, organizationID, userLocale.RegionID, userLocale.LanguageID)
-	err := i18n.LoadTranslationFile(filename)
+	filename := PrepareTemplateFilename(chanelIdent, organizationID, userLocale.RegionID, userLocale.LanguageID)
+	err := LoadTranslationFile(filename)
 	if err != nil {
-		log.Println(os.Getenv("PWD"))
 		log.Println("Error occured while opening file:" + err.Error())
 	}
 
 	T, _ := i18n.Tfunc(userLocale.LanguageID + "-" + strings.ToUpper(userLocale.RegionID))
 
-	log.Println(T("notification_setting_text", map[string]interface{}{
+	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", chanelIdent, organizationID, userLocale.RegionID, userLocale.LanguageID), map[string]interface{}{
 		"ChannelIdent":   chanelIdent,
 		"ApplicationID":  applicationID,
 		"UserID":         userID,
