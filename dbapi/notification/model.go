@@ -4,6 +4,7 @@ import (
 	"github.com/parthdesai/sc-notifications/db"
 	"github.com/parthdesai/sc-notifications/dbapi"
 	"github.com/parthdesai/sc-notifications/utils"
+	"log"
 )
 
 const (
@@ -39,11 +40,9 @@ func (self *Notification) IsValid(op_type int) bool {
 }
 
 func (self *Notification) AddChannelToNotification(channel string) {
-	newArray := make([]string, len(self.Channels)+1)
-	copy(newArray, self.Channels)
-	newArray[len(newArray)-1] = channel
-	self.Channels = newArray
-
+	log.Println(self.Channels)
+	self.Channels = append(self.Channels, channel)
+	log.Println(self.Channels)
 	utils.RemoveDuplicates(&(self.Channels))
 }
 

@@ -32,7 +32,7 @@ func (self *NotificationHandler) Put(request *gottp.Request) {
 	notificationInstance := new(notification_instance.NotificationInstance)
 	objectIdString := request.GetArgument("generic_id").(string)
 	if !bson.IsObjectIdHex(objectIdString) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Not a valid id."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "_id is not a valid Hex object."})
 		return
 	}
 	notificationInstance.Id = bson.ObjectIdHex(objectIdString)
@@ -53,7 +53,7 @@ func (self *NotificationHandler) Post(request *gottp.Request) {
 	}
 
 	if !notificationInstance.IsValid() {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, ""})
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "Context is required while inserting."})
 		return
 	}
 
