@@ -27,14 +27,7 @@ type MConn struct {
 	db *mgo.Database
 }
 
-func (self *MConn) prepareQuery(query *M) {
-	if self.isSystemDb() {
-		(*query)["deleted"] = M{"$ne": true}
-	}
-}
-
 func (self *MConn) getCursor(table string, query M) *mgo.Query {
-	self.prepareQuery(&query)
 
 	fields, err1 := query["fields"].(M)
 	delete(query, "fields")
@@ -68,7 +61,6 @@ type MapReduce mgo.MapReduce
 
 func (self *MConn) MapReduce(table string, query M, result interface{}, job *MapReduce) (*mgo.MapReduceInfo, error) {
 	coll := self.db.C(table)
-	self.prepareQuery(&query)
 	realJob := mgo.MapReduce{Map: job.Map, Reduce: job.Reduce, Finalize: job.Finalize, Scope: job.Scope, Verbose: true}
 	return coll.Find(query).MapReduce(&realJob, result)
 }
@@ -99,8 +91,6 @@ func (self *MConn) DropIndices(table string) error {
 func (self *MConn) findAndApply(table string, query M, change mgo.Change, result interface{}) error {
 	change.ReturnNew = true
 
-	self.prepareQuery(&query)
-
 	coll := self.db.C(table)
 	_, err := coll.Find(query).Apply(change, result)
 	if err != nil {
@@ -110,7 +100,6 @@ func (self *MConn) findAndApply(table string, query M, change mgo.Change, result
 }
 
 func (self *MConn) FindAndUpsert(table string, query M, doc M, result interface{}) error {
-	self.prepareQuery(&query)
 	change := mgo.Change{
 		Update: doc,
 		Upsert: true,
@@ -119,7 +108,6 @@ func (self *MConn) FindAndUpsert(table string, query M, doc M, result interface{
 }
 
 func (self *MConn) FindAndUpdate(table string, query M, doc M, result interface{}) error {
-	self.prepareQuery(&query)
 	change := mgo.Change{
 		Update: doc,
 		Upsert: false,
@@ -133,7 +121,6 @@ func (self *MConn) EnsureIndex(table string, index mgo.Index) error {
 }
 
 func (self *MConn) GetCursor(table string, query M) *mgo.Query {
-	self.prepareQuery(&query)
 	coll := self.db.C(table)
 	out := coll.Find(query)
 
@@ -147,7 +134,6 @@ func (self *MConn) GetCursor(table string, query M) *mgo.Query {
 }
 
 func (self *MConn) Get(table string, query M) *mgo.Iter {
-	self.prepareQuery(&query)
 	return self.getCursor(table, query).Iter()
 }
 
@@ -193,7 +179,6 @@ func (self *MConn) Count(table string, query M) int {
 
 func (self *MConn) Upsert(table string, query M, doc M) error {
 	self.ScopeCheck()
-	self.prepareQuery(&query)
 
 	var err error
 	if len(doc) == 0 {
@@ -225,7 +210,6 @@ func AlterDoc(doc *M, operator string, operation M) {
 
 func (self *MConn) Update(table string, query M, doc M) error {
 	self.ScopeCheck()
-	self.prepareQuery(&query)
 
 	coll := self.db.C(table)
 	var update_err error
@@ -246,7 +230,6 @@ func (self *MConn) Update(table string, query M, doc M) error {
 }
 
 func (self *MConn) Delete(table string, query M) error {
-	self.prepareQuery(&query)
 
 	var delete_err error
 
