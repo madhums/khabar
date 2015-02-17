@@ -34,7 +34,7 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, ap
 		return
 
 	}
-	userLocale := user_locale.GetFromDatabase(db.DbConnection, user)
+	userLocale := user_locale.Get(db.DbConnection, user)
 	if userLocale == nil {
 		log.Println("Unable to find locale for user")
 		userLocale = new(user_locale.UserLocale)

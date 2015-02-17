@@ -16,10 +16,10 @@ func sysInit() {
 
 func main() {
 	go sysInit()
-	registerHandler("notification", "^/notifications/(?P<generic_id>\\w+)/?$", new(handlers.NotificationHandler))
-	registerHandler("channel", "^/channel/(?P<ident>\\w+)/?$", new(handlers.GullyHandler))
-	registerHandler("notification_settings_with_channel", "^/notification_setting/(?P<notification_type>\\w+)/(?P<channel_ident>\\w+)/?$", new(handlers.NotificationSettingWithChannelHandler))
+	registerHandler("notification", "^/notifications/(?P<generic_id>\\w+)/?$", new(handlers.Notification))
+	registerHandler("channel", "^/channel/(?P<ident>\\w+)/?$", new(handlers.Gully))
+	registerHandler("notification_settings_with_channel", "^/notification_setting/(?P<notification_type>\\w+)/(?P<channel_ident>\\w+)/?$", new(handlers.NotificationSettingWithChannel))
 	registerHandler("notification_settings", "^/notification_setting/(?P<type>\\w+)/?$", new(handlers.NotificationSettingHandler))
-	registerHandler("User_locale_handler", "^/user_locale/(?P<user>\\w+)/?$", new(handlers.UserLocalHandler))
+	registerHandler("User_locale_handler", "^/user_locale/(?P<user>\\w+)/?$", new(handlers.UserLocale))
 	gottp.MakeServer(&config.Settings)
 }

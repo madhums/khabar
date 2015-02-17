@@ -18,7 +18,7 @@ func MarkAsRead(dbConn *db.MConn, notificationInstance *NotificationInstance) {
 		}, notificationInstance)
 }
 
-func GetAllFromDatabase(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, organization string) *[]NotificationInstance {
+func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, organization string) *[]NotificationInstance {
 	var query db.M = nil
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
@@ -60,6 +60,6 @@ func GetAllFromDatabase(dbConn *db.MConn, paginator *gottp.Paginator, user strin
 	return &result
 }
 
-func InsertIntoDatabase(dbConn *db.MConn, notificationInstance *NotificationInstance) string {
+func Insert(dbConn *db.MConn, notificationInstance *NotificationInstance) string {
 	return dbConn.Insert(NotificationInstanceCollection, notificationInstance)
 }

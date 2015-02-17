@@ -8,11 +8,11 @@ import (
 	"net/http"
 )
 
-type UserLocalHandler struct {
+type UserLocale struct {
 	gottp.BaseHandler
 }
 
-func (self *UserLocalHandler) Put(request *gottp.Request) {
+func (self *UserLocale) Put(request *gottp.Request) {
 	userLocale := new(user_locale.UserLocale)
 	request.ConvertArguments(userLocale)
 
@@ -21,7 +21,7 @@ func (self *UserLocalHandler) Put(request *gottp.Request) {
 		return
 	}
 
-	userLocale = user_locale.GetFromDatabase(db.DbConnection, userLocale.User)
+	userLocale = user_locale.Get(db.DbConnection, userLocale.User)
 
 	if userLocale == nil {
 		request.Raise(gottp.HttpError{http.StatusNotFound, "Unable to find user locale for user id."})
@@ -36,7 +36,7 @@ func (self *UserLocalHandler) Put(request *gottp.Request) {
 	user_locale.Update(db.DbConnection, userLocale)
 }
 
-func (self *UserLocalHandler) Post(request *gottp.Request) {
+func (self *UserLocale) Post(request *gottp.Request) {
 	userLocale := new(user_locale.UserLocale)
 	request.ConvertArguments(userLocale)
 	userLocale.PrepareSave()
@@ -50,10 +50,10 @@ func (self *UserLocalHandler) Post(request *gottp.Request) {
 		return
 	}
 
-	if user_locale.GetFromDatabase(db.DbConnection, userLocale.User) != nil {
+	if user_locale.Get(db.DbConnection, userLocale.User) != nil {
 		request.Raise(gottp.HttpError{http.StatusConflict, "User locale information already exists"})
 		return
 	}
 
-	user_locale.InsertIntoDatabase(db.DbConnection, userLocale)
+	user_locale.Insert(db.DbConnection, userLocale)
 }

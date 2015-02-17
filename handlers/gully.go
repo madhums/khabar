@@ -9,11 +9,11 @@ import (
 	"net/http"
 )
 
-type GullyHandler struct {
+type Gully struct {
 	gottp.BaseHandler
 }
 
-func (self *GullyHandler) Post(request *gottp.Request) {
+func (self *Gully) Post(request *gottp.Request) {
 
 	inputGully := new(gully.Gully)
 	request.ConvertArguments(inputGully)
@@ -28,25 +28,25 @@ func (self *GullyHandler) Post(request *gottp.Request) {
 		return
 	}
 
-	gly := gully.GetFromDatabase(db.DbConnection, inputGully.User, inputGully.AppName, inputGully.Organization, inputGully.Ident)
+	gly := gully.Get(db.DbConnection, inputGully.User, inputGully.AppName, inputGully.Organization, inputGully.Ident)
 
 	if gly != nil {
 		request.Raise(gottp.HttpError{http.StatusConflict, "Channel already exists"})
 		return
 	}
 
-	gully.InsertIntoDatabase(db.DbConnection, inputGully)
+	gully.Insert(db.DbConnection, inputGully)
 	request.Write(inputGully)
 }
 
-func (self *GullyHandler) Delete(request *gottp.Request) {
+func (self *Gully) Delete(request *gottp.Request) {
 	gly := new(gully.Gully)
 	request.ConvertArguments(gly)
 	if !gly.IsValid(dbapi.DELETE_OPERATION) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
-	err := gully.DeleteFromDatabase(db.DbConnection, gly)
+	err := gully.Delete(db.DbConnection, gly)
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}

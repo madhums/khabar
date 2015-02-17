@@ -39,14 +39,14 @@ func (self *Notification) IsValid(op_type int) bool {
 	return true
 }
 
-func (self *Notification) AddChannelToNotification(channel string) {
+func (self *Notification) AddChannel(channel string) {
 	log.Println(self.Channels)
 	self.Channels = append(self.Channels, channel)
 	log.Println(self.Channels)
 	utils.RemoveDuplicates(&(self.Channels))
 }
 
-func (self *Notification) RemoveChannelFromNotification(channel string) {
+func (self *Notification) RemoveChannel(channel string) {
 	j := 0
 	for i, x := range self.Channels {
 		if x != channel {

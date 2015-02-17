@@ -10,11 +10,11 @@ import (
 	"net/http"
 )
 
-type NotificationSettingWithChannelHandler struct {
+type NotificationSettingWithChannel struct {
 	gottp.BaseHandler
 }
 
-func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) {
+func (self *NotificationSettingWithChannel) Post(request *gottp.Request) {
 	inputNotification := new(notification.Notification)
 
 	channelIdent := request.GetArgument("channel_ident").(string)
@@ -22,9 +22,9 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 
 	request.ConvertArguments(inputNotification)
 
-	inputNotification.AddChannelToNotification(channelIdent)
+	inputNotification.AddChannel(channelIdent)
 
-	ntfication := notification.GetFromDatabase(db.DbConnection, inputNotification.User, inputNotification.AppName, inputNotification.Organization, inputNotification.Type)
+	ntfication := notification.Get(db.DbConnection, inputNotification.User, inputNotification.AppName, inputNotification.Organization, inputNotification.Type)
 
 	hasData := true
 
@@ -40,7 +40,7 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 
 		ntfication = inputNotification
 	} else {
-		ntfication.AddChannelToNotification(channelIdent)
+		ntfication.AddChannel(channelIdent)
 	}
 
 	if !utils.ValidateAndRaiseError(request, ntfication) {
@@ -50,10 +50,10 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 
 	var err error
 	if hasData {
-		err = notification.UpdateNotification(db.DbConnection, ntfication)
+		err = notification.Update(db.DbConnection, ntfication)
 	} else {
 		log.Println("Successfull call: Inserting document")
-		notification.InsertIntoDatabase(db.DbConnection, ntfication)
+		notification.Insert(db.DbConnection, ntfication)
 	}
 
 	if err != nil {
@@ -63,7 +63,7 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 
 }
 
-func (self *NotificationSettingWithChannelHandler) Delete(request *gottp.Request) {
+func (self *NotificationSettingWithChannel) Delete(request *gottp.Request) {
 	ntfication := new(notification.Notification)
 
 	channelIdent := request.GetArgument("channel_ident").(string)
@@ -71,24 +71,24 @@ func (self *NotificationSettingWithChannelHandler) Delete(request *gottp.Request
 
 	request.ConvertArguments(ntfication)
 
-	ntfication = notification.GetFromDatabase(db.DbConnection, ntfication.User, ntfication.AppName, ntfication.Organization, ntfication.Type)
+	ntfication = notification.Get(db.DbConnection, ntfication.User, ntfication.AppName, ntfication.Organization, ntfication.Type)
 
 	if ntfication == nil {
 		request.Raise(gottp.HttpError{http.StatusNotFound, "notification setting does not exists."})
 		return
 	}
 
-	ntfication.RemoveChannelFromNotification(channelIdent)
+	ntfication.RemoveChannel(channelIdent)
 	log.Println(ntfication.Channels)
 
 	var err error
 
 	if len(ntfication.Channels) == 0 {
 		log.Println("Deleting from database, since channels are now empty.")
-		err = notification.DeleteFromDatabase(db.DbConnection, ntfication)
+		err = notification.Delete(db.DbConnection, ntfication)
 	} else {
 		log.Println("Updating...")
-		err = notification.UpdateNotification(db.DbConnection, ntfication)
+		err = notification.Update(db.DbConnection, ntfication)
 	}
 
 	if err != nil {
@@ -108,7 +108,7 @@ func (self *NotificationSettingHandler) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
-	err := notification.DeleteFromDatabase(db.DbConnection, ntfication)
+	err := notification.Delete(db.DbConnection, ntfication)
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}

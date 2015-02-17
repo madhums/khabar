@@ -4,7 +4,7 @@ import (
 	"github.com/parthdesai/sc-notifications/db"
 )
 
-func GetFromDatabase(dbConn *db.MConn, user string, appName string, organization string, ident string) *Gully {
+func Get(dbConn *db.MConn, user string, appName string, organization string, ident string) *Gully {
 	gully := new(Gully)
 	if dbConn.GetOne(GullyCollection, db.M{"app_name": appName,
 		"org": organization, "user": user, "ident": ident}, gully) != nil {
@@ -13,12 +13,12 @@ func GetFromDatabase(dbConn *db.MConn, user string, appName string, organization
 	return gully
 }
 
-func DeleteFromDatabase(dbConn *db.MConn, gully *Gully) error {
+func Delete(dbConn *db.MConn, gully *Gully) error {
 	return dbConn.Delete(GullyCollection, db.M{"app_name": gully.AppName,
 		"org": gully.Organization, "user": gully.User, "ident": gully.Ident})
 }
 
-func InsertIntoDatabase(dbConn *db.MConn, gully *Gully) string {
+func Insert(dbConn *db.MConn, gully *Gully) string {
 	return dbConn.Insert(GullyCollection, gully)
 }
 

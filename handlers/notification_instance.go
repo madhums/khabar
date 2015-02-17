@@ -12,11 +12,11 @@ import (
 	"net/http"
 )
 
-type NotificationHandler struct {
+type Notification struct {
 	gottp.BaseHandler
 }
 
-func (self *NotificationHandler) Get(request *gottp.Request) {
+func (self *Notification) Get(request *gottp.Request) {
 
 	notificationInstance := new(notification_instance.NotificationInstance)
 	request.ConvertArguments(notificationInstance)
@@ -25,10 +25,10 @@ func (self *NotificationHandler) Get(request *gottp.Request) {
 
 	paginator := request.GetPaginator()
 
-	request.Write(notification_instance.GetAllFromDatabase(db.DbConnection, paginator, notificationInstance.User, notificationInstance.AppName, notificationInstance.Organization))
+	request.Write(notification_instance.GetAll(db.DbConnection, paginator, notificationInstance.User, notificationInstance.AppName, notificationInstance.Organization))
 }
 
-func (self *NotificationHandler) Put(request *gottp.Request) {
+func (self *Notification) Put(request *gottp.Request) {
 	notificationInstance := new(notification_instance.NotificationInstance)
 	objectIdString := request.GetArgument("generic_id").(string)
 	if !bson.IsObjectIdHex(objectIdString) {
@@ -40,7 +40,7 @@ func (self *NotificationHandler) Put(request *gottp.Request) {
 	request.Write(notificationInstance)
 }
 
-func (self *NotificationHandler) Post(request *gottp.Request) {
+func (self *Notification) Post(request *gottp.Request) {
 	notificationInstance := new(notification_instance.NotificationInstance)
 	request.ConvertArguments(notificationInstance)
 	notificationInstance.NotificationType = request.GetArgument("generic_id").(string)
@@ -66,6 +66,6 @@ func (self *NotificationHandler) Post(request *gottp.Request) {
 		notifications.SendNotification(db.DbConnection, notificationInstance, notificationSetting)
 	}
 
-	notification_instance.InsertIntoDatabase(db.DbConnection, notificationInstance)
+	notification_instance.Insert(db.DbConnection, notificationInstance)
 
 }

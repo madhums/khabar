@@ -4,7 +4,7 @@ import (
 	"github.com/parthdesai/sc-notifications/db"
 )
 
-func GetFromDatabase(dbConn *db.MConn, user string) *UserLocale {
+func Get(dbConn *db.MConn, user string) *UserLocale {
 	userLocale := new(UserLocale)
 	if dbConn.GetOne(UserLocaleCollection, db.M{"user": user}, userLocale) != nil {
 		return nil
@@ -12,7 +12,7 @@ func GetFromDatabase(dbConn *db.MConn, user string) *UserLocale {
 	return userLocale
 }
 
-func InsertIntoDatabase(dbConn *db.MConn, userLocale *UserLocale) string {
+func Insert(dbConn *db.MConn, userLocale *UserLocale) string {
 	return dbConn.Insert(UserLocaleCollection, userLocale)
 }
 
