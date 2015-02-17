@@ -4,7 +4,7 @@ import (
 	"github.com/parthdesai/sc-notifications/db"
 )
 
-func UpdateChannels(dbConn *db.MConn, notification *Notification) error {
+func UpdateNotification(dbConn *db.MConn, notification *Notification) error {
 	return dbConn.FindAndUpdate(NotificationCollection, db.M{"_id": notification.Id},
 		db.M{
 			"$set": db.M{
@@ -24,68 +24,68 @@ func DeleteFromDatabase(dbConn *db.MConn, notification *Notification) error {
 
 func GetFromDatabase(dbConn *db.MConn, userID string, applicationID string, organizationID string, notificationType string) *Notification {
 	notification := new(Notification)
-	if !dbConn.Get(NotificationCollection, db.M{"app_id": applicationID,
-		"org_id": organizationID, "user_id": userID, "type": notificationType}).Next(notification) {
+	if dbConn.GetOne(NotificationCollection, db.M{"app_id": applicationID,
+		"org_id": organizationID, "user_id": userID, "type": notificationType}, notification) != nil {
 		return nil
 	}
 	return notification
 }
 
 func FindAppropriateNotificationForUser(dbConn *db.MConn, userID string, applicationID string, organizationID string, notificationType string) *Notification {
-	var hasData bool
+	var err error
 	notification := new(Notification)
-	hasData = dbConn.Get(NotificationCollection, db.M{
+	err = dbConn.GetOne(NotificationCollection, db.M{
 		"user_id": userID,
 		"app_id":  applicationID,
 		"org_id":  organizationID,
 		"type":    notificationType,
-	}).Next(notification)
+	}, notification)
 
-	if hasData {
+	if err != nil {
 		return notification
 	}
 
-	hasData = dbConn.Get(NotificationCollection, db.M{
+	err = dbConn.GetOne(NotificationCollection, db.M{
 		"user_id": userID,
 		"app_id":  applicationID,
 		"type":    notificationType,
-	}).Next(notification)
+	}, notification)
 
-	if hasData {
+	if err != nil {
 		return notification
 	}
 
-	hasData = dbConn.Get(NotificationCollection, db.M{
+	err = dbConn.GetOne(NotificationCollection, db.M{
 		"user_id": userID,
 		"org_id":  organizationID,
 		"type":    notificationType,
-	}).Next(notification)
+	}, notification)
 
-	if hasData {
+	if err != nil {
 		return notification
 	}
 	return nil
 }
 
 func FindAppropriateOrganizationNotification(dbConn *db.MConn, applicationID string, organizationID string, notificationType string) *Notification {
-	var hasData bool
+	var err error
 	notification := new(Notification)
-	hasData = dbConn.Get(NotificationCollection, db.M{
+	err = dbConn.GetOne(NotificationCollection, db.M{
 		"app_id": applicationID,
 		"org_id": organizationID,
 		"type":   notificationType,
-	}).Next(notification)
+	}, notification)
 
-	if hasData {
+	if err != nil {
 		return notification
 	}
 
-	hasData = dbConn.Get(NotificationCollection, db.M{
+	err = dbConn.GetOne(NotificationCollection, db.M{
 		"org_id": organizationID,
 		"type":   notificationType,
-	}).Next(notification)
+	}, notification)
 
-	if hasData {
+	if err != nil {
 		return notification
 	}
 
@@ -94,13 +94,13 @@ func FindAppropriateOrganizationNotification(dbConn *db.MConn, applicationID str
 }
 
 func FindGlobalNotification(dbConn *db.MConn, notificationType string) *Notification {
-	var hasData bool
+	var err error
 	notification := new(Notification)
-	hasData = dbConn.Get(NotificationCollection, db.M{
+	err = dbConn.GetOne(NotificationCollection, db.M{
 		"type": notificationType,
-	}).Next(notification)
+	}, notification)
 
-	if hasData {
+	if err != nil {
 		return notification
 	}
 

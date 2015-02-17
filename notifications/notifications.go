@@ -22,7 +22,7 @@ func PrepareTemplateIdentifier(templateID string, glyIdent string, orgID string,
 	return templateID + "." + languageID + "-" + strings.ToUpper(regionID) + "." + glyIdent + "." + orgID
 }
 
-func SendToAppropriateChannel(glyIdent string, userID string, applicationID string, organizationID string, dbConn *db.MConn, wg *sync.WaitGroup) {
+func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, userID string, applicationID string, organizationID string, wg *sync.WaitGroup) {
 
 	wg.Add(1)
 	defer wg.Done()
@@ -59,11 +59,11 @@ func SendToAppropriateChannel(glyIdent string, userID string, applicationID stri
 
 }
 
-func SendNotification(notificationInstance *notification_instance.NotificationInstance, notificationSetting *notification.Notification, dbConn *db.MConn) {
+func SendNotification(dbConn *db.MConn, notificationInstance *notification_instance.NotificationInstance, notificationSetting *notification.Notification) {
 	childwg := new(sync.WaitGroup)
 
 	for _, gly := range notificationSetting.Channels {
-		go SendToAppropriateChannel(gly, notificationInstance.UserID, notificationInstance.ApplicationID, notificationInstance.OrganizationID, dbConn, childwg)
+		go SendToAppropriateChannel(dbConn, gly, notificationInstance.UserID, notificationInstance.ApplicationID, notificationInstance.OrganizationID, childwg)
 	}
 
 	childwg.Wait()

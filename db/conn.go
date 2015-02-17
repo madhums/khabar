@@ -178,7 +178,6 @@ func (self *MConn) Count(table string, query M) int {
 }
 
 func (self *MConn) Upsert(table string, query M, doc M) error {
-	self.ScopeCheck()
 
 	var err error
 	if len(doc) == 0 {
@@ -209,7 +208,6 @@ func AlterDoc(doc *M, operator string, operation M) {
 }
 
 func (self *MConn) Update(table string, query M, doc M) error {
-	self.ScopeCheck()
 
 	coll := self.db.C(table)
 	var update_err error
@@ -235,12 +233,7 @@ func (self *MConn) Delete(table string, query M) error {
 
 	coll := self.db.C(table)
 
-	if self.isSystemDb() {
-		doc := M{"$set": M{"deleted": true, "deleted_on": time.EpochNow()}}
-		_, delete_err = coll.UpdateAll(query, doc)
-	} else {
-		_, delete_err = coll.RemoveAll(query)
-	}
+	_, delete_err = coll.RemoveAll(query)
 
 	if delete_err != nil {
 		log.Println("Error Deleting:", table, delete_err)
@@ -260,18 +253,7 @@ func InArray(key string, arrays ...[]string) bool {
 	return false
 }
 
-func (self *MConn) isSystemDb() bool {
-	return InArray(self.db.Name, []string{"prod_db", "blackjack", "party3", "billing_db"})
-}
-
-func (self *MConn) ScopeCheck() {
-	if self.isSystemDb() {
-		panic("This Operation is not allowed on System Level Databases")
-	}
-}
-
 func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {
-	self.ScopeCheck()
 
 	var out interface{}
 	if len(arguments) > 1 {
@@ -313,7 +295,6 @@ func (self *MConn) InsertMulti(table string, docs ...M) error {
 
 		interfaceSlice[i] = d
 	}
-	self.ScopeCheck()
 	coll := self.db.C(table)
 	err := coll.Insert(interfaceSlice...)
 	if err != nil {

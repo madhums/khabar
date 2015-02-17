@@ -63,7 +63,7 @@ func (self *NotificationHandler) Post(request *gottp.Request) {
 		log.Println("Unable to find suitable notification setting.")
 		return
 	} else {
-		notifications.SendNotification(notificationInstance, notificationSetting, db.DbConnection)
+		notifications.SendNotification(db.DbConnection, notificationInstance, notificationSetting)
 	}
 
 	notification_instance.InsertIntoDatabase(db.DbConnection, notificationInstance)

@@ -6,7 +6,7 @@ import (
 
 func GetFromDatabase(dbConn *db.MConn, userID string) *UserLocale {
 	userLocale := new(UserLocale)
-	if !dbConn.Get(UserLocaleCollection, db.M{"user_id": userID}).Next(userLocale) {
+	if dbConn.GetOne(UserLocaleCollection, db.M{"user_id": userID}, userLocale) != nil {
 		return nil
 	}
 	return userLocale

@@ -50,7 +50,7 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 
 	var err error
 	if hasData {
-		err = notification.UpdateChannels(db.DbConnection, ntfication)
+		err = notification.UpdateNotification(db.DbConnection, ntfication)
 	} else {
 		log.Println("Successfull call: Inserting document")
 		notification.InsertIntoDatabase(db.DbConnection, ntfication)
@@ -88,7 +88,7 @@ func (self *NotificationSettingWithChannelHandler) Delete(request *gottp.Request
 		err = notification.DeleteFromDatabase(db.DbConnection, ntfication)
 	} else {
 		log.Println("Updating...")
-		err = notification.UpdateChannels(db.DbConnection, ntfication)
+		err = notification.UpdateNotification(db.DbConnection, ntfication)
 	}
 
 	if err != nil {

@@ -6,8 +6,8 @@ import (
 
 func GetFromDatabase(dbConn *db.MConn, userID string, applicationID string, organizationID string, ident string) *Gully {
 	gully := new(Gully)
-	if !dbConn.Get(GullyCollection, db.M{"app_id": applicationID,
-		"org_id": organizationID, "user_id": userID, "ident": ident}).Next(gully) {
+	if dbConn.GetOne(GullyCollection, db.M{"app_id": applicationID,
+		"org_id": organizationID, "user_id": userID, "ident": ident}, gully) != nil {
 		return nil
 	}
 	return gully
@@ -23,60 +23,60 @@ func InsertIntoDatabase(dbConn *db.MConn, gully *Gully) string {
 }
 
 func FindAppropriateGullyForUser(dbConn *db.MConn, userID string, applicationID string, organizationID string, ident string) *Gully {
-	var hasData bool
+	var err error
 	gully := new(Gully)
-	hasData = dbConn.Get(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, db.M{
 		"user_id": userID,
 		"app_id":  applicationID,
 		"org_id":  organizationID,
 		"ident":   ident,
-	}).Next(gully)
+	}, gully)
 
-	if hasData {
+	if err != nil {
 		return gully
 	}
 
-	hasData = dbConn.Get(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, db.M{
 		"user_id": userID,
 		"app_id":  applicationID,
 		"ident":   ident,
-	}).Next(gully)
+	}, gully)
 
-	if hasData {
+	if err != nil {
 		return gully
 	}
 
-	hasData = dbConn.Get(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, db.M{
 		"user_id": userID,
 		"org_id":  organizationID,
 		"ident":   ident,
-	}).Next(gully)
+	}, gully)
 
-	if hasData {
+	if err != nil {
 		return gully
 	}
 	return nil
 }
 
 func FindAppropriateOrganizationGully(dbConn *db.MConn, applicationID string, organizationID string, ident string) *Gully {
-	var hasData bool
+	var err error
 	gully := new(Gully)
-	hasData = dbConn.Get(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, db.M{
 		"app_id": applicationID,
 		"org_id": organizationID,
 		"ident":  ident,
-	}).Next(gully)
+	}, gully)
 
-	if hasData {
+	if err != nil {
 		return gully
 	}
 
-	hasData = dbConn.Get(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, db.M{
 		"org_id": organizationID,
 		"ident":  ident,
-	}).Next(gully)
+	}, gully)
 
-	if hasData {
+	if err != nil {
 		return gully
 	}
 
@@ -85,13 +85,13 @@ func FindAppropriateOrganizationGully(dbConn *db.MConn, applicationID string, or
 }
 
 func FindGlobalGully(dbConn *db.MConn, ident string) *Gully {
-	var hasData bool
+	var err error
 	gully := new(Gully)
-	hasData = dbConn.Get(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, db.M{
 		"ident": ident,
-	}).Next(gully)
+	}, gully)
 
-	if hasData {
+	if err != nil {
 		return gully
 	}
 
