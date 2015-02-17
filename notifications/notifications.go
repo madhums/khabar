@@ -21,20 +21,20 @@ func PrepareTemplateIdentifier(templateID string, glyIdent string, orgID string,
 	return templateID + "." + locale + "." + glyIdent + "." + orgID
 }
 
-func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, userID string, applicationID string, organizationID string, wg *sync.WaitGroup) {
+func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, applicationID string, organizationID string, wg *sync.WaitGroup) {
 
 	wg.Add(1)
 	defer wg.Done()
 
 	log.Println("Found Channel :" + glyIdent)
 
-	glySetting := gully.FindAppropriateGully(db.DbConnection, userID, applicationID, organizationID, glyIdent)
+	glySetting := gully.FindAppropriateGully(db.DbConnection, user, applicationID, organizationID, glyIdent)
 	if glySetting == nil {
 		log.Println("Unable to find channel")
 		return
 
 	}
-	userLocale := user_locale.GetFromDatabase(db.DbConnection, userID)
+	userLocale := user_locale.GetFromDatabase(db.DbConnection, user)
 	if userLocale == nil {
 		log.Println("Unable to find locale for user")
 		userLocale = new(user_locale.UserLocale)
@@ -52,7 +52,7 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, userID string, 
 	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", glyIdent, organizationID, userLocale.Locale), map[string]interface{}{
 		"ChannelIdent":   glyIdent,
 		"ApplicationID":  glySetting.ApplicationID,
-		"UserID":         glySetting.UserID,
+		"User":           glySetting.User,
 		"OrganizationID": glySetting.OrganizationID,
 	}))
 
@@ -62,7 +62,7 @@ func SendNotification(dbConn *db.MConn, notificationInstance *notification_insta
 	childwg := new(sync.WaitGroup)
 
 	for _, gly := range notificationSetting.Channels {
-		go SendToAppropriateChannel(dbConn, gly, notificationInstance.UserID, notificationInstance.ApplicationID, notificationInstance.OrganizationID, childwg)
+		go SendToAppropriateChannel(dbConn, gly, notificationInstance.User, notificationInstance.ApplicationID, notificationInstance.OrganizationID, childwg)
 	}
 
 	childwg.Wait()

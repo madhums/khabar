@@ -4,9 +4,9 @@ import (
 	"github.com/parthdesai/sc-notifications/db"
 )
 
-func GetFromDatabase(dbConn *db.MConn, userID string) *UserLocale {
+func GetFromDatabase(dbConn *db.MConn, user string) *UserLocale {
 	userLocale := new(UserLocale)
-	if dbConn.GetOne(UserLocaleCollection, db.M{"user_id": userID}, userLocale) != nil {
+	if dbConn.GetOne(UserLocaleCollection, db.M{"user": user}, userLocale) != nil {
 		return nil
 	}
 	return userLocale

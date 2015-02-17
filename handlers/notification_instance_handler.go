@@ -21,11 +21,11 @@ func (self *NotificationHandler) Get(request *gottp.Request) {
 	notificationInstance := new(notification_instance.NotificationInstance)
 	request.ConvertArguments(notificationInstance)
 
-	notificationInstance.UserID = request.GetArgument("generic_id").(string)
+	notificationInstance.User = request.GetArgument("generic_id").(string)
 
 	paginator := request.GetPaginator()
 
-	request.Write(notification_instance.GetAllFromDatabase(db.DbConnection, paginator, notificationInstance.UserID, notificationInstance.ApplicationID, notificationInstance.OrganizationID))
+	request.Write(notification_instance.GetAllFromDatabase(db.DbConnection, paginator, notificationInstance.User, notificationInstance.ApplicationID, notificationInstance.OrganizationID))
 }
 
 func (self *NotificationHandler) Put(request *gottp.Request) {
@@ -57,7 +57,7 @@ func (self *NotificationHandler) Post(request *gottp.Request) {
 		return
 	}
 
-	notificationSetting := notification.FindAppropriateNotification(db.DbConnection, notificationInstance.UserID, notificationInstance.ApplicationID, notificationInstance.OrganizationID, notificationInstance.NotificationType)
+	notificationSetting := notification.FindAppropriateNotification(db.DbConnection, notificationInstance.User, notificationInstance.ApplicationID, notificationInstance.OrganizationID, notificationInstance.NotificationType)
 
 	if notificationSetting == nil {
 		log.Println("Unable to find suitable notification setting.")

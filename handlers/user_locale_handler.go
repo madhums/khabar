@@ -17,11 +17,11 @@ func (self *UserLocalHandler) Put(request *gottp.Request) {
 	request.ConvertArguments(userLocale)
 
 	if !userLocale.IsValid() {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "user_id, region_id and language_id must be present."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "user, region_id and language_id must be present."})
 		return
 	}
 
-	userLocale = user_locale.GetFromDatabase(db.DbConnection, userLocale.UserID)
+	userLocale = user_locale.GetFromDatabase(db.DbConnection, userLocale.User)
 
 	if userLocale == nil {
 		request.Raise(gottp.HttpError{http.StatusNotFound, "Unable to find user locale for user id."})
@@ -42,7 +42,7 @@ func (self *UserLocalHandler) Post(request *gottp.Request) {
 	userLocale.PrepareSave()
 
 	if !userLocale.IsValid() {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "user_id, region_id and language_id must be present."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "user, region_id and language_id must be present."})
 		return
 	}
 
@@ -50,7 +50,7 @@ func (self *UserLocalHandler) Post(request *gottp.Request) {
 		return
 	}
 
-	if user_locale.GetFromDatabase(db.DbConnection, userLocale.UserID) != nil {
+	if user_locale.GetFromDatabase(db.DbConnection, userLocale.User) != nil {
 		request.Raise(gottp.HttpError{http.StatusConflict, "User locale information already exists"})
 		return
 	}

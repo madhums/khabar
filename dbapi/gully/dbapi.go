@@ -4,10 +4,10 @@ import (
 	"github.com/parthdesai/sc-notifications/db"
 )
 
-func GetFromDatabase(dbConn *db.MConn, userID string, applicationID string, organizationID string, ident string) *Gully {
+func GetFromDatabase(dbConn *db.MConn, user string, applicationID string, organizationID string, ident string) *Gully {
 	gully := new(Gully)
 	if dbConn.GetOne(GullyCollection, db.M{"app_id": applicationID,
-		"org_id": organizationID, "user_id": userID, "ident": ident}, gully) != nil {
+		"org_id": organizationID, "user": user, "ident": ident}, gully) != nil {
 		return nil
 	}
 	return gully
@@ -15,21 +15,21 @@ func GetFromDatabase(dbConn *db.MConn, userID string, applicationID string, orga
 
 func DeleteFromDatabase(dbConn *db.MConn, gully *Gully) error {
 	return dbConn.Delete(GullyCollection, db.M{"app_id": gully.ApplicationID,
-		"org_id": gully.OrganizationID, "user_id": gully.UserID, "ident": gully.Ident})
+		"org_id": gully.OrganizationID, "user": gully.User, "ident": gully.Ident})
 }
 
 func InsertIntoDatabase(dbConn *db.MConn, gully *Gully) string {
 	return dbConn.Insert(GullyCollection, gully)
 }
 
-func FindAppropriateGullyForUser(dbConn *db.MConn, userID string, applicationID string, organizationID string, ident string) *Gully {
+func FindAppropriateGullyForUser(dbConn *db.MConn, user string, applicationID string, organizationID string, ident string) *Gully {
 	var err error
 	gully := new(Gully)
 	err = dbConn.GetOne(GullyCollection, db.M{
-		"user_id": userID,
-		"app_id":  applicationID,
-		"org_id":  organizationID,
-		"ident":   ident,
+		"user":   user,
+		"app_id": applicationID,
+		"org_id": organizationID,
+		"ident":  ident,
 	}, gully)
 
 	if err == nil {
@@ -37,9 +37,9 @@ func FindAppropriateGullyForUser(dbConn *db.MConn, userID string, applicationID 
 	}
 
 	err = dbConn.GetOne(GullyCollection, db.M{
-		"user_id": userID,
-		"app_id":  applicationID,
-		"ident":   ident,
+		"user":   user,
+		"app_id": applicationID,
+		"ident":  ident,
 	}, gully)
 
 	if err == nil {
@@ -47,9 +47,9 @@ func FindAppropriateGullyForUser(dbConn *db.MConn, userID string, applicationID 
 	}
 
 	err = dbConn.GetOne(GullyCollection, db.M{
-		"user_id": userID,
-		"org_id":  organizationID,
-		"ident":   ident,
+		"user":   user,
+		"org_id": organizationID,
+		"ident":  ident,
 	}, gully)
 
 	if err == nil {
@@ -99,11 +99,11 @@ func FindGlobalGully(dbConn *db.MConn, ident string) *Gully {
 
 }
 
-func FindAppropriateGully(dbConn *db.MConn, userID string, applicationID string, organizationID string, ident string) *Gully {
+func FindAppropriateGully(dbConn *db.MConn, user string, applicationID string, organizationID string, ident string) *Gully {
 
 	var gully *Gully
 
-	gully = FindAppropriateGullyForUser(dbConn, userID, applicationID, organizationID, ident)
+	gully = FindAppropriateGullyForUser(dbConn, user, applicationID, organizationID, ident)
 
 	if gully != nil {
 		return gully
