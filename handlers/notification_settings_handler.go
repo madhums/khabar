@@ -24,7 +24,7 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 
 	inputNotification.AddChannelToNotification(channelIdent)
 
-	ntfication := notification.GetFromDatabase(db.DbConnection, inputNotification.User, inputNotification.ApplicationID, inputNotification.Organization, inputNotification.Type)
+	ntfication := notification.GetFromDatabase(db.DbConnection, inputNotification.User, inputNotification.AppName, inputNotification.Organization, inputNotification.Type)
 
 	hasData := true
 
@@ -34,7 +34,7 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 
 		inputNotification.PrepareSave()
 		if !inputNotification.IsValid(dbapi.INSERT_OPERATION) {
-			request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_id must be present."})
+			request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 			return
 		}
 
@@ -71,7 +71,7 @@ func (self *NotificationSettingWithChannelHandler) Delete(request *gottp.Request
 
 	request.ConvertArguments(ntfication)
 
-	ntfication = notification.GetFromDatabase(db.DbConnection, ntfication.User, ntfication.ApplicationID, ntfication.Organization, ntfication.Type)
+	ntfication = notification.GetFromDatabase(db.DbConnection, ntfication.User, ntfication.AppName, ntfication.Organization, ntfication.Type)
 
 	if ntfication == nil {
 		request.Raise(gottp.HttpError{http.StatusNotFound, "notification setting does not exists."})
@@ -105,7 +105,7 @@ func (self *NotificationSettingHandler) Delete(request *gottp.Request) {
 	ntfication := new(notification.Notification)
 	request.ConvertArguments(ntfication)
 	if !ntfication.IsValid(dbapi.DELETE_OPERATION) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_id must be present."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
 	err := notification.DeleteFromDatabase(db.DbConnection, ntfication)

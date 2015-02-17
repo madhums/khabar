@@ -18,7 +18,7 @@ func MarkAsRead(dbConn *db.MConn, notificationInstance *NotificationInstance) {
 		}, notificationInstance)
 }
 
-func GetAllFromDatabase(dbConn *db.MConn, paginator *gottp.Paginator, user string, applicationID string, organization string) *[]NotificationInstance {
+func GetAllFromDatabase(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, organization string) *[]NotificationInstance {
 	var query db.M = nil
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
@@ -26,8 +26,8 @@ func GetAllFromDatabase(dbConn *db.MConn, paginator *gottp.Paginator, user strin
 	var result []NotificationInstance
 	query["user"] = user
 
-	if len(applicationID) > 0 {
-		query["app_id"] = applicationID
+	if len(appName) > 0 {
+		query["app_name"] = appName
 	}
 
 	if len(organization) > 0 {

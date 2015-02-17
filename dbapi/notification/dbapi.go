@@ -18,27 +18,27 @@ func InsertIntoDatabase(dbConn *db.MConn, notification *Notification) string {
 }
 
 func DeleteFromDatabase(dbConn *db.MConn, notification *Notification) error {
-	return dbConn.Delete(NotificationCollection, db.M{"app_id": notification.ApplicationID,
+	return dbConn.Delete(NotificationCollection, db.M{"app_name": notification.AppName,
 		"org": notification.Organization, "user": notification.User, "type": notification.Type})
 }
 
-func GetFromDatabase(dbConn *db.MConn, user string, applicationID string, organization string, notificationType string) *Notification {
+func GetFromDatabase(dbConn *db.MConn, user string, appName string, organization string, notificationType string) *Notification {
 	notification := new(Notification)
-	if dbConn.GetOne(NotificationCollection, db.M{"app_id": applicationID,
+	if dbConn.GetOne(NotificationCollection, db.M{"app_name": appName,
 		"org": organization, "user": user, "type": notificationType}, notification) != nil {
 		return nil
 	}
 	return notification
 }
 
-func FindAppropriateNotificationForUser(dbConn *db.MConn, user string, applicationID string, organization string, notificationType string) *Notification {
+func FindAppropriateNotificationForUser(dbConn *db.MConn, user string, appName string, organization string, notificationType string) *Notification {
 	var err error
 	notification := new(Notification)
 	err = dbConn.GetOne(NotificationCollection, db.M{
-		"user":   user,
-		"app_id": applicationID,
-		"org":    organization,
-		"type":   notificationType,
+		"user":     user,
+		"app_name": appName,
+		"org":      organization,
+		"type":     notificationType,
 	}, notification)
 
 	if err == nil {
@@ -46,9 +46,9 @@ func FindAppropriateNotificationForUser(dbConn *db.MConn, user string, applicati
 	}
 
 	err = dbConn.GetOne(NotificationCollection, db.M{
-		"user":   user,
-		"app_id": applicationID,
-		"type":   notificationType,
+		"user":     user,
+		"app_name": appName,
+		"type":     notificationType,
 	}, notification)
 
 	if err == nil {
@@ -67,13 +67,13 @@ func FindAppropriateNotificationForUser(dbConn *db.MConn, user string, applicati
 	return nil
 }
 
-func FindAppropriateOrganizationNotification(dbConn *db.MConn, applicationID string, organization string, notificationType string) *Notification {
+func FindAppropriateOrganizationNotification(dbConn *db.MConn, appName string, organization string, notificationType string) *Notification {
 	var err error
 	notification := new(Notification)
 	err = dbConn.GetOne(NotificationCollection, db.M{
-		"app_id": applicationID,
-		"org":    organization,
-		"type":   notificationType,
+		"app_name": appName,
+		"org":      organization,
+		"type":     notificationType,
 	}, notification)
 
 	if err == nil {
@@ -108,16 +108,16 @@ func FindGlobalNotification(dbConn *db.MConn, notificationType string) *Notifica
 
 }
 
-func FindAppropriateNotification(dbConn *db.MConn, user string, applicationID string, organization string, notificationType string) *Notification {
+func FindAppropriateNotification(dbConn *db.MConn, user string, appName string, organization string, notificationType string) *Notification {
 	var notification *Notification
 
-	notification = FindAppropriateNotificationForUser(dbConn, user, applicationID, organization, notificationType)
+	notification = FindAppropriateNotificationForUser(dbConn, user, appName, organization, notificationType)
 
 	if notification != nil {
 		return notification
 	}
 
-	notification = FindAppropriateOrganizationNotification(dbConn, applicationID, organization, notificationType)
+	notification = FindAppropriateOrganizationNotification(dbConn, appName, organization, notificationType)
 
 	if notification != nil {
 		return notification

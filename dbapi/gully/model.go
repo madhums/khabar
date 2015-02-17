@@ -10,16 +10,16 @@ const (
 )
 
 type Gully struct {
-	db.BaseModel  `bson:",inline"`
-	User          string                 `json:"user" bson:"user"`
-	Organization  string                 `json:"org" bson:"org"`
-	ApplicationID string                 `json:"app_id" bson:"app_id"`
-	GullyData     map[string]interface{} `json:"channel_data" bson:"channel_data" required:"true"`
-	Ident         string                 `json:"ident" bson:"ident" required:"true"`
+	db.BaseModel `bson:",inline"`
+	User         string                 `json:"user" bson:"user"`
+	Organization string                 `json:"org" bson:"org"`
+	AppName      string                 `json:"app_name" bson:"app_name"`
+	GullyData    map[string]interface{} `json:"channel_data" bson:"channel_data" required:"true"`
+	Ident        string                 `json:"ident" bson:"ident" required:"true"`
 }
 
 func (self *Gully) IsValid(op_type int) bool {
-	if (len(self.User) == 0) && (len(self.Organization) == 0) && (len(self.ApplicationID) == 0) {
+	if (len(self.User) == 0) && (len(self.Organization) == 0) && (len(self.AppName) == 0) {
 		return false
 	}
 
