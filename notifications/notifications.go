@@ -21,14 +21,14 @@ func PrepareTemplateIdentifier(templateID string, glyIdent string, orgID string,
 	return templateID + "." + locale + "." + glyIdent + "." + orgID
 }
 
-func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, applicationID string, organizationID string, wg *sync.WaitGroup) {
+func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, applicationID string, organization string, wg *sync.WaitGroup) {
 
 	wg.Add(1)
 	defer wg.Done()
 
 	log.Println("Found Channel :" + glyIdent)
 
-	glySetting := gully.FindAppropriateGully(db.DbConnection, user, applicationID, organizationID, glyIdent)
+	glySetting := gully.FindAppropriateGully(db.DbConnection, user, applicationID, organization, glyIdent)
 	if glySetting == nil {
 		log.Println("Unable to find channel")
 		return
@@ -41,7 +41,7 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, ap
 		userLocale.Locale = "en_US"
 		userLocale.TimeZone = "GMT+0.0"
 	}
-	filename := PrepareTemplateFilename(config.Settings.Sc_Notifications.TranslationDirectory, glyIdent, organizationID, userLocale.Locale)
+	filename := PrepareTemplateFilename(config.Settings.Sc_Notifications.TranslationDirectory, glyIdent, organization, userLocale.Locale)
 	err := i18n.LoadTranslationFile(filename)
 	if err != nil {
 		log.Println("Error occured while opening file:" + err.Error())
@@ -49,11 +49,11 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, ap
 
 	T, _ := i18n.Tfunc(userLocale.Locale)
 
-	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", glyIdent, organizationID, userLocale.Locale), map[string]interface{}{
-		"ChannelIdent":   glyIdent,
-		"ApplicationID":  glySetting.ApplicationID,
-		"User":           glySetting.User,
-		"OrganizationID": glySetting.OrganizationID,
+	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", glyIdent, organization, userLocale.Locale), map[string]interface{}{
+		"ChannelIdent":  glyIdent,
+		"ApplicationID": glySetting.ApplicationID,
+		"User":          glySetting.User,
+		"Organization":  glySetting.Organization,
 	}))
 
 }
@@ -62,7 +62,7 @@ func SendNotification(dbConn *db.MConn, notificationInstance *notification_insta
 	childwg := new(sync.WaitGroup)
 
 	for _, gly := range notificationSetting.Channels {
-		go SendToAppropriateChannel(dbConn, gly, notificationInstance.User, notificationInstance.ApplicationID, notificationInstance.OrganizationID, childwg)
+		go SendToAppropriateChannel(dbConn, gly, notificationInstance.User, notificationInstance.ApplicationID, notificationInstance.Organization, childwg)
 	}
 
 	childwg.Wait()

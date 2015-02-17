@@ -20,7 +20,7 @@ func (self *GullyHandler) Post(request *gottp.Request) {
 	inputGully.PrepareSave()
 
 	if !inputGully.IsValid(dbapi.INSERT_OPERATION) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org_id and app_id must be present."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_id must be present."})
 		return
 	}
 
@@ -28,7 +28,7 @@ func (self *GullyHandler) Post(request *gottp.Request) {
 		return
 	}
 
-	gly := gully.GetFromDatabase(db.DbConnection, inputGully.User, inputGully.ApplicationID, inputGully.OrganizationID, inputGully.Ident)
+	gly := gully.GetFromDatabase(db.DbConnection, inputGully.User, inputGully.ApplicationID, inputGully.Organization, inputGully.Ident)
 
 	if gly != nil {
 		request.Raise(gottp.HttpError{http.StatusConflict, "Channel already exists"})
@@ -43,7 +43,7 @@ func (self *GullyHandler) Delete(request *gottp.Request) {
 	gly := new(gully.Gully)
 	request.ConvertArguments(gly)
 	if !gly.IsValid(dbapi.DELETE_OPERATION) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org_id and app_id must be present."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_id must be present."})
 		return
 	}
 	err := gully.DeleteFromDatabase(db.DbConnection, gly)

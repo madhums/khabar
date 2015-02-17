@@ -10,7 +10,7 @@ const (
 
 type NotificationInstance struct {
 	db.BaseModel     `bson:",inline"`
-	OrganizationID   string                 `json:"org_id" bson:"org_id" required:"true"`
+	Organization     string                 `json:"org" bson:"org" required:"true"`
 	ApplicationID    string                 `json:"app_name" bson:"app_name" required:"true"`
 	NotificationType string                 `json:"notification_type" bson:"notification_type" required:"true"`
 	IsPending        bool                   `json:"is_pending" bson:"is_pending" required:"true"`
