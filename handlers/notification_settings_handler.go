@@ -2,7 +2,8 @@ package handlers
 
 import (
 	"github.com/parthdesai/sc-notifications/db"
-	"github.com/parthdesai/sc-notifications/models"
+	"github.com/parthdesai/sc-notifications/dbapi"
+	"github.com/parthdesai/sc-notifications/dbapi/notification"
 	"github.com/parthdesai/sc-notifications/utils"
 	"gopkg.in/simversity/gottp.v1"
 	"log"
@@ -14,37 +15,45 @@ type NotificationSettingWithChannelHandler struct {
 }
 
 func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) {
-	notification := new(models.Notification)
+	inputNotification := new(notification.Notification)
 
 	channelIdent := request.GetArgument("channel_ident").(string)
-	notification.Type = request.GetArgument("notification_type").(string)
+	inputNotification.Type = request.GetArgument("notification_type").(string)
 
-	request.ConvertArguments(notification)
+	request.ConvertArguments(inputNotification)
 
-	hasData := notification.GetFromDatabase(db.DbConnection)
+	inputNotification.AddChannelToNotification(channelIdent)
 
-	notification.AddChannelToNotification(channelIdent)
+	ntfication := notification.GetFromDatabase(db.DbConnection, inputNotification.UserID, inputNotification.ApplicationID, inputNotification.OrganizationID, inputNotification.Type)
 
-	if !hasData {
+	hasData := true
+
+	if ntfication == nil {
+		hasData = false
 		log.Println("Creating new document")
-		notification.PrepareSave()
-		if !notification.IsValid(models.INSERT_OPERATION) {
+
+		inputNotification.PrepareSave()
+		if !inputNotification.IsValid(dbapi.INSERT_OPERATION) {
 			request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user_id, org_id and app_id must be present."})
 			return
 		}
+
+		ntfication = inputNotification
+	} else {
+		ntfication.AddChannelToNotification(channelIdent)
 	}
 
-	if !utils.ValidateAndRaiseError(request, notification) {
+	if !utils.ValidateAndRaiseError(request, ntfication) {
 		log.Println("Validation Failed")
 		return
 	}
 
 	var err error
 	if hasData {
-		err = notification.UpdateChannels(db.DbConnection)
+		err = notification.UpdateChannels(db.DbConnection, ntfication)
 	} else {
 		log.Println("Successfull call: Inserting document")
-		notification.InsertIntoDatabase(db.DbConnection)
+		notification.InsertIntoDatabase(db.DbConnection, ntfication)
 	}
 
 	if err != nil {
@@ -55,29 +64,31 @@ func (self *NotificationSettingWithChannelHandler) Post(request *gottp.Request) 
 }
 
 func (self *NotificationSettingWithChannelHandler) Delete(request *gottp.Request) {
-	notification := new(models.Notification)
+	ntfication := new(notification.Notification)
 
 	channelIdent := request.GetArgument("channel_ident").(string)
-	notification.Type = request.GetArgument("notification_type").(string)
+	ntfication.Type = request.GetArgument("notification_type").(string)
 
-	request.ConvertArguments(notification)
+	request.ConvertArguments(ntfication)
 
-	hasData := notification.GetFromDatabase(db.DbConnection)
+	ntfication = notification.GetFromDatabase(db.DbConnection, ntfication.UserID, ntfication.ApplicationID, ntfication.OrganizationID, ntfication.Type)
 
-	if !hasData {
-		request.Raise(gottp.HttpError{http.StatusNotFound, "notification setting does not exists." + notification.Type})
+	if ntfication == nil {
+		request.Raise(gottp.HttpError{http.StatusNotFound, "notification setting does not exists."})
 		return
 	}
 
-	notification.RemoveChannelFromNotification(channelIdent)
-	log.Println(notification.Channels)
+	ntfication.RemoveChannelFromNotification(channelIdent)
+	log.Println(ntfication.Channels)
 
 	var err error
 
-	if len(notification.Channels) == 0 {
-		err = notification.DeleteFromDatabase(db.DbConnection)
+	if len(ntfication.Channels) == 0 {
+		log.Println("Deleting from database, since channels are now empty.")
+		err = notification.DeleteFromDatabase(db.DbConnection, ntfication)
 	} else {
-		err = notification.UpdateChannels(db.DbConnection)
+		log.Println("Updating...")
+		err = notification.UpdateChannels(db.DbConnection, ntfication)
 	}
 
 	if err != nil {
@@ -91,13 +102,13 @@ type NotificationSettingHandler struct {
 }
 
 func (self *NotificationSettingHandler) Delete(request *gottp.Request) {
-	notification := new(models.Notification)
-	request.ConvertArguments(notification)
-	if !notification.IsValid(models.DELETE_OPERATION) {
+	ntfication := new(notification.Notification)
+	request.ConvertArguments(ntfication)
+	if !ntfication.IsValid(dbapi.DELETE_OPERATION) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user_id, org_id and app_id must be present."})
 		return
 	}
-	err := notification.DeleteFromDatabase(db.DbConnection)
+	err := notification.DeleteFromDatabase(db.DbConnection, ntfication)
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}

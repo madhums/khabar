@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/parthdesai/sc-notifications/db"
-	"github.com/parthdesai/sc-notifications/models"
+	"github.com/parthdesai/sc-notifications/dbapi/user_locale"
 	"github.com/parthdesai/sc-notifications/utils"
 	"gopkg.in/simversity/gottp.v1"
 	"net/http"
@@ -13,7 +13,7 @@ type UserLocalHandler struct {
 }
 
 func (self *UserLocalHandler) Put(request *gottp.Request) {
-	userLocale := new(models.UserLocale)
+	userLocale := new(user_locale.UserLocale)
 	request.ConvertArguments(userLocale)
 
 	if !userLocale.IsValid() {
@@ -21,21 +21,23 @@ func (self *UserLocalHandler) Put(request *gottp.Request) {
 		return
 	}
 
-	hasData := userLocale.GetFromDatabase(db.DbConnection)
-	userLocalId := userLocale.Id
-	request.ConvertArguments(userLocale)
+	userLocale = user_locale.GetFromDatabase(db.DbConnection, userLocale.UserID)
 
-	if !hasData {
+	if userLocale == nil {
 		request.Raise(gottp.HttpError{http.StatusNotFound, "Unable to find user locale for user id."})
 		return
 	}
 
-	userLocale.Id = userLocalId
-	userLocale.Update(db.DbConnection)
+	userLocaleId := userLocale.Id
+
+	request.ConvertArguments(userLocale)
+
+	userLocale.Id = userLocaleId
+	user_locale.Update(db.DbConnection, userLocale)
 }
 
 func (self *UserLocalHandler) Post(request *gottp.Request) {
-	userLocale := new(models.UserLocale)
+	userLocale := new(user_locale.UserLocale)
 	request.ConvertArguments(userLocale)
 	userLocale.PrepareSave()
 
@@ -48,12 +50,10 @@ func (self *UserLocalHandler) Post(request *gottp.Request) {
 		return
 	}
 
-	hasData := userLocale.GetFromDatabase(db.DbConnection)
-
-	if hasData {
+	if user_locale.GetFromDatabase(db.DbConnection, userLocale.UserID) != nil {
 		request.Raise(gottp.HttpError{http.StatusConflict, "User locale information already exists"})
 		return
 	}
 
-	userLocale.InsertIntoDatabase(db.DbConnection)
+	user_locale.InsertIntoDatabase(db.DbConnection, userLocale)
 }

@@ -1,4 +1,4 @@
-package models
+package dbapi
 
 const (
 	DELETE_OPERATION = 1

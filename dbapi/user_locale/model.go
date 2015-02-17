@@ -1,4 +1,4 @@
-package models
+package user_locale
 
 import (
 	"github.com/parthdesai/sc-notifications/db"
@@ -15,28 +15,9 @@ type UserLocale struct {
 	RegionID     string `json:"region_id" bson:"region_id" required:"true"`
 }
 
-func (self *UserLocale) GetFromDatabase(dbConn *db.MConn) bool {
-	return dbConn.Get(UserLocaleCollection, db.M{"user_id": self.UserID}).Next(self)
-}
-
-func (self *UserLocale) InsertIntoDatabase(dbConn *db.MConn) string {
-	return dbConn.Insert(UserLocaleCollection, self)
-}
-
 func (self *UserLocale) IsValid() bool {
 	if len(self.LanguageID) == 0 || len(self.RegionID) == 0 || len(self.UserID) == 0 {
 		return false
 	}
 	return true
-}
-
-func (self *UserLocale) Update(dbConn *db.MConn) error {
-	return dbConn.Update(UserLocaleCollection, db.M{"_id": self.Id},
-		db.M{
-			"$set": db.M{
-				"region_id":   self.RegionID,
-				"language_id": self.LanguageID,
-			},
-		})
-
 }

@@ -2,7 +2,8 @@ package handlers
 
 import (
 	"github.com/parthdesai/sc-notifications/db"
-	"github.com/parthdesai/sc-notifications/models"
+	"github.com/parthdesai/sc-notifications/dbapi/notification"
+	"github.com/parthdesai/sc-notifications/dbapi/notification_instance"
 	"github.com/parthdesai/sc-notifications/notifications"
 	"github.com/parthdesai/sc-notifications/utils"
 	"gopkg.in/mgo.v2/bson"
@@ -17,30 +18,30 @@ type NotificationHandler struct {
 
 func (self *NotificationHandler) Get(request *gottp.Request) {
 
-	notificationInstance := new(models.NotificationInstance)
+	notificationInstance := new(notification_instance.NotificationInstance)
 	request.ConvertArguments(notificationInstance)
 
 	notificationInstance.UserID = request.GetArgument("generic_id").(string)
 
 	paginator := request.GetPaginator()
 
-	request.Write(notificationInstance.GetAllFromDatabase(db.DbConnection, paginator))
+	request.Write(notification_instance.GetAllFromDatabase(db.DbConnection, paginator, notificationInstance.UserID, notificationInstance.ApplicationID, notificationInstance.OrganizationID))
 }
 
 func (self *NotificationHandler) Put(request *gottp.Request) {
-	notificationInstance := new(models.NotificationInstance)
+	notificationInstance := new(notification_instance.NotificationInstance)
 	objectIdString := request.GetArgument("generic_id").(string)
 	if !bson.IsObjectIdHex(objectIdString) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Not a valid id."})
 		return
 	}
 	notificationInstance.Id = bson.ObjectIdHex(objectIdString)
-	notificationInstance.MarkAsRead(db.DbConnection)
+	notification_instance.MarkAsRead(db.DbConnection, notificationInstance)
 	request.Write(notificationInstance)
 }
 
 func (self *NotificationHandler) Post(request *gottp.Request) {
-	notificationInstance := new(models.NotificationInstance)
+	notificationInstance := new(notification_instance.NotificationInstance)
 	request.ConvertArguments(notificationInstance)
 	notificationInstance.NotificationType = request.GetArgument("generic_id").(string)
 	notificationInstance.IsRead = false
@@ -56,19 +57,15 @@ func (self *NotificationHandler) Post(request *gottp.Request) {
 		return
 	}
 
-	notificationSetting := models.Notification{
-		ApplicationID:  notificationInstance.ApplicationID,
-		OrganizationID: notificationInstance.OrganizationID,
-		UserID:         notificationInstance.UserID,
-		Type:           notificationInstance.NotificationType,
-	}
+	notificationSetting := notification.FindAppropriateNotification(db.DbConnection, notificationInstance.UserID, notificationInstance.ApplicationID, notificationInstance.OrganizationID, notificationInstance.NotificationType)
 
-	if !notificationSetting.FindAppropriateNotification(db.DbConnection) {
+	if notificationSetting == nil {
 		log.Println("Unable to find suitable notification setting.")
+		return
 	} else {
-		go notifications.SendNotification(notificationInstance, &notificationSetting, db.DbConnection)
+		notifications.SendNotification(notificationInstance, notificationSetting, db.DbConnection)
 	}
 
-	notificationInstance.InsertIntoDatabase(db.DbConnection)
+	notification_instance.InsertIntoDatabase(db.DbConnection, notificationInstance)
 
 }
