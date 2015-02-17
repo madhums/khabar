@@ -10,16 +10,15 @@ import (
 	"github.com/parthdesai/sc-notifications/dbapi/user_locale"
 	"log"
 	"path"
-	"strings"
 	"sync"
 )
 
-func PrepareTemplateFilename(translationDirectory string, glyIdent string, orgID string, regionID string, languageID string) string {
-	return path.Join(translationDirectory, languageID+"-"+strings.ToUpper(regionID)+"."+glyIdent+"."+orgID+"."+"json")
+func PrepareTemplateFilename(translationDirectory string, glyIdent string, orgID string, locale string) string {
+	return path.Join(translationDirectory, locale+"."+glyIdent+"."+orgID+"."+"json")
 }
 
-func PrepareTemplateIdentifier(templateID string, glyIdent string, orgID string, regionID string, languageID string) string {
-	return templateID + "." + languageID + "-" + strings.ToUpper(regionID) + "." + glyIdent + "." + orgID
+func PrepareTemplateIdentifier(templateID string, glyIdent string, orgID string, locale string) string {
+	return templateID + "." + locale + "." + glyIdent + "." + orgID
 }
 
 func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, userID string, applicationID string, organizationID string, wg *sync.WaitGroup) {
@@ -37,24 +36,24 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, userID string, 
 	}
 	userLocale := user_locale.GetFromDatabase(db.DbConnection, userID)
 	if userLocale == nil {
-		log.Println("Unable to find locale for user:" + userLocale.UserID)
+		log.Println("Unable to find locale for user")
 		userLocale = new(user_locale.UserLocale)
-		userLocale.RegionID = "US"
-		userLocale.LanguageID = "en"
+		userLocale.Locale = "en_US"
+		userLocale.TimeZone = "GMT+0.0"
 	}
-	filename := PrepareTemplateFilename(config.Settings.Sc_Notifications.TranslationDirectory, glyIdent, organizationID, userLocale.RegionID, userLocale.LanguageID)
+	filename := PrepareTemplateFilename(config.Settings.Sc_Notifications.TranslationDirectory, glyIdent, organizationID, userLocale.Locale)
 	err := i18n.LoadTranslationFile(filename)
 	if err != nil {
 		log.Println("Error occured while opening file:" + err.Error())
 	}
 
-	T, _ := i18n.Tfunc(userLocale.LanguageID + "-" + strings.ToUpper(userLocale.RegionID))
+	T, _ := i18n.Tfunc(userLocale.Locale)
 
-	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", glyIdent, organizationID, userLocale.RegionID, userLocale.LanguageID), map[string]interface{}{
+	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", glyIdent, organizationID, userLocale.Locale), map[string]interface{}{
 		"ChannelIdent":   glyIdent,
-		"ApplicationID":  applicationID,
-		"UserID":         userID,
-		"OrganizationID": organizationID,
+		"ApplicationID":  glySetting.ApplicationID,
+		"UserID":         glySetting.UserID,
+		"OrganizationID": glySetting.OrganizationID,
 	}))
 
 }

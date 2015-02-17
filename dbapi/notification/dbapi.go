@@ -41,7 +41,7 @@ func FindAppropriateNotificationForUser(dbConn *db.MConn, userID string, applica
 		"type":    notificationType,
 	}, notification)
 
-	if err != nil {
+	if err == nil {
 		return notification
 	}
 
@@ -51,7 +51,7 @@ func FindAppropriateNotificationForUser(dbConn *db.MConn, userID string, applica
 		"type":    notificationType,
 	}, notification)
 
-	if err != nil {
+	if err == nil {
 		return notification
 	}
 
@@ -61,7 +61,7 @@ func FindAppropriateNotificationForUser(dbConn *db.MConn, userID string, applica
 		"type":    notificationType,
 	}, notification)
 
-	if err != nil {
+	if err == nil {
 		return notification
 	}
 	return nil
@@ -76,7 +76,7 @@ func FindAppropriateOrganizationNotification(dbConn *db.MConn, applicationID str
 		"type":   notificationType,
 	}, notification)
 
-	if err != nil {
+	if err == nil {
 		return notification
 	}
 
@@ -85,7 +85,7 @@ func FindAppropriateOrganizationNotification(dbConn *db.MConn, applicationID str
 		"type":   notificationType,
 	}, notification)
 
-	if err != nil {
+	if err == nil {
 		return notification
 	}
 
@@ -100,7 +100,7 @@ func FindGlobalNotification(dbConn *db.MConn, notificationType string) *Notifica
 		"type": notificationType,
 	}, notification)
 
-	if err != nil {
+	if err == nil {
 		return notification
 	}
 

@@ -150,7 +150,7 @@ func (self *MConn) GetOne(table string, query M, result interface{}) error {
 	cursor := self.getCursor(table, query)
 	err := cursor.One(result)
 	if err != nil {
-		log.Println("Error fetching", table, err)
+		//log.Println("Error fetching", table, err)
 	}
 	return err
 }

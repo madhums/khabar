@@ -32,7 +32,7 @@ func FindAppropriateGullyForUser(dbConn *db.MConn, userID string, applicationID 
 		"ident":   ident,
 	}, gully)
 
-	if err != nil {
+	if err == nil {
 		return gully
 	}
 
@@ -42,7 +42,7 @@ func FindAppropriateGullyForUser(dbConn *db.MConn, userID string, applicationID 
 		"ident":   ident,
 	}, gully)
 
-	if err != nil {
+	if err == nil {
 		return gully
 	}
 
@@ -52,7 +52,7 @@ func FindAppropriateGullyForUser(dbConn *db.MConn, userID string, applicationID 
 		"ident":   ident,
 	}, gully)
 
-	if err != nil {
+	if err == nil {
 		return gully
 	}
 	return nil
@@ -67,7 +67,7 @@ func FindAppropriateOrganizationGully(dbConn *db.MConn, applicationID string, or
 		"ident":  ident,
 	}, gully)
 
-	if err != nil {
+	if err == nil {
 		return gully
 	}
 
@@ -76,7 +76,7 @@ func FindAppropriateOrganizationGully(dbConn *db.MConn, applicationID string, or
 		"ident":  ident,
 	}, gully)
 
-	if err != nil {
+	if err == nil {
 		return gully
 	}
 
@@ -91,7 +91,7 @@ func FindGlobalGully(dbConn *db.MConn, ident string) *Gully {
 		"ident": ident,
 	}, gully)
 
-	if err != nil {
+	if err == nil {
 		return gully
 	}
 

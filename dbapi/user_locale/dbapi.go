@@ -20,8 +20,8 @@ func Update(dbConn *db.MConn, userLocale *UserLocale) error {
 	return dbConn.Update(UserLocaleCollection, db.M{"_id": userLocale.Id},
 		db.M{
 			"$set": db.M{
-				"region_id":   userLocale.RegionID,
-				"language_id": userLocale.LanguageID,
+				"locale":   userLocale.Locale,
+				"timezone": userLocale.TimeZone,
 			},
 		})
 
