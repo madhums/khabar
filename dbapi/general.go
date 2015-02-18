@@ -1,0 +1,7 @@
+package dbapi
+
+const (
+	DELETE_OPERATION = 1
+	INSERT_OPERATION = 2
+	UPDATE_OPERATION = 3
+)
