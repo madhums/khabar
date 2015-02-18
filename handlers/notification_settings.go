@@ -50,7 +50,9 @@ func (self *NotificationSettingWithChannel) Post(request *gottp.Request) {
 
 	var err error
 	if hasData {
-		err = notification.Update(db.Conn, ntfication)
+		err = notification.Update(db.Conn, ntfication.User, ntfication.AppName, ntfication.Organization, ntfication.Type, &db.M{
+			"channels": ntfication.Channels,
+		})
 	} else {
 		log.Println("Successfull call: Inserting document")
 		notification.Insert(db.Conn, ntfication)
@@ -85,10 +87,13 @@ func (self *NotificationSettingWithChannel) Delete(request *gottp.Request) {
 
 	if len(ntfication.Channels) == 0 {
 		log.Println("Deleting from database, since channels are now empty.")
-		err = notification.Delete(db.Conn, ntfication)
+		err = notification.Delete(db.Conn, &db.M{"app_name": ntfication.AppName,
+			"org": ntfication.Organization, "user": ntfication.User, "type": ntfication.Type})
 	} else {
 		log.Println("Updating...")
-		err = notification.Update(db.Conn, ntfication)
+		err = notification.Update(db.Conn, ntfication.User, ntfication.AppName, ntfication.Organization, ntfication.Type, &db.M{
+			"channels": ntfication.Channels,
+		})
 	}
 
 	if err != nil {
@@ -108,7 +113,8 @@ func (self *NotificationSettingHandler) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
-	err := notification.Delete(db.Conn, ntfication)
+	err := notification.Delete(db.Conn, &db.M{"app_name": ntfication.AppName,
+		"org": ntfication.Organization, "user": ntfication.User, "type": ntfication.Type})
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}

@@ -3,19 +3,16 @@ package notification_instance
 import (
 	"github.com/parthdesai/sc-notifications/db"
 	"github.com/parthdesai/sc-notifications/utils"
+	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/simversity/gottp.v1"
 )
 
-func MarkAsRead(dbConn *db.MConn, notificationInstance *NotificationInstance) {
-	dbConn.FindAndUpdate(NotificationInstanceCollection,
-		db.M{
-			"_id": notificationInstance.Id,
-		},
-		db.M{
-			"$set": db.M{
-				"is_read": true,
-			},
-		}, notificationInstance)
+func Update(dbConn *db.MConn, id bson.ObjectId, doc *db.M) error {
+	return dbConn.Update(NotificationInstanceCollection, db.M{
+		"_id": id,
+	}, db.M{
+		"$set": *doc,
+	})
 }
 
 func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, organization string) *[]NotificationInstance {

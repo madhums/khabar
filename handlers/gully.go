@@ -46,7 +46,8 @@ func (self *Gully) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
-	err := gully.Delete(db.Conn, gly)
+	err := gully.Delete(db.Conn, &db.M{"app_name": gly.AppName,
+		"org": gly.Organization, "user": gly.User, "ident": gly.Ident})
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}

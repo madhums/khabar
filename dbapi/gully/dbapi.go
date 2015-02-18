@@ -13,9 +13,8 @@ func Get(dbConn *db.MConn, user string, appName string, organization string, ide
 	return gully
 }
 
-func Delete(dbConn *db.MConn, gully *Gully) error {
-	return dbConn.Delete(GullyCollection, db.M{"app_name": gully.AppName,
-		"org": gully.Organization, "user": gully.User, "ident": gully.Ident})
+func Delete(dbConn *db.MConn, doc *db.M) error {
+	return dbConn.Delete(GullyCollection, *doc)
 }
 
 func Insert(dbConn *db.MConn, gully *Gully) string {

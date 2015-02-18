@@ -36,7 +36,10 @@ func (self *Notification) Put(request *gottp.Request) {
 		return
 	}
 	notificationInstance.Id = bson.ObjectIdHex(objectIdString)
-	notification_instance.MarkAsRead(db.Conn, notificationInstance)
+	notification_instance.Update(db.Conn, notificationInstance.Id, &db.M{
+		"is_read": true,
+	})
+	notificationInstance.IsRead = true
 	request.Write(notificationInstance)
 }
 

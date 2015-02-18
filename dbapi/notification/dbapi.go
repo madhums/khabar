@@ -4,22 +4,25 @@ import (
 	"github.com/parthdesai/sc-notifications/db"
 )
 
-func Update(dbConn *db.MConn, notification *Notification) error {
-	return dbConn.FindAndUpdate(NotificationCollection, db.M{"_id": notification.Id},
+func Update(dbConn *db.MConn, user string, appName string, organization string, notificationType string, doc *db.M) error {
+
+	return dbConn.Update(NotificationCollection,
+		db.M{"app_name": appName,
+			"org":  organization,
+			"user": user,
+			"type": notificationType,
+		},
 		db.M{
-			"$set": db.M{
-				"channels": notification.Channels,
-			},
-		}, notification)
+			"$set": *doc,
+		})
 }
 
 func Insert(dbConn *db.MConn, notification *Notification) string {
 	return dbConn.Insert(NotificationCollection, notification)
 }
 
-func Delete(dbConn *db.MConn, notification *Notification) error {
-	return dbConn.Delete(NotificationCollection, db.M{"app_name": notification.AppName,
-		"org": notification.Organization, "user": notification.User, "type": notification.Type})
+func Delete(dbConn *db.MConn, doc *db.M) error {
+	return dbConn.Delete(NotificationCollection, *doc)
 }
 
 func Get(dbConn *db.MConn, user string, appName string, organization string, notificationType string) *Notification {
