@@ -24,7 +24,7 @@ func (self *NotificationSettingWithChannel) Post(request *gottp.Request) {
 
 	inputNotification.AddChannel(channelIdent)
 
-	ntfication := notification.Get(db.DbConnection, inputNotification.User, inputNotification.AppName, inputNotification.Organization, inputNotification.Type)
+	ntfication := notification.Get(db.Conn, inputNotification.User, inputNotification.AppName, inputNotification.Organization, inputNotification.Type)
 
 	hasData := true
 
@@ -50,10 +50,10 @@ func (self *NotificationSettingWithChannel) Post(request *gottp.Request) {
 
 	var err error
 	if hasData {
-		err = notification.Update(db.DbConnection, ntfication)
+		err = notification.Update(db.Conn, ntfication)
 	} else {
 		log.Println("Successfull call: Inserting document")
-		notification.Insert(db.DbConnection, ntfication)
+		notification.Insert(db.Conn, ntfication)
 	}
 
 	if err != nil {
@@ -71,7 +71,7 @@ func (self *NotificationSettingWithChannel) Delete(request *gottp.Request) {
 
 	request.ConvertArguments(ntfication)
 
-	ntfication = notification.Get(db.DbConnection, ntfication.User, ntfication.AppName, ntfication.Organization, ntfication.Type)
+	ntfication = notification.Get(db.Conn, ntfication.User, ntfication.AppName, ntfication.Organization, ntfication.Type)
 
 	if ntfication == nil {
 		request.Raise(gottp.HttpError{http.StatusNotFound, "notification setting does not exists."})
@@ -85,10 +85,10 @@ func (self *NotificationSettingWithChannel) Delete(request *gottp.Request) {
 
 	if len(ntfication.Channels) == 0 {
 		log.Println("Deleting from database, since channels are now empty.")
-		err = notification.Delete(db.DbConnection, ntfication)
+		err = notification.Delete(db.Conn, ntfication)
 	} else {
 		log.Println("Updating...")
-		err = notification.Update(db.DbConnection, ntfication)
+		err = notification.Update(db.Conn, ntfication)
 	}
 
 	if err != nil {
@@ -108,7 +108,7 @@ func (self *NotificationSettingHandler) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
-	err := notification.Delete(db.DbConnection, ntfication)
+	err := notification.Delete(db.Conn, ntfication)
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}

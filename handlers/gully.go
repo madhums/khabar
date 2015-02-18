@@ -28,14 +28,14 @@ func (self *Gully) Post(request *gottp.Request) {
 		return
 	}
 
-	gly := gully.Get(db.DbConnection, inputGully.User, inputGully.AppName, inputGully.Organization, inputGully.Ident)
+	gly := gully.Get(db.Conn, inputGully.User, inputGully.AppName, inputGully.Organization, inputGully.Ident)
 
 	if gly != nil {
 		request.Raise(gottp.HttpError{http.StatusConflict, "Channel already exists"})
 		return
 	}
 
-	gully.Insert(db.DbConnection, inputGully)
+	gully.Insert(db.Conn, inputGully)
 	request.Write(inputGully)
 }
 
@@ -46,7 +46,7 @@ func (self *Gully) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
-	err := gully.Delete(db.DbConnection, gly)
+	err := gully.Delete(db.Conn, gly)
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}

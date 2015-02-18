@@ -10,7 +10,7 @@ import (
 	"github.com/parthdesai/sc-notifications/utils/time"
 )
 
-var DbConnection *MConn
+var Conn *MConn
 
 type M bson.M
 

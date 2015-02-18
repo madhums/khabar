@@ -13,27 +13,18 @@ type UserLocale struct {
 }
 
 func (self *UserLocale) Put(request *gottp.Request) {
-	userLocale := new(user_locale.UserLocale)
-	request.ConvertArguments(userLocale)
+	inputUserLocale := new(user_locale.UserLocale)
+	request.ConvertArguments(inputUserLocale)
 
-	if !userLocale.IsValid() {
+	if !inputUserLocale.IsValid() {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "user, region_id and language_id must be present."})
 		return
 	}
 
-	userLocale = user_locale.Get(db.DbConnection, userLocale.User)
-
-	if userLocale == nil {
-		request.Raise(gottp.HttpError{http.StatusNotFound, "Unable to find user locale for user id."})
-		return
-	}
-
-	userLocaleId := userLocale.Id
-
-	request.ConvertArguments(userLocale)
-
-	userLocale.Id = userLocaleId
-	user_locale.Update(db.DbConnection, userLocale)
+	updateParams := make(db.M)
+	updateParams["timezone"] = inputUserLocale.TimeZone
+	updateParams["locale"] = inputUserLocale.Locale
+	user_locale.Update(db.Conn, inputUserLocale.User, &updateParams)
 }
 
 func (self *UserLocale) Post(request *gottp.Request) {
@@ -50,10 +41,10 @@ func (self *UserLocale) Post(request *gottp.Request) {
 		return
 	}
 
-	if user_locale.Get(db.DbConnection, userLocale.User) != nil {
+	if user_locale.Get(db.Conn, userLocale.User) != nil {
 		request.Raise(gottp.HttpError{http.StatusConflict, "User locale information already exists"})
 		return
 	}
 
-	user_locale.Insert(db.DbConnection, userLocale)
+	user_locale.Insert(db.Conn, userLocale)
 }

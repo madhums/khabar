@@ -16,13 +16,9 @@ func Insert(dbConn *db.MConn, userLocale *UserLocale) string {
 	return dbConn.Insert(UserLocaleCollection, userLocale)
 }
 
-func Update(dbConn *db.MConn, userLocale *UserLocale) error {
-	return dbConn.Update(UserLocaleCollection, db.M{"_id": userLocale.Id},
+func Update(dbConn *db.MConn, user string, doc *db.M) error {
+	return dbConn.Update(UserLocaleCollection, db.M{"user": user},
 		db.M{
-			"$set": db.M{
-				"locale":   userLocale.Locale,
-				"timezone": userLocale.TimeZone,
-			},
+			"$set": *doc,
 		})
-
 }

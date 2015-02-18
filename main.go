@@ -10,7 +10,7 @@ import (
 
 func sysInit() {
 	<-(gottp.SysInitChan) //Buffered Channel to receive the server upstart boolean
-	db.DbConnection = db.GetConn(config.Settings.Sc_Notifications.DBName, config.Settings.Sc_Notifications.DBAddress)
+	db.Conn = db.GetConn(config.Settings.Sc_Notifications.DBName, config.Settings.Sc_Notifications.DBAddress)
 	log.Println("Database Connected :" + config.Settings.Sc_Notifications.DBName + " " + "at address:" + config.Settings.Sc_Notifications.DBAddress)
 }
 
