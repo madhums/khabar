@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"github.com/parthdesai/sc-notifications/db"
-	"github.com/parthdesai/sc-notifications/dbapi/notification"
-	"github.com/parthdesai/sc-notifications/dbapi/notification_instance"
-	"github.com/parthdesai/sc-notifications/notifications"
-	"github.com/parthdesai/sc-notifications/utils"
+	"github.com/changer/sc-notifications/db"
+	"github.com/changer/sc-notifications/dbapi/notification"
+	"github.com/changer/sc-notifications/dbapi/notification_instance"
+	"github.com/changer/sc-notifications/notifications"
+	"github.com/changer/sc-notifications/utils"
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/simversity/gottp.v1"
 	"log"

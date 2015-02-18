@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/parthdesai/sc-notifications/db"
-	"github.com/parthdesai/sc-notifications/dbapi/user_locale"
-	"github.com/parthdesai/sc-notifications/utils"
+	"github.com/changer/sc-notifications/db"
+	"github.com/changer/sc-notifications/dbapi/user_locale"
+	"github.com/changer/sc-notifications/utils"
 	"gopkg.in/simversity/gottp.v1"
 	"net/http"
 )

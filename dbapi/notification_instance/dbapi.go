@@ -1,8 +1,8 @@
 package notification_instance
 
 import (
-	"github.com/parthdesai/sc-notifications/db"
-	"github.com/parthdesai/sc-notifications/utils"
+	"github.com/changer/sc-notifications/db"
+	"github.com/changer/sc-notifications/utils"
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/simversity/gottp.v1"
 )
