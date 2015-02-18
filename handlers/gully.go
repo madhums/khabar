@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"github.com/parthdesai/sc-notifications/db"
-	"github.com/parthdesai/sc-notifications/dbapi"
-	"github.com/parthdesai/sc-notifications/dbapi/gully"
-	"github.com/parthdesai/sc-notifications/utils"
+	"github.com/changer/sc-notifications/db"
+	"github.com/changer/sc-notifications/dbapi"
+	"github.com/changer/sc-notifications/dbapi/gully"
+	"github.com/changer/sc-notifications/utils"
 	"gopkg.in/simversity/gottp.v1"
 	"net/http"
 )

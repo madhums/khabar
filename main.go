@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/parthdesai/sc-notifications/config"
-	"github.com/parthdesai/sc-notifications/db"
-	"github.com/parthdesai/sc-notifications/handlers"
+	"github.com/changer/sc-notifications/config"
+	"github.com/changer/sc-notifications/db"
+	"github.com/changer/sc-notifications/handlers"
 	"gopkg.in/simversity/gottp.v1"
 	"log"
 )

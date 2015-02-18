@@ -1,7 +1,7 @@
 package gully
 
 import (
-	"github.com/parthdesai/sc-notifications/db"
+	"github.com/changer/sc-notifications/db"
 )
 
 func Get(dbConn *db.MConn, user string, appName string, organization string, ident string) *Gully {

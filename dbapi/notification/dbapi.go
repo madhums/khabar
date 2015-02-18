@@ -1,7 +1,7 @@
 package notification
 
 import (
-	"github.com/parthdesai/sc-notifications/db"
+	"github.com/changer/sc-notifications/db"
 )
 
 func Update(dbConn *db.MConn, user string, appName string, organization string, notificationType string, doc *db.M) error {

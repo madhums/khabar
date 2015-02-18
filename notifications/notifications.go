@@ -1,13 +1,13 @@
 package notifications
 
 import (
+	"github.com/changer/sc-notifications/config"
+	"github.com/changer/sc-notifications/db"
+	"github.com/changer/sc-notifications/dbapi/gully"
+	"github.com/changer/sc-notifications/dbapi/notification"
+	"github.com/changer/sc-notifications/dbapi/notification_instance"
+	"github.com/changer/sc-notifications/dbapi/user_locale"
 	"github.com/nicksnyder/go-i18n/i18n"
-	"github.com/parthdesai/sc-notifications/config"
-	"github.com/parthdesai/sc-notifications/db"
-	"github.com/parthdesai/sc-notifications/dbapi/gully"
-	"github.com/parthdesai/sc-notifications/dbapi/notification"
-	"github.com/parthdesai/sc-notifications/dbapi/notification_instance"
-	"github.com/parthdesai/sc-notifications/dbapi/user_locale"
 	"log"
 	"path"
 	"sync"

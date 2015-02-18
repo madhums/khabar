@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/parthdesai/sc-notifications/db"
+	"github.com/changer/sc-notifications/db"
 	"gopkg.in/simversity/gottp.v1"
 	"gopkg.in/simversity/gottp.v1/utils"
 	"net/http"

@@ -7,7 +7,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/parthdesai/sc-notifications/utils/time"
+	"github.com/changer/sc-notifications/utils/time"
 )
 
 var Conn *MConn
