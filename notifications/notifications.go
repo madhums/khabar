@@ -15,7 +15,7 @@ func PrepareTemplateIdentifier(templateID string, glyIdent string) string {
 	return templateID + "_" + glyIdent
 }
 
-func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, appName string, organization string, context map[string]interface{}, wg *sync.WaitGroup) {
+func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, appName string, organization string, destinationUri string, context map[string]interface{}, wg *sync.WaitGroup) {
 
 	wg.Add(1)
 	defer wg.Done()
@@ -42,6 +42,7 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, ap
 	context["AppName"] = appName
 	context["User"] = user
 	context["Organization"] = organization
+	context["DestinationUri"] = destinationUri
 
 	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", glyIdent), context))
 
@@ -51,7 +52,7 @@ func SendNotification(dbConn *db.MConn, notificationInstance *notification_insta
 	childwg := new(sync.WaitGroup)
 
 	for _, gly := range notificationSetting.Channels {
-		go SendToAppropriateChannel(dbConn, gly, notificationInstance.User, notificationInstance.AppName, notificationInstance.Organization, notificationInstance.Context, childwg)
+		go SendToAppropriateChannel(dbConn, gly, notificationInstance.User, notificationInstance.AppName, notificationInstance.Organization, notificationInstance.DestinationUri, notificationInstance.Context, childwg)
 	}
 
 	childwg.Wait()
