@@ -1,7 +1,6 @@
 package notifications
 
 import (
-	"github.com/changer/sc-notifications/config"
 	"github.com/changer/sc-notifications/db"
 	"github.com/changer/sc-notifications/dbapi/gully"
 	"github.com/changer/sc-notifications/dbapi/notification"
@@ -9,19 +8,14 @@ import (
 	"github.com/changer/sc-notifications/dbapi/user_locale"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"log"
-	"path"
 	"sync"
 )
 
-func PrepareTemplateFilename(translationDirectory string, glyIdent string, orgID string, locale string) string {
-	return path.Join(translationDirectory, locale+"."+glyIdent+"."+orgID+"."+"json")
+func PrepareTemplateIdentifier(templateID string, glyIdent string) string {
+	return templateID + "_" + glyIdent
 }
 
-func PrepareTemplateIdentifier(templateID string, glyIdent string, orgID string, locale string) string {
-	return templateID + "." + locale + "." + glyIdent + "." + orgID
-}
-
-func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, appName string, organization string, wg *sync.WaitGroup) {
+func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, appName string, organization string, context map[string]interface{}, wg *sync.WaitGroup) {
 
 	wg.Add(1)
 	defer wg.Done()
@@ -38,23 +32,18 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, ap
 	if userLocale == nil {
 		log.Println("Unable to find locale for user")
 		userLocale = new(user_locale.UserLocale)
-		userLocale.Locale = "en_US"
+		userLocale.Locale = "en-US"
 		userLocale.TimeZone = "GMT+0.0"
 	}
-	filename := PrepareTemplateFilename(config.Settings.Sc_Notifications.TranslationDirectory, glyIdent, organization, userLocale.Locale)
-	err := i18n.LoadTranslationFile(filename)
-	if err != nil {
-		log.Println("Error occured while opening file:" + err.Error())
-	}
 
-	T, _ := i18n.Tfunc(userLocale.Locale)
+	T, _ := i18n.Tfunc(userLocale.Locale+"_"+appName+"_"+organization, userLocale.Locale+"_"+appName, userLocale.Locale)
 
-	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", glyIdent, organization, userLocale.Locale), map[string]interface{}{
-		"ChannelIdent": glyIdent,
-		"AppName":      glySetting.AppName,
-		"User":         glySetting.User,
-		"Organization": glySetting.Organization,
-	}))
+	context["ChannelIdent"] = glyIdent
+	context["AppName"] = appName
+	context["User"] = user
+	context["Organization"] = organization
+
+	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", glyIdent), context))
 
 }
 
@@ -62,7 +51,7 @@ func SendNotification(dbConn *db.MConn, notificationInstance *notification_insta
 	childwg := new(sync.WaitGroup)
 
 	for _, gly := range notificationSetting.Channels {
-		go SendToAppropriateChannel(dbConn, gly, notificationInstance.User, notificationInstance.AppName, notificationInstance.Organization, childwg)
+		go SendToAppropriateChannel(dbConn, gly, notificationInstance.User, notificationInstance.AppName, notificationInstance.Organization, notificationInstance.Context, childwg)
 	}
 
 	childwg.Wait()
