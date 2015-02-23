@@ -16,15 +16,15 @@ func sysInit() {
 	db.Conn = db.GetConn(config.Settings.Sc_Notifications.DBName, config.Settings.Sc_Notifications.DBAddress)
 	log.Println("Database Connected :" + config.Settings.Sc_Notifications.DBName + " " + "at address:" + config.Settings.Sc_Notifications.DBAddress)
 
-	translationDirectory := config.Settings.Sc_Notifications.TranslationDirectory
+	transDir := config.Settings.Sc_Notifications.TranslationDirectory
 
-	if len(translationDirectory) == 0 {
-		translationDirectory = os.Getenv("PWD") + "/translations"
+	if len(transDir) == 0 {
+		transDir = os.Getenv("PWD") + "/translations"
 	}
 
-	log.Println("Directory for translation :" + translationDirectory)
+	log.Println("Directory for translation :" + transDir)
 
-	filepath.Walk(translationDirectory, func(path string, _ os.FileInfo, err error) error {
+	filepath.Walk(transDir, func(path string, _ os.FileInfo, err error) error {
 		fileExt := filepath.Ext(path)
 		if fileExt == ".json" && err == nil {
 			log.Println("Loading translation file:" + path)
