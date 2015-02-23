@@ -15,14 +15,14 @@ func PrepareTemplateIdentifier(templateID string, glyIdent string) string {
 	return templateID + "_" + glyIdent
 }
 
-func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, appName string, organization string, destinationUri string, context map[string]interface{}, wg *sync.WaitGroup) {
+func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, appName string, org string, destUri string, context map[string]interface{}, wg *sync.WaitGroup) {
 
 	wg.Add(1)
 	defer wg.Done()
 
 	log.Println("Found Channel :" + glyIdent)
 
-	glySetting := gully.FindAppropriateGully(db.Conn, user, appName, organization, glyIdent)
+	glySetting := gully.FindAppropriateGully(db.Conn, user, appName, org, glyIdent)
 	if glySetting == nil {
 		log.Println("Unable to find channel")
 		return
@@ -36,13 +36,13 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, ap
 		userLocale.TimeZone = "GMT+0.0"
 	}
 
-	T, _ := i18n.Tfunc(userLocale.Locale+"_"+appName+"_"+organization, userLocale.Locale+"_"+appName, userLocale.Locale)
+	T, _ := i18n.Tfunc(userLocale.Locale+"_"+appName+"_"+org, userLocale.Locale+"_"+appName, userLocale.Locale)
 
 	context["ChannelIdent"] = glyIdent
 	context["AppName"] = appName
 	context["User"] = user
-	context["Organization"] = organization
-	context["DestinationUri"] = destinationUri
+	context["Organization"] = org
+	context["DestinationUri"] = destUri
 
 	log.Println(T(PrepareTemplateIdentifier("notification_setting_text", glyIdent), context))
 

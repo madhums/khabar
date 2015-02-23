@@ -4,10 +4,10 @@ import (
 	"github.com/changer/sc-notifications/db"
 )
 
-func Get(dbConn *db.MConn, user string, appName string, organization string, ident string) *Gully {
+func Get(dbConn *db.MConn, user string, appName string, org string, ident string) *Gully {
 	gully := new(Gully)
 	if dbConn.GetOne(GullyCollection, db.M{"app_name": appName,
-		"org": organization, "user": user, "ident": ident}, gully) != nil {
+		"org": org, "user": user, "ident": ident}, gully) != nil {
 		return nil
 	}
 	return gully
@@ -21,13 +21,13 @@ func Insert(dbConn *db.MConn, gully *Gully) string {
 	return dbConn.Insert(GullyCollection, gully)
 }
 
-func FindAppropriateGullyForUser(dbConn *db.MConn, user string, appName string, organization string, ident string) *Gully {
+func FindAppropriateGullyForUser(dbConn *db.MConn, user string, appName string, org string, ident string) *Gully {
 	var err error
 	gully := new(Gully)
 	err = dbConn.GetOne(GullyCollection, db.M{
 		"user":     user,
 		"app_name": appName,
-		"org":      organization,
+		"org":      org,
 		"ident":    ident,
 	}, gully)
 
@@ -47,7 +47,7 @@ func FindAppropriateGullyForUser(dbConn *db.MConn, user string, appName string, 
 
 	err = dbConn.GetOne(GullyCollection, db.M{
 		"user":  user,
-		"org":   organization,
+		"org":   org,
 		"ident": ident,
 	}, gully)
 
@@ -57,12 +57,12 @@ func FindAppropriateGullyForUser(dbConn *db.MConn, user string, appName string, 
 	return nil
 }
 
-func FindAppropriateOrganizationGully(dbConn *db.MConn, appName string, organization string, ident string) *Gully {
+func FindAppropriateOrganizationGully(dbConn *db.MConn, appName string, org string, ident string) *Gully {
 	var err error
 	gully := new(Gully)
 	err = dbConn.GetOne(GullyCollection, db.M{
 		"app_name": appName,
-		"org":      organization,
+		"org":      org,
 		"ident":    ident,
 	}, gully)
 
@@ -71,7 +71,7 @@ func FindAppropriateOrganizationGully(dbConn *db.MConn, appName string, organiza
 	}
 
 	err = dbConn.GetOne(GullyCollection, db.M{
-		"org":   organization,
+		"org":   org,
 		"ident": ident,
 	}, gully)
 
@@ -98,17 +98,17 @@ func FindGlobalGully(dbConn *db.MConn, ident string) *Gully {
 
 }
 
-func FindAppropriateGully(dbConn *db.MConn, user string, appName string, organization string, ident string) *Gully {
+func FindAppropriateGully(dbConn *db.MConn, user string, appName string, org string, ident string) *Gully {
 
 	var gully *Gully
 
-	gully = FindAppropriateGullyForUser(dbConn, user, appName, organization, ident)
+	gully = FindAppropriateGullyForUser(dbConn, user, appName, org, ident)
 
 	if gully != nil {
 		return gully
 	}
 
-	gully = FindAppropriateOrganizationGully(dbConn, appName, organization, ident)
+	gully = FindAppropriateOrganizationGully(dbConn, appName, org, ident)
 
 	if gully != nil {
 		return gully

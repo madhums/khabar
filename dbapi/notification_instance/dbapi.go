@@ -15,7 +15,7 @@ func Update(dbConn *db.MConn, id bson.ObjectId, doc *db.M) error {
 	})
 }
 
-func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, organization string) *[]NotificationInstance {
+func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string) *[]NotificationInstance {
 	var query db.M = nil
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
@@ -27,8 +27,8 @@ func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName s
 		query["app_name"] = appName
 	}
 
-	if len(organization) > 0 {
-		query["org"] = organization
+	if len(org) > 0 {
+		query["org"] = org
 	}
 
 	var limit int
