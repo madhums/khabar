@@ -4,7 +4,6 @@ import (
 	"github.com/changer/sc-notifications/db"
 	"github.com/changer/sc-notifications/dbapi"
 	"github.com/changer/sc-notifications/utils"
-	"log"
 )
 
 const (
@@ -40,9 +39,7 @@ func (self *Notification) IsValid(op_type int) bool {
 }
 
 func (self *Notification) AddChannel(channel string) {
-	log.Println(self.Channels)
 	self.Channels = append(self.Channels, channel)
-	log.Println(self.Channels)
 	utils.RemoveDuplicates(&(self.Channels))
 }
 

@@ -4,132 +4,132 @@ import (
 	"github.com/changer/sc-notifications/db"
 )
 
-func Update(dbConn *db.MConn, user string, appName string, organization string, notificationType string, doc *db.M) error {
+func Update(dbConn *db.MConn, user string, appName string, org string, ntfType string, doc *db.M) error {
 
 	return dbConn.Update(NotificationCollection,
 		db.M{"app_name": appName,
-			"org":  organization,
+			"org":  org,
 			"user": user,
-			"type": notificationType,
+			"type": ntfType,
 		},
 		db.M{
 			"$set": *doc,
 		})
 }
 
-func Insert(dbConn *db.MConn, notification *Notification) string {
-	return dbConn.Insert(NotificationCollection, notification)
+func Insert(dbConn *db.MConn, ntf *Notification) string {
+	return dbConn.Insert(NotificationCollection, ntf)
 }
 
 func Delete(dbConn *db.MConn, doc *db.M) error {
 	return dbConn.Delete(NotificationCollection, *doc)
 }
 
-func Get(dbConn *db.MConn, user string, appName string, organization string, notificationType string) *Notification {
-	notification := new(Notification)
+func Get(dbConn *db.MConn, user string, appName string, org string, ntfType string) *Notification {
+	ntf := new(Notification)
 	if dbConn.GetOne(NotificationCollection, db.M{"app_name": appName,
-		"org": organization, "user": user, "type": notificationType}, notification) != nil {
+		"org": org, "user": user, "type": ntfType}, ntf) != nil {
 		return nil
 	}
-	return notification
+	return ntf
 }
 
-func FindAppropriateNotificationForUser(dbConn *db.MConn, user string, appName string, organization string, notificationType string) *Notification {
+func FindAppropriateNotificationForUser(dbConn *db.MConn, user string, appName string, org string, ntfType string) *Notification {
 	var err error
-	notification := new(Notification)
+	ntf := new(Notification)
 	err = dbConn.GetOne(NotificationCollection, db.M{
 		"user":     user,
 		"app_name": appName,
-		"org":      organization,
-		"type":     notificationType,
-	}, notification)
+		"org":      org,
+		"type":     ntfType,
+	}, ntf)
 
 	if err == nil {
-		return notification
+		return ntf
 	}
 
 	err = dbConn.GetOne(NotificationCollection, db.M{
 		"user":     user,
 		"app_name": appName,
-		"type":     notificationType,
-	}, notification)
+		"type":     ntfType,
+	}, ntf)
 
 	if err == nil {
-		return notification
+		return ntf
 	}
 
 	err = dbConn.GetOne(NotificationCollection, db.M{
 		"user": user,
-		"org":  organization,
-		"type": notificationType,
-	}, notification)
+		"org":  org,
+		"type": ntfType,
+	}, ntf)
 
 	if err == nil {
-		return notification
+		return ntf
 	}
 	return nil
 }
 
-func FindAppropriateOrganizationNotification(dbConn *db.MConn, appName string, organization string, notificationType string) *Notification {
+func FindAppropriateOrganizationNotification(dbConn *db.MConn, appName string, org string, ntfType string) *Notification {
 	var err error
-	notification := new(Notification)
+	ntf := new(Notification)
 	err = dbConn.GetOne(NotificationCollection, db.M{
 		"app_name": appName,
-		"org":      organization,
-		"type":     notificationType,
-	}, notification)
+		"org":      org,
+		"type":     ntfType,
+	}, ntf)
 
 	if err == nil {
-		return notification
+		return ntf
 	}
 
 	err = dbConn.GetOne(NotificationCollection, db.M{
-		"org":  organization,
-		"type": notificationType,
-	}, notification)
+		"org":  org,
+		"type": ntfType,
+	}, ntf)
 
 	if err == nil {
-		return notification
+		return ntf
 	}
 
 	return nil
 
 }
 
-func FindGlobalNotification(dbConn *db.MConn, notificationType string) *Notification {
+func FindGlobalNotification(dbConn *db.MConn, ntfType string) *Notification {
 	var err error
-	notification := new(Notification)
+	ntf := new(Notification)
 	err = dbConn.GetOne(NotificationCollection, db.M{
-		"type": notificationType,
-	}, notification)
+		"type": ntfType,
+	}, ntf)
 
 	if err == nil {
-		return notification
+		return ntf
 	}
 
 	return nil
 
 }
 
-func FindAppropriateNotification(dbConn *db.MConn, user string, appName string, organization string, notificationType string) *Notification {
-	var notification *Notification
+func FindAppropriateNotification(dbConn *db.MConn, user string, appName string, org string, ntfType string) *Notification {
+	var ntf *Notification
 
-	notification = FindAppropriateNotificationForUser(dbConn, user, appName, organization, notificationType)
+	ntf = FindAppropriateNotificationForUser(dbConn, user, appName, org, ntfType)
 
-	if notification != nil {
-		return notification
+	if ntf != nil {
+		return ntf
 	}
 
-	notification = FindAppropriateOrganizationNotification(dbConn, appName, organization, notificationType)
+	ntf = FindAppropriateOrganizationNotification(dbConn, appName, org, ntfType)
 
-	if notification != nil {
-		return notification
+	if ntf != nil {
+		return ntf
 	}
 
-	notification = FindGlobalNotification(dbConn, notificationType)
+	ntf = FindGlobalNotification(dbConn, ntfType)
 
-	if notification != nil {
-		return notification
+	if ntf != nil {
+		return ntf
 	}
 
 	return nil
