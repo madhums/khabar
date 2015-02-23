@@ -57,6 +57,6 @@ func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName s
 	return &result
 }
 
-func Insert(dbConn *db.MConn, notificationInstance *NotificationInstance) string {
-	return dbConn.Insert(NotificationInstanceCollection, notificationInstance)
+func Insert(dbConn *db.MConn, ntfInst *NotificationInstance) string {
+	return dbConn.Insert(NotificationInstanceCollection, ntfInst)
 }

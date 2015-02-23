@@ -48,11 +48,11 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, user string, ap
 
 }
 
-func SendNotification(dbConn *db.MConn, notificationInstance *notification_instance.NotificationInstance, notificationSetting *notification.Notification) {
+func SendNotification(dbConn *db.MConn, ntfInst *notification_instance.NotificationInstance, ntfSetting *notification.Notification) {
 	childwg := new(sync.WaitGroup)
 
-	for _, gly := range notificationSetting.Channels {
-		go SendToAppropriateChannel(dbConn, gly, notificationInstance.User, notificationInstance.AppName, notificationInstance.Organization, notificationInstance.DestinationUri, notificationInstance.Context, childwg)
+	for _, gly := range ntfSetting.Channels {
+		go SendToAppropriateChannel(dbConn, gly, ntfInst.User, ntfInst.AppName, ntfInst.Organization, ntfInst.DestinationUri, ntfInst.Context, childwg)
 	}
 
 	childwg.Wait()
