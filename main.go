@@ -25,9 +25,15 @@ func sysInit() {
 	log.Println("Directory for translation :" + translationDirectory)
 
 	filepath.Walk(translationDirectory, func(path string, _ os.FileInfo, err error) error {
-		if filepath.Ext(path) == ".json" && err == nil {
+		fileExt := filepath.Ext(path)
+		if fileExt == ".json" && err == nil {
 			log.Println("Loading translation file:" + path)
 			i18n.LoadTranslationFile(path)
+		} else {
+			log.Print("Skipping translation file:" + path + " " + "File Extension:" + fileExt + " ")
+			if err != nil {
+				log.Print("Error:" + err.Error())
+			}
 		}
 		return nil
 	})
