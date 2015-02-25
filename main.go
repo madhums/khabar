@@ -4,11 +4,13 @@ import (
 	"github.com/changer/sc-notifications/config"
 	"github.com/changer/sc-notifications/db"
 	"github.com/changer/sc-notifications/handlers"
+	"github.com/changer/sc-notifications/worker"
 	"github.com/nicksnyder/go-i18n/i18n"
-	"gopkg.in/simversity/gottp.v1"
+	"gopkg.in/simversity/gottp.v2"
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 func sysInit() {
@@ -40,10 +42,17 @@ func sysInit() {
 
 	log.Println("Translation has been parsed.")
 
+	wg := new(sync.WaitGroup)
+	errChan := make(chan int, 10)
+	go worker.NotificationWorker(errChan, wg)
+	log.Println("Worker Running...")
+
 }
 
 func main() {
+
 	go sysInit()
+
 	registerHandler("notification", "^/notifications/(?P<generic_id>\\w+)/?$", new(handlers.Notification))
 	registerHandler("channel", "^/channel/(?P<ident>\\w+)/?$", new(handlers.Gully))
 	registerHandler("notification_settings_with_channel", "^/notification_setting/(?P<notification_type>\\w+)/(?P<channel_ident>\\w+)/?$", new(handlers.NotificationSettingWithChannel))

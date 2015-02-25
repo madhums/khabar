@@ -5,7 +5,7 @@ import (
 	"github.com/changer/sc-notifications/dbapi"
 	"github.com/changer/sc-notifications/dbapi/gully"
 	"github.com/changer/sc-notifications/utils"
-	"gopkg.in/simversity/gottp.v1"
+	"gopkg.in/simversity/gottp.v2"
 	"net/http"
 )
 

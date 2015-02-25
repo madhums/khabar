@@ -4,7 +4,7 @@ import (
 	"github.com/changer/sc-notifications/db"
 	"github.com/changer/sc-notifications/utils"
 	"gopkg.in/mgo.v2/bson"
-	"gopkg.in/simversity/gottp.v1"
+	"gopkg.in/simversity/gottp.v2"
 )
 
 func Update(dbConn *db.MConn, id bson.ObjectId, doc *db.M) error {
