@@ -42,11 +42,6 @@ func sysInit() {
 
 	log.Println("Translation has been parsed.")
 
-	wg := new(sync.WaitGroup)
-	errChan := make(chan int, 10)
-	go worker.NotificationWorker(errChan, wg)
-	log.Println("Worker Running...")
-
 }
 
 func main() {
