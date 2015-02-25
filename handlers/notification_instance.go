@@ -7,7 +7,7 @@ import (
 	"github.com/changer/sc-notifications/notifications"
 	"github.com/changer/sc-notifications/utils"
 	"gopkg.in/mgo.v2/bson"
-	"gopkg.in/simversity/gottp.v1"
+	"gopkg.in/simversity/gottp.v2"
 	"log"
 	"net/http"
 )

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gopkg.in/simversity/gottp.v1"
+	"gopkg.in/simversity/gottp.v2"
 )
 
 func registerHandler(name string, pattern string, handler gottp.Handler) {
