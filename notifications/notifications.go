@@ -51,7 +51,6 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, ntfInst *notifi
 		AppName:          ntfInst.AppName,
 		Organization:     ntfInst.Organization,
 		User:             ntfInst.User,
-		IsPending:        false,
 		IsRead:           ntfInst.IsRead,
 		NotificationType: ntfInst.NotificationType,
 		DestinationUri:   ntfInst.DestinationUri,
