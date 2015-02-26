@@ -4,6 +4,7 @@ import (
 	"github.com/changer/sc-notifications/db"
 	"github.com/changer/sc-notifications/dbapi/notification"
 	"github.com/changer/sc-notifications/dbapi/notification_instance"
+	"github.com/changer/sc-notifications/dbapi/sent_notification"
 	"github.com/changer/sc-notifications/notifications"
 	"github.com/changer/sc-notifications/utils"
 	"gopkg.in/mgo.v2/bson"
@@ -18,25 +19,25 @@ type Notification struct {
 
 func (self *Notification) Get(request *gottp.Request) {
 
-	ntfInst := new(notification_instance.NotificationInstance)
+	ntfInst := new(sent_notification.NotificationInstance)
 	request.ConvertArguments(ntfInst)
 
 	ntfInst.User = request.GetArgument("generic_id").(string)
 
 	paginator := request.GetPaginator()
 
-	request.Write(notification_instance.GetAll(db.Conn, paginator, ntfInst.User, ntfInst.AppName, ntfInst.Organization))
+	request.Write(sent_notification.GetAll(db.Conn, paginator, ntfInst.User, ntfInst.AppName, ntfInst.Organization))
 }
 
 func (self *Notification) Put(request *gottp.Request) {
-	ntfInst := new(notification_instance.NotificationInstance)
+	ntfInst := new(sent_notification.NotificationInstance)
 	objectIdString := request.GetArgument("generic_id").(string)
 	if !bson.IsObjectIdHex(objectIdString) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "_id is not a valid Hex object."})
 		return
 	}
 	ntfInst.Id = bson.ObjectIdHex(objectIdString)
-	notification_instance.Update(db.Conn, ntfInst.Id, &db.M{
+	sent_notification.Update(db.Conn, ntfInst.Id, &db.M{
 		"is_read": true,
 	})
 	ntfInst.IsRead = true
@@ -68,7 +69,5 @@ func (self *Notification) Post(request *gottp.Request) {
 	} else {
 		notifications.SendNotification(db.Conn, ntfInst, ntfSetting)
 	}
-
-	notification_instance.Insert(db.Conn, ntfInst)
 
 }
