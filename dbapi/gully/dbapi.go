@@ -38,6 +38,7 @@ func FindAppropriateGullyForUser(dbConn *db.MConn, user string, appName string, 
 	err = dbConn.GetOne(GullyCollection, db.M{
 		"user":     user,
 		"app_name": appName,
+		"org":      "",
 		"ident":    ident,
 	}, gully)
 
@@ -46,9 +47,10 @@ func FindAppropriateGullyForUser(dbConn *db.MConn, user string, appName string, 
 	}
 
 	err = dbConn.GetOne(GullyCollection, db.M{
-		"user":  user,
-		"org":   org,
-		"ident": ident,
+		"user":     user,
+		"app_name": "",
+		"org":      org,
+		"ident":    ident,
 	}, gully)
 
 	if err == nil {
@@ -61,6 +63,7 @@ func FindAppropriateOrganizationGully(dbConn *db.MConn, appName string, org stri
 	var err error
 	gully := new(Gully)
 	err = dbConn.GetOne(GullyCollection, db.M{
+		"user":     "",
 		"app_name": appName,
 		"org":      org,
 		"ident":    ident,
@@ -71,8 +74,10 @@ func FindAppropriateOrganizationGully(dbConn *db.MConn, appName string, org stri
 	}
 
 	err = dbConn.GetOne(GullyCollection, db.M{
-		"org":   org,
-		"ident": ident,
+		"user":     "",
+		"app_name": "",
+		"org":      org,
+		"ident":    ident,
 	}, gully)
 
 	if err == nil {
@@ -87,7 +92,10 @@ func FindGlobalGully(dbConn *db.MConn, ident string) *Gully {
 	var err error
 	gully := new(Gully)
 	err = dbConn.GetOne(GullyCollection, db.M{
-		"ident": ident,
+		"user":     "",
+		"app_name": "",
+		"org":      "",
+		"ident":    ident,
 	}, gully)
 
 	if err == nil {
