@@ -8,9 +8,20 @@ import (
 	"github.com/changer/sc-notifications/dbapi/sent_notification"
 	"github.com/changer/sc-notifications/dbapi/user_locale"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"gopkg.in/simversity/gotracer.v1"
 	"log"
 	"sync"
 )
+
+func sendNtfToChannel(ntfInst *notification_instance.NotificationInstance, ntfText string, glyIdent string, context map[string]interface{}) {
+	handlerFunc, ok := channelMap[glyIdent]
+	if !ok {
+		log.Println("Error : No channel handler found to send this Notification. Notification Type:" + ntfInst.NotificationType + " Channel:" + glyIdent)
+		return
+	}
+	defer gotracer.Tracer{Dummy: true}.Notify()
+	handlerFunc(ntfInst, ntfText, context)
+}
 
 func PrepareTemplateIdentifier(templateID string, glyIdent string) string {
 	return templateID + "_" + glyIdent
@@ -45,7 +56,9 @@ func SendToAppropriateChannel(dbConn *db.MConn, glyIdent string, ntfInst *notifi
 	ntfInst.Context["Organization"] = ntfInst.Organization
 	ntfInst.Context["DestinationUri"] = ntfInst.DestinationUri
 
-	ntfText := T(PrepareTemplateIdentifier("notification_setting_text", glyIdent), ntfInst.Context)
+	ntfText := T(PrepareTemplateIdentifier(ntfInst.NotificationType, glyIdent), ntfInst.Context)
+
+	sendNtfToChannel(ntfInst, ntfText, glySetting.Ident, glySetting.GullyData)
 
 	sentNtf := sent_notification.NotificationInstance{
 		AppName:          ntfInst.AppName,
