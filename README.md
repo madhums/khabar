@@ -1,3 +1,3 @@
-# sc-notifications
+# khabar
 =======
 Notifications engine

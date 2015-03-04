@@ -1,7 +1,7 @@
 package user_locale
 
 import (
-	"github.com/changer/sc-notifications/db"
+	"github.com/changer/khabar/db"
 )
 
 func Get(dbConn *db.MConn, user string) *UserLocale {

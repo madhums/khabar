@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/changer/sc-notifications/db"
+	"github.com/changer/khabar/db"
 	"gopkg.in/simversity/gottp.v2"
 	"gopkg.in/simversity/gottp.v2/utils"
 	"net/http"

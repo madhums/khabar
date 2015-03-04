@@ -1,8 +1,8 @@
 package gully
 
 import (
-	"github.com/changer/sc-notifications/db"
-	"github.com/changer/sc-notifications/dbapi"
+	"github.com/changer/khabar/db"
+	"github.com/changer/khabar/dbapi"
 )
 
 const (
@@ -14,7 +14,7 @@ type Gully struct {
 	User         string                 `json:"user" bson:"user"`
 	Organization string                 `json:"org" bson:"org"`
 	AppName      string                 `json:"app_name" bson:"app_name"`
-	GullyData    map[string]interface{} `json:"channel_data" bson:"channel_data" required:"true"`
+	Data         map[string]interface{} `json:"data" bson:"data" required:"true"`
 	Ident        string                 `json:"ident" bson:"ident" required:"true"`
 }
 
@@ -28,7 +28,7 @@ func (self *Gully) IsValid(op_type int) bool {
 	}
 
 	if op_type == dbapi.INSERT_OPERATION {
-		if len(self.GullyData) == 0 {
+		if len(self.Data) == 0 {
 			return false
 		}
 

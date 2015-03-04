@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/changer/sc-notifications/utils/time"
+	"github.com/changer/khabar/utils/time"
 	"gopkg.in/mgo.v2/bson"
 )
 

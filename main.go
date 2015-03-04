@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/changer/sc-notifications/config"
-	"github.com/changer/sc-notifications/db"
-	"github.com/changer/sc-notifications/handlers"
-	"github.com/nicksnyder/go-i18n/i18n"
-	"gopkg.in/simversity/gottp.v2"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/changer/khabar/config"
+	"github.com/changer/khabar/db"
+	"github.com/nicksnyder/go-i18n/i18n"
+	"gopkg.in/simversity/gottp.v2"
 )
 
 func sysInit() {
@@ -42,13 +42,7 @@ func sysInit() {
 }
 
 func main() {
-
 	go sysInit()
-
-	registerHandler("notification", "^/notifications/(?P<generic_id>\\w+)/?$", new(handlers.Notification))
-	registerHandler("channel", "^/channel/(?P<ident>\\w+)/?$", new(handlers.Gully))
-	registerHandler("notification_settings_with_channel", "^/notification_setting/(?P<notification_type>\\w+)/(?P<channel_ident>\\w+)/?$", new(handlers.NotificationSettingWithChannel))
-	registerHandler("notification_settings", "^/notification_setting/(?P<type>\\w+)/?$", new(handlers.NotificationSettingHandler))
-	registerHandler("User_locale_handler", "^/user_locale/(?P<user>\\w+)/?$", new(handlers.UserLocale))
+	registerHandlers()
 	gottp.MakeServer(&config.Settings)
 }
