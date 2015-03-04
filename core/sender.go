@@ -63,13 +63,13 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 	sendToChannel(pending_item, text, channel.Ident, channel.Data)
 
 	sent_item := sent.SentItem{
-		AppName:          pending_item.AppName,
-		Organization:     pending_item.Organization,
-		User:             pending_item.User,
-		IsRead:           pending_item.IsRead,
-		Topic:            pending_item.Topic,
-		DestinationUri:   pending_item.DestinationUri,
-		NotificationText: text,
+		AppName:        pending_item.AppName,
+		Organization:   pending_item.Organization,
+		User:           pending_item.User,
+		IsRead:         pending_item.IsRead,
+		Topic:          pending_item.Topic,
+		DestinationUri: pending_item.DestinationUri,
+		Text:           text,
 	}
 
 	sent_item.PrepareSave()
