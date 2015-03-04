@@ -3,7 +3,6 @@ package notifications
 import (
 	"github.com/changer/sc-notifications/dbapi/notification_instance"
 	"github.com/changer/sc-notifications/utils"
-	//"github.com/sendgrid/sendgrid-go"
 	"log"
 )
 
@@ -25,8 +24,6 @@ func emailChannelHandler(ntfInst *notification_instance.NotificationInstance, nt
 		return
 	}
 
-	log.Println(glyData)
-
 	mailConn := utils.MailConn{
 		HostName:   glyData["smtp_hostname"].(string),
 		UserName:   glyData["smtp_username"].(string),
@@ -38,7 +35,7 @@ func emailChannelHandler(ntfInst *notification_instance.NotificationInstance, nt
 
 	mailConn.SendEmail(utils.Message{
 		From:    "no-reply@safetychanger.com",
-		To:      []string{"krunal.rasik@changer.nl"},
+		To:      []string{email},
 		Subject: "Message intended for recipient :" + email + " " + "with name :" + ntfInst.Context["FullName"].(string),
 		Body:    ntfText,
 	})
