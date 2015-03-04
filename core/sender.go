@@ -17,10 +17,10 @@ import (
 const DEFAULT_LOCALE = "en-US"
 const DEFAULT_TIMEZONE = "GMT+0.0"
 
-func sendToChannel(pending_item *pending.PendingItem, text string, glyIdent string, context map[string]interface{}) {
-	handlerFunc, ok := channelMap[glyIdent]
+func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent string, context map[string]interface{}) {
+	handlerFunc, ok := channelMap[channelIdent]
 	if !ok {
-		log.Println("Error : No channel handler found to send this Notification. Topic:" + pending_item.Topic + " Channel:" + glyIdent)
+		log.Println("Error : No channel handler found to send this Notification. Topic:" + pending_item.Topic + " Channel:" + channelIdent)
 		return
 	}
 	defer gotracer.Tracer{Dummy: true}.Notify()
