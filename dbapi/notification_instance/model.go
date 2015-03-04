@@ -4,10 +4,6 @@ import (
 	"github.com/changer/sc-notifications/db"
 )
 
-const (
-	NotificationInstanceCollection = "notification_instances"
-)
-
 type NotificationInstance struct {
 	db.BaseModel     `bson:",inline"`
 	Organization     string                 `json:"org" bson:"org" required:"true"`

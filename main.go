@@ -4,13 +4,11 @@ import (
 	"github.com/changer/sc-notifications/config"
 	"github.com/changer/sc-notifications/db"
 	"github.com/changer/sc-notifications/handlers"
-	"github.com/changer/sc-notifications/worker"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gottp.v2"
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 )
 
 func sysInit() {
@@ -41,7 +39,6 @@ func sysInit() {
 	})
 
 	log.Println("Translation has been parsed.")
-
 }
 
 func main() {

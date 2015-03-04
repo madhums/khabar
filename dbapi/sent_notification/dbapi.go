@@ -1,4 +1,4 @@
-package notification_instance
+package sent_notification
 
 import (
 	"github.com/changer/sc-notifications/db"
