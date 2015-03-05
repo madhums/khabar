@@ -8,9 +8,9 @@ func Update(dbConn *db.MConn, user string, appName string, org string, topicName
 
 	return dbConn.Update(TopicCollection,
 		db.M{"app_name": appName,
-			"org":  org,
-			"user": user,
-			"type": topicName,
+			"org":   org,
+			"user":  user,
+			"ident": topicName,
 		},
 		db.M{
 			"$set": *doc,
@@ -28,7 +28,7 @@ func Delete(dbConn *db.MConn, doc *db.M) error {
 func Get(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
 	topic := new(Topic)
 	if dbConn.GetOne(TopicCollection, db.M{"app_name": appName,
-		"org": org, "user": user, "type": topicName}, topic) != nil {
+		"org": org, "user": user, "ident": topicName}, topic) != nil {
 		return nil
 	}
 	return topic
@@ -48,7 +48,7 @@ func findPerUser(dbConn *db.MConn, user string, appName string, org string, topi
 		"user":     user,
 		"app_name": appName,
 		"org":      "",
-		"type":     topicName,
+		"ident":    topicName,
 	}, topic)
 
 	if err == nil {
@@ -59,7 +59,7 @@ func findPerUser(dbConn *db.MConn, user string, appName string, org string, topi
 		"user":     user,
 		"app_name": "",
 		"org":      org,
-		"type":     topicName,
+		"ident":    topicName,
 	}, topic)
 
 	if err == nil {
@@ -75,7 +75,7 @@ func findPerOrgnaization(dbConn *db.MConn, appName string, org string, topicName
 		"user":     "",
 		"app_name": appName,
 		"org":      org,
-		"type":     topicName,
+		"ident":    topicName,
 	}, topic)
 
 	if err == nil {
@@ -86,7 +86,7 @@ func findPerOrgnaization(dbConn *db.MConn, appName string, org string, topicName
 		"user":     "",
 		"app_name": "",
 		"org":      org,
-		"type":     topicName,
+		"ident":    topicName,
 	}, topic)
 
 	if err == nil {
@@ -104,7 +104,7 @@ func findGlobal(dbConn *db.MConn, topicName string) *Topic {
 		"user":     "",
 		"app_name": "",
 		"org":      "",
-		"type":     topicName,
+		"ident":    topicName,
 	}, topic)
 
 	if err == nil {

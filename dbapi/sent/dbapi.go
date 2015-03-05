@@ -5,6 +5,7 @@ import (
 	"github.com/changer/khabar/utils"
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/simversity/gottp.v2"
+	"log"
 )
 
 func Update(dbConn *db.MConn, id bson.ObjectId, doc *db.M) error {
@@ -15,9 +16,9 @@ func Update(dbConn *db.MConn, id bson.ObjectId, doc *db.M) error {
 	})
 }
 
-func MarkRead(dbConn *db.MConn, paginator *gottp.Paginator,
-	user string, appName string, org string) error {
-	var query db.M
+func MarkRead(dbConn *db.MConn, user string,
+	appName string, org string) error {
+	var query db.M = make(db.M)
 
 	query["user"] = user
 
@@ -29,6 +30,8 @@ func MarkRead(dbConn *db.MConn, paginator *gottp.Paginator,
 		query["org"] = org
 	}
 
+	log.Println(query)
+
 	doc := db.M{"$set": db.M{"is_read": true}}
 
 	return dbConn.Update(SentCollection, query, doc)
@@ -36,7 +39,7 @@ func MarkRead(dbConn *db.MConn, paginator *gottp.Paginator,
 }
 
 func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string) *[]SentItem {
-	var query db.M
+	var query db.M = make(db.M)
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
 	}

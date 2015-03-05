@@ -16,36 +16,37 @@ type TopicChannel struct {
 }
 
 func (self *TopicChannel) Post(request *gottp.Request) {
-	topic := new(topics.Topic)
+	intopic := new(topics.Topic)
 
 	channelIdent := request.GetArgument("channel").(string)
-	topic.Ident = request.GetArgument("ident").(string)
+	intopic.Ident = request.GetArgument("ident").(string)
 
-	request.ConvertArguments(topic)
+	request.ConvertArguments(intopic)
 
-	topic.AddChannel(channelIdent)
-
-	topic = topics.Get(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident)
+	topic := topics.Get(db.Conn, intopic.User, intopic.AppName, intopic.Organization, intopic.Ident)
 
 	hasData := true
 
 	if topic == nil {
 		hasData = false
 		log.Println("Creating new document")
+		intopic.AddChannel(channelIdent)
 
-		topic.PrepareSave()
-		if !topic.IsValid(dbapi.INSERT_OPERATION) {
+		intopic.PrepareSave()
+		if !intopic.IsValid(dbapi.INSERT_OPERATION) {
 			request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 			return
 		}
 
+		if !utils.ValidateAndRaiseError(request, intopic) {
+			log.Println("Validation Failed")
+			return
+		}
+
+		topic = intopic
+
 	} else {
 		topic.AddChannel(channelIdent)
-	}
-
-	if !utils.ValidateAndRaiseError(request, topic) {
-		log.Println("Validation Failed")
-		return
 	}
 
 	var err error
@@ -88,7 +89,7 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 	if len(topic.Channels) == 0 {
 		log.Println("Deleting from database, since channels are now empty.")
 		err = topics.Delete(db.Conn, &db.M{"app_name": topic.AppName,
-			"org": topic.Organization, "user": topic.User, "type": topic.Ident})
+			"org": topic.Organization, "user": topic.User, "ident": topic.Ident})
 	} else {
 		log.Println("Updating...")
 		err = topics.Update(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident, &db.M{
@@ -114,7 +115,7 @@ func (self *Topic) Delete(request *gottp.Request) {
 		return
 	}
 	err := topics.Delete(db.Conn, &db.M{"app_name": topic.AppName,
-		"org": topic.Organization, "user": topic.User, "type": topic.Ident})
+		"org": topic.Organization, "user": topic.User, "ident": topic.Ident})
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}

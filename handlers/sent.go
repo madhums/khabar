@@ -42,9 +42,8 @@ func (self *Notifications) Put(request *gottp.Request) {
 	}
 
 	request.ConvertArguments(&args)
-	paginator := request.GetPaginator()
 
-	sentApi.MarkRead(db.Conn, paginator, args.User, args.AppName,
+	sentApi.MarkRead(db.Conn, args.User, args.AppName,
 		args.Organization)
 
 	request.Write(true)
@@ -53,6 +52,11 @@ func (self *Notifications) Put(request *gottp.Request) {
 func (self *Notifications) Post(request *gottp.Request) {
 	ntfInst := new(pending.PendingItem)
 	request.ConvertArguments(ntfInst)
+
+	if request.GetArgument("topic") == nil {
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "Please provide topic for notification."})
+		return
+	}
 
 	ntfInst.Topic = request.GetArgument("topic").(string)
 	ntfInst.IsRead = false

@@ -21,6 +21,11 @@ func emailer(item *pending.PendingItem, text string, settings map[string]interfa
 		return
 	}
 
+	var fullname string = ""
+	if item.Context["FullName"] != nil {
+		fullname, ok = item.Context["FullName"].(string)
+	}
+
 	mailConn := utils.MailConn{
 		HostName:   settings["smtp_hostname"].(string),
 		UserName:   settings["smtp_username"].(string),
@@ -33,7 +38,7 @@ func emailer(item *pending.PendingItem, text string, settings map[string]interfa
 	mailConn.SendEmail(utils.Message{
 		From:    "no-reply@safetychanger.com",
 		To:      []string{email},
-		Subject: "Message intended for recipient :" + email + " " + "with name :" + item.Context["FullName"].(string),
+		Subject: "Message intended for recipient :" + email + " " + "with name :" + fullname,
 		Body:    text,
 	})
 }
