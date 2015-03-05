@@ -1,0 +1,31 @@
+box: wercker/golang
+# Build definition
+build:
+  # The steps that will be executed on build
+  steps:
+    - add-ssh-key:
+        keyname: PACKAGE_KEY
+
+    # Sets the go workspace and places you package
+    # at the right place in the workspace tree
+    - setup-go-workspace
+
+    # see http://blog.wercker.com/2013/09/23/import-go-package-from-private-git-repository.html
+    - script:
+        name: Clone private packages
+        code: |-
+            git clone git@github.com:changer/sc-messages.git $GOPATH/src/github.com/changer/spystore
+
+    # Gets the dependencies
+    - script:
+        name: go get
+        code: |
+          cd $WERCKER_SOURCE_DIR
+          go version
+          go get -t ./...
+
+    # Build the project
+    - script:
+        name: go build
+        code: |
+          go build ./...
