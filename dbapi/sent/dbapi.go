@@ -30,8 +30,6 @@ func MarkRead(dbConn *db.MConn, user string,
 		query["org"] = org
 	}
 
-	log.Println(query)
-
 	doc := db.M{"$set": db.M{"is_read": true}}
 
 	return dbConn.Update(SentCollection, query, doc)
