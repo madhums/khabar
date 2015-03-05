@@ -5,7 +5,6 @@ import (
 	"github.com/changer/khabar/utils"
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/simversity/gottp.v2"
-	"log"
 )
 
 func Update(dbConn *db.MConn, id bson.ObjectId, doc *db.M) error {
