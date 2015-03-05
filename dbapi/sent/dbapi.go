@@ -7,17 +7,17 @@ import (
 	"gopkg.in/simversity/gottp.v2"
 )
 
-func Update(dbConn *db.MConn, id bson.ObjectId, doc *db.M) error {
-	return dbConn.Update(SentCollection, db.M{
+func Update(dbConn *db.MConn, id bson.ObjectId, doc *utils.M) error {
+	return dbConn.Update(SentCollection, utils.M{
 		"_id": id,
-	}, db.M{
+	}, utils.M{
 		"$set": *doc,
 	})
 }
 
 func MarkRead(dbConn *db.MConn, user string,
 	appName string, org string) error {
-	var query db.M = make(db.M)
+	var query utils.M = make(utils.M)
 
 	query["user"] = user
 
@@ -29,14 +29,14 @@ func MarkRead(dbConn *db.MConn, user string,
 		query["org"] = org
 	}
 
-	doc := db.M{"$set": db.M{"is_read": true}}
+	doc := utils.M{"$set": utils.M{"is_read": true}}
 
 	return dbConn.Update(SentCollection, query, doc)
 
 }
 
 func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string) *[]SentItem {
-	var query db.M = make(db.M)
+	var query utils.M = make(utils.M)
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
 	}

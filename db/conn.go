@@ -7,14 +7,12 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/changer/khabar/utils/time"
+	"github.com/changer/khabar/utils"
 )
 
 var Conn *MConn
 
-type M bson.M
-
-func Convert(doc M, out interface{}) {
+func Convert(doc utils.M, out interface{}) {
 	stream, err := bson.Marshal(doc)
 	if err == nil {
 		bson.Unmarshal(stream, out)
@@ -27,12 +25,12 @@ type MConn struct {
 	db *mgo.Database
 }
 
-func (self *MConn) getCursor(table string, query M) *mgo.Query {
+func (self *MConn) getCursor(table string, query utils.M) *mgo.Query {
 
-	fields, err1 := query["fields"].(M)
+	fields, err1 := query["fields"].(utils.M)
 	delete(query, "fields")
 	if !err1 {
-		fields = M{}
+		fields = utils.M{}
 	}
 
 	sort, err2 := query["sort"].(string)
@@ -59,7 +57,7 @@ func (self *MConn) getCursor(table string, query M) *mgo.Query {
 
 type MapReduce mgo.MapReduce
 
-func (self *MConn) MapReduce(table string, query M, result interface{}, job *MapReduce) (*mgo.MapReduceInfo, error) {
+func (self *MConn) MapReduce(table string, query utils.M, result interface{}, job *MapReduce) (*mgo.MapReduceInfo, error) {
 	coll := self.db.C(table)
 	realJob := mgo.MapReduce{Map: job.Map, Reduce: job.Reduce, Finalize: job.Finalize, Scope: job.Scope, Verbose: true}
 	return coll.Find(query).MapReduce(&realJob, result)
@@ -88,7 +86,7 @@ func (self *MConn) DropIndices(table string) error {
 	return nil
 }
 
-func (self *MConn) findAndApply(table string, query M, change mgo.Change, result interface{}) error {
+func (self *MConn) findAndApply(table string, query utils.M, change mgo.Change, result interface{}) error {
 	change.ReturnNew = true
 
 	coll := self.db.C(table)
@@ -99,7 +97,7 @@ func (self *MConn) findAndApply(table string, query M, change mgo.Change, result
 	return err
 }
 
-func (self *MConn) FindAndUpsert(table string, query M, doc M, result interface{}) error {
+func (self *MConn) FindAndUpsert(table string, query utils.M, doc utils.M, result interface{}) error {
 	change := mgo.Change{
 		Update: doc,
 		Upsert: true,
@@ -107,7 +105,7 @@ func (self *MConn) FindAndUpsert(table string, query M, doc M, result interface{
 	return self.findAndApply(table, query, change, result)
 }
 
-func (self *MConn) FindAndUpdate(table string, query M, doc M, result interface{}) error {
+func (self *MConn) FindAndUpdate(table string, query utils.M, doc utils.M, result interface{}) error {
 	change := mgo.Change{
 		Update: doc,
 		Upsert: false,
@@ -120,11 +118,11 @@ func (self *MConn) EnsureIndex(table string, index mgo.Index) error {
 	return coll.EnsureIndex(index)
 }
 
-func (self *MConn) GetCursor(table string, query M) *mgo.Query {
+func (self *MConn) GetCursor(table string, query utils.M) *mgo.Query {
 	coll := self.db.C(table)
 	out := coll.Find(query)
 
-	//explanation := M{}
+	//explanation := utils.M{}
 	//err := out.Explain(explanation)
 	//if err == nil {
 	//    log.Println(table, query, explanation)
@@ -133,11 +131,11 @@ func (self *MConn) GetCursor(table string, query M) *mgo.Query {
 	return out
 }
 
-func (self *MConn) Get(table string, query M) *mgo.Iter {
+func (self *MConn) Get(table string, query utils.M) *mgo.Iter {
 	return self.getCursor(table, query).Iter()
 }
 
-func (self *MConn) HintedGetOne(table string, query M, result interface{}, hint string) error {
+func (self *MConn) HintedGetOne(table string, query utils.M, result interface{}, hint string) error {
 	cursor := self.getCursor(table, query).Hint(hint)
 	err := cursor.One(result)
 	if err != nil {
@@ -146,7 +144,7 @@ func (self *MConn) HintedGetOne(table string, query M, result interface{}, hint 
 	return err
 }
 
-func (self *MConn) GetOne(table string, query M, result interface{}) error {
+func (self *MConn) GetOne(table string, query utils.M, result interface{}) error {
 	cursor := self.getCursor(table, query)
 	err := cursor.One(result)
 	if err != nil {
@@ -159,8 +157,8 @@ func (self *MConn) InternalConn() *mgo.Database {
 	return self.db
 }
 
-func (self *MConn) HintedCount(table string, query M, hint string) int {
-	cursor := self.getCursor(table, query).Select(M{"_id": 1}).Hint(hint)
+func (self *MConn) HintedCount(table string, query utils.M, hint string) int {
+	cursor := self.getCursor(table, query).Select(utils.M{"_id": 1}).Hint(hint)
 	count, err := cursor.Count()
 	if err != nil {
 		log.Println("Error Counting", table, err)
@@ -168,8 +166,8 @@ func (self *MConn) HintedCount(table string, query M, hint string) int {
 	return count
 }
 
-func (self *MConn) Count(table string, query M) int {
-	cursor := self.getCursor(table, query).Select(M{"_id": 1})
+func (self *MConn) Count(table string, query utils.M) int {
+	cursor := self.getCursor(table, query).Select(utils.M{"_id": 1})
 	count, err := cursor.Count()
 	if err != nil {
 		log.Println("Error Counting", table, err)
@@ -177,7 +175,7 @@ func (self *MConn) Count(table string, query M) int {
 	return count
 }
 
-func (self *MConn) Upsert(table string, query M, doc M) error {
+func (self *MConn) Upsert(table string, query utils.M, doc utils.M) error {
 
 	var err error
 	if len(doc) == 0 {
@@ -196,10 +194,10 @@ func (self *MConn) Upsert(table string, query M, doc M) error {
 	return err
 }
 
-func AlterDoc(doc *M, operator string, operation M) {
+func AlterDoc(doc *utils.M, operator string, operation utils.M) {
 	spec := *doc
 	if spec[operator] != nil {
-		op, _ := spec[operator].(M)
+		op, _ := spec[operator].(utils.M)
 		for key, value := range op {
 			operation[key] = value
 		}
@@ -207,7 +205,7 @@ func AlterDoc(doc *M, operator string, operation M) {
 	spec[operator] = operation
 }
 
-func (self *MConn) Update(table string, query M, doc M) error {
+func (self *MConn) Update(table string, query utils.M, doc utils.M) error {
 
 	coll := self.db.C(table)
 	var update_err error
@@ -217,7 +215,7 @@ func (self *MConn) Update(table string, query M, doc M) error {
 				"https://github.com/Simversity/blackjack/issues/1051",
 		)
 	} else {
-		AlterDoc(&doc, "$set", M{"updated_on": time.EpochNow()})
+		AlterDoc(&doc, "$set", utils.M{"updated_on": utils.EpochNow()})
 		_, update_err = coll.UpdateAll(query, doc)
 	}
 
@@ -227,7 +225,7 @@ func (self *MConn) Update(table string, query M, doc M) error {
 	return update_err
 }
 
-func (self *MConn) Delete(table string, query M) error {
+func (self *MConn) Delete(table string, query utils.M) error {
 
 	var delete_err error
 
@@ -280,7 +278,7 @@ func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {
 	return
 }
 
-func (self *MConn) InsertMulti(table string, docs ...M) error {
+func (self *MConn) InsertMulti(table string, docs ...utils.M) error {
 	var interfaceSlice []interface{} = make([]interface{}, len(docs))
 	for i, d := range docs {
 
@@ -290,7 +288,7 @@ func (self *MConn) InsertMulti(table string, docs ...M) error {
 		}
 
 		if _, ok = d["created_on"]; !ok {
-			d["created_on"] = time.EpochNow()
+			d["created_on"] = utils.EpochNow()
 		}
 
 		interfaceSlice[i] = d
@@ -303,7 +301,7 @@ func (self *MConn) InsertMulti(table string, docs ...M) error {
 	return err
 }
 
-func (self *MConn) Aggregate(table string, doc []M) *mgo.Pipe {
+func (self *MConn) Aggregate(table string, doc []utils.M) *mgo.Pipe {
 	coll := self.db.C(table)
 	return coll.Pipe(doc)
 }

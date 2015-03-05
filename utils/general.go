@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"github.com/changer/khabar/db"
+	"net/http"
+
 	"gopkg.in/simversity/gottp.v2"
 	"gopkg.in/simversity/gottp.v2/utils"
-	"net/http"
 )
 
 func ConcatenateErrors(errs *[]error) string {
@@ -18,23 +18,23 @@ func ConcatenateErrors(errs *[]error) string {
 	return errString
 }
 
-func GetPaginationToQuery(paginator *gottp.Paginator) *db.M {
-	query := make(db.M)
+func GetPaginationToQuery(paginator *gottp.Paginator) *M {
+	query := make(M)
 	if len(paginator.Ids) > 0 {
-		query["_id"] = db.M{
+		query["_id"] = M{
 			"$in": paginator.Ids,
 		}
 	}
 
 	if len(paginator.Wkey) > 0 {
 		if len(paginator.Wgt) > 0 {
-			query[paginator.Wkey] = db.M{
+			query[paginator.Wkey] = M{
 				"$gt": paginator.Wgt,
 			}
 		}
 
 		if len(paginator.Wlt) > 0 {
-			query[paginator.Wkey] = db.M{
+			query[paginator.Wkey] = M{
 				"$lt": paginator.Wlt,
 			}
 		}

@@ -51,7 +51,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 
 	var err error
 	if hasData {
-		err = topics.Update(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident, &db.M{
+		err = topics.Update(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident, &utils.M{
 			"channels": topic.Channels,
 		})
 	} else {
@@ -88,11 +88,11 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 
 	if len(topic.Channels) == 0 {
 		log.Println("Deleting from database, since channels are now empty.")
-		err = topics.Delete(db.Conn, &db.M{"app_name": topic.AppName,
+		err = topics.Delete(db.Conn, &utils.M{"app_name": topic.AppName,
 			"org": topic.Organization, "user": topic.User, "ident": topic.Ident})
 	} else {
 		log.Println("Updating...")
-		err = topics.Update(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident, &db.M{
+		err = topics.Update(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident, &utils.M{
 			"channels": topic.Channels,
 		})
 	}
@@ -114,7 +114,7 @@ func (self *Topic) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
-	err := topics.Delete(db.Conn, &db.M{"app_name": topic.AppName,
+	err := topics.Delete(db.Conn, &utils.M{"app_name": topic.AppName,
 		"org": topic.Organization, "user": topic.User, "ident": topic.Ident})
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})

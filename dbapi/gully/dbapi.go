@@ -2,11 +2,12 @@ package gully
 
 import (
 	"github.com/changer/khabar/db"
+	"github.com/changer/khabar/utils"
 )
 
 func Get(dbConn *db.MConn, user string, appName string, org string, ident string) *Gully {
 	gully := new(Gully)
-	if dbConn.GetOne(GullyCollection, db.M{"app_name": appName,
+	if dbConn.GetOne(GullyCollection, utils.M{"app_name": appName,
 		"org": org, "user": user, "ident": ident}, gully) != nil {
 		return nil
 	}
@@ -14,7 +15,7 @@ func Get(dbConn *db.MConn, user string, appName string, org string, ident string
 	return gully
 }
 
-func Delete(dbConn *db.MConn, doc *db.M) error {
+func Delete(dbConn *db.MConn, doc *utils.M) error {
 	return dbConn.Delete(GullyCollection, *doc)
 }
 
@@ -34,7 +35,7 @@ func findPerUser(dbConn *db.MConn, user string, appName string, org string, iden
 
 	/*
 		Curently, Cannot have the case of App setting without organization.
-		err = dbConn.GetOne(GullyCollection, db.M{
+		err = dbConn.GetOne(GullyCollection, utils.M{
 			"user":     user,
 			"app_name": appName,
 			"org":      "",
@@ -46,7 +47,7 @@ func findPerUser(dbConn *db.MConn, user string, appName string, org string, iden
 		}
 	*/
 
-	err = dbConn.GetOne(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, utils.M{
 		"user":     user,
 		"app_name": "",
 		"org":      org,
@@ -63,7 +64,7 @@ func findPerUser(dbConn *db.MConn, user string, appName string, org string, iden
 func findPerOrgnaization(dbConn *db.MConn, appName string, org string, ident string) *Gully {
 	var err error
 	gully := new(Gully)
-	err = dbConn.GetOne(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, utils.M{
 		"user":     "",
 		"app_name": appName,
 		"org":      org,
@@ -74,7 +75,7 @@ func findPerOrgnaization(dbConn *db.MConn, appName string, org string, ident str
 		return gully
 	}
 
-	err = dbConn.GetOne(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, utils.M{
 		"user":     "",
 		"app_name": "",
 		"org":      org,
@@ -92,7 +93,7 @@ func findPerOrgnaization(dbConn *db.MConn, appName string, org string, ident str
 func findGlobal(dbConn *db.MConn, ident string) *Gully {
 	var err error
 	gully := new(Gully)
-	err = dbConn.GetOne(GullyCollection, db.M{
+	err = dbConn.GetOne(GullyCollection, utils.M{
 		"user":     "",
 		"app_name": "",
 		"org":      "",

@@ -2,17 +2,18 @@ package topics
 
 import (
 	"github.com/changer/khabar/db"
+	"github.com/changer/khabar/utils"
 )
 
-func Update(dbConn *db.MConn, user string, appName string, org string, topicName string, doc *db.M) error {
+func Update(dbConn *db.MConn, user string, appName string, org string, topicName string, doc *utils.M) error {
 
 	return dbConn.Update(TopicCollection,
-		db.M{"app_name": appName,
+		utils.M{"app_name": appName,
 			"org":   org,
 			"user":  user,
 			"ident": topicName,
 		},
-		db.M{
+		utils.M{
 			"$set": *doc,
 		})
 }
@@ -21,13 +22,13 @@ func Insert(dbConn *db.MConn, topic *Topic) string {
 	return dbConn.Insert(TopicCollection, topic)
 }
 
-func Delete(dbConn *db.MConn, doc *db.M) error {
+func Delete(dbConn *db.MConn, doc *utils.M) error {
 	return dbConn.Delete(TopicCollection, *doc)
 }
 
 func Get(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
 	topic := new(Topic)
-	if dbConn.GetOne(TopicCollection, db.M{"app_name": appName,
+	if dbConn.GetOne(TopicCollection, utils.M{"app_name": appName,
 		"org": org, "user": user, "ident": topicName}, topic) != nil {
 		return nil
 	}
@@ -44,7 +45,7 @@ func findPerUser(dbConn *db.MConn, user string, appName string, org string, topi
 		return topic
 	}
 
-	err = dbConn.GetOne(TopicCollection, db.M{
+	err = dbConn.GetOne(TopicCollection, utils.M{
 		"user":     user,
 		"app_name": appName,
 		"org":      "",
@@ -55,7 +56,7 @@ func findPerUser(dbConn *db.MConn, user string, appName string, org string, topi
 		return topic
 	}
 
-	err = dbConn.GetOne(TopicCollection, db.M{
+	err = dbConn.GetOne(TopicCollection, utils.M{
 		"user":     user,
 		"app_name": "",
 		"org":      org,
@@ -71,7 +72,7 @@ func findPerUser(dbConn *db.MConn, user string, appName string, org string, topi
 func findPerOrgnaization(dbConn *db.MConn, appName string, org string, topicName string) *Topic {
 	var err error
 	topic := new(Topic)
-	err = dbConn.GetOne(TopicCollection, db.M{
+	err = dbConn.GetOne(TopicCollection, utils.M{
 		"user":     "",
 		"app_name": appName,
 		"org":      org,
@@ -82,7 +83,7 @@ func findPerOrgnaization(dbConn *db.MConn, appName string, org string, topicName
 		return topic
 	}
 
-	err = dbConn.GetOne(TopicCollection, db.M{
+	err = dbConn.GetOne(TopicCollection, utils.M{
 		"user":     "",
 		"app_name": "",
 		"org":      org,
@@ -100,7 +101,7 @@ func findPerOrgnaization(dbConn *db.MConn, appName string, org string, topicName
 func findGlobal(dbConn *db.MConn, topicName string) *Topic {
 	var err error
 	topic := new(Topic)
-	err = dbConn.GetOne(TopicCollection, db.M{
+	err = dbConn.GetOne(TopicCollection, utils.M{
 		"user":     "",
 		"app_name": "",
 		"org":      "",

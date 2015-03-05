@@ -1,11 +1,12 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/changer/khabar/db"
 	"github.com/changer/khabar/dbapi/user_locale"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/simversity/gottp.v2"
-	"net/http"
 )
 
 type UserLocale struct {
@@ -21,7 +22,7 @@ func (self *UserLocale) Put(request *gottp.Request) {
 		return
 	}
 
-	updateParams := make(db.M)
+	updateParams := make(utils.M)
 	updateParams["timezone"] = inputUserLocale.TimeZone
 	updateParams["locale"] = inputUserLocale.Locale
 	user_locale.Update(db.Conn, inputUserLocale.User, &updateParams)

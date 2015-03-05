@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/changer/khabar/utils/time"
+	"github.com/changer/khabar/utils"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -21,8 +21,8 @@ func (self *BaseModel) PrepareSave() {
 	}
 
 	if !(self.CreatedOn > 0) {
-		self.CreatedOn = time.EpochNow()
+		self.CreatedOn = utils.EpochNow()
 	}
 
-	self.ModifiedOn = time.EpochNow()
+	self.ModifiedOn = utils.EpochNow()
 }
