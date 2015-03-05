@@ -19,7 +19,8 @@ func registerHandlers() {
 		"^/(?P<ident>\\w+)/channel/(?P<channel>\\w+)/?$",
 		new(handlers.TopicChannel))
 
-	gottp.NewUrl("topic", "^/topic/(?P<topic>\\w+)/?$", new(handlers.Topic))
+	gottp.NewUrl("topic", "^/topic/(?P<topic>\\w+)/?$",
+		new(handlers.Topic))
 
 	gottp.NewUrl("User_locale", "^/locale/(?P<user>\\w+)/?$",
 		new(handlers.UserLocale))
