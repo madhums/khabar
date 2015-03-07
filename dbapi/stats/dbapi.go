@@ -31,20 +31,7 @@ func Save(dbConn *db.MConn, user string, appName string, org string) {
 	log.Println("hello Saving", stats_query)
 
 	dbConn.Upsert(StatsCollection, stats_query, save_doc)
-
 	return
-	/*
-		var last_seen LastSeen
-
-		err := dbConn.GetOne(StatsCollection, stats_query, &last_seen)
-		if err != nil {
-			stats_query["timestamp"] = utils.EpochNow()
-			dbConn.Insert(StatsCollection, stats_query)
-		} else {
-			dbConn.Update(StatsCollection, utils.M{"_id": last_seen.Id},
-				utils.M{"timestamp": utils.EpochNow()})
-		}
-	*/
 }
 
 func Get(dbConn *db.MConn, user string, appName string, org string) *Stats {
