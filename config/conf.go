@@ -6,7 +6,7 @@ import (
 
 type config struct {
 	Gottp            conf.GottpSettings
-	Sc_Notifications struct {
+	Khabar struct {
 		DBName               string
 		DBAddress            string
 		TranslationDirectory string

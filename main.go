@@ -13,10 +13,10 @@ import (
 
 func sysInit() {
 	<-(gottp.SysInitChan) //Buffered Channel to receive the server upstart boolean
-	db.Conn = db.GetConn(config.Settings.Sc_Notifications.DBName, config.Settings.Sc_Notifications.DBAddress)
-	log.Println("Database Connected :" + config.Settings.Sc_Notifications.DBName + " " + "at address:" + config.Settings.Sc_Notifications.DBAddress)
+	db.Conn = db.GetConn(config.Settings.Khabar.DBName, config.Settings.Khabar.DBAddress)
+	log.Println("Database Connected :" + config.Settings.Khabar.DBName + " " + "at address:" + config.Settings.Khabar.DBAddress)
 
-	transDir := config.Settings.Sc_Notifications.TranslationDirectory
+	transDir := config.Settings.Khabar.TranslationDirectory
 
 	if len(transDir) == 0 {
 		transDir = os.Getenv("PWD") + "/translations"

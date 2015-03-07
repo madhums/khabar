@@ -9,6 +9,9 @@ func registerHandlers() {
 	gottp.NewUrl("notifications", "^/notifications/?$",
 		new(handlers.Notifications))
 
+	gottp.NewUrl("stats", "^/notifications/stats/?$",
+		new(handlers.Stats))
+
 	gottp.NewUrl("notification", "^/notification/(?P<_id>\\w+)/?$",
 		new(handlers.Notification))
 
@@ -22,6 +25,6 @@ func registerHandlers() {
 	gottp.NewUrl("topic", "^/topic/(?P<topic>\\w+)/?$",
 		new(handlers.Topic))
 
-	gottp.NewUrl("User_locale", "^/locale/(?P<user>\\w+)/?$",
+	gottp.NewUrl("user_locale", "^/locale/(?P<user>\\w+)/?$",
 		new(handlers.UserLocale))
 }
