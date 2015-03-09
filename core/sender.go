@@ -27,10 +27,7 @@ func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent 
 	handlerFunc(pending_item, text, context)
 }
 
-func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingItem, wg *sync.WaitGroup) {
-	wg.Add(1)
-	defer wg.Done()
-
+func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingItem) {
 	log.Println("Found Channel :" + channelIdent)
 
 	channel := gully.FindOne(db.Conn, pending_item.User, pending_item.AppName, pending_item.Organization, channelIdent)
@@ -86,7 +83,11 @@ func SendNotification(dbConn *db.MConn,
 	childwg := new(sync.WaitGroup)
 
 	for _, channel := range topic.Channels {
-		go send(dbConn, channel, pending_item, childwg)
+		go func(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingItem, wg *sync.WaitGroup) {
+			wg.Add(1)
+			defer wg.Done()
+			send(dbConn, channelIdent, pending_item)
+		}(dbConn, channel, pending_item, childwg)
 	}
 
 	childwg.Wait()
