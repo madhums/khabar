@@ -28,7 +28,7 @@ func sysInit() {
 		fileExt := filepath.Ext(path)
 		if fileExt == ".json" && err == nil {
 			log.Println("Loading translation file:" + path)
-			i18n.LoadTranslationFile(path)
+			i18n.MustLoadTranslationFile(path)
 		} else {
 			log.Print("Skipping translation file:" + path + " " + "File Extension:" + fileExt + " ")
 			if err != nil {
