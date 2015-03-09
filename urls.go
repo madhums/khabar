@@ -19,7 +19,7 @@ func registerHandlers() {
 		new(handlers.Gully))
 
 	gottp.NewUrl("topic_channel",
-		"^/(?P<ident>\\w+)/channel/(?P<channel>\\w+)/?$",
+		"^/topic/(?P<ident>\\w+)/channel/(?P<channel>\\w+)/?$",
 		new(handlers.TopicChannel))
 
 	gottp.NewUrl("topic", "^/topic/(?P<topic>\\w+)/?$",

@@ -27,10 +27,6 @@ func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent 
 	handlerFunc(pending_item, text, context)
 }
 
-func templateName(topicIdent string, channelIdent string) string {
-	return topicIdent + "_" + channelIdent
-}
-
 func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingItem) {
 	log.Println("Found Channel :" + channelIdent)
 
@@ -50,7 +46,8 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 		userLocale.TimeZone = DEFAULT_TIMEZONE
 	}
 
-	T, _ := i18n.Tfunc(userLocale.Locale+"_"+pending_item.AppName+"_"+pending_item.Organization, userLocale.Locale+"_"+pending_item.AppName, userLocale.Locale)
+	T, _ := i18n.Tfunc(userLocale.Locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+channel.Ident,
+		userLocale.Locale+"_"+pending_item.AppName+"_"+channel.Ident, userLocale.Locale+"_"+channel.Ident)
 
 	pending_item.Context["ChannelIdent"] = channelIdent
 	pending_item.Context["AppName"] = pending_item.AppName
@@ -58,7 +55,7 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 	pending_item.Context["Organization"] = pending_item.Organization
 	pending_item.Context["DestinationUri"] = pending_item.DestinationUri
 
-	text := T(templateName(pending_item.Topic, channelIdent), pending_item.Context)
+	text := T(pending_item.Topic, pending_item.Context)
 
 	sendToChannel(pending_item, text, channel.Ident, channel.Data)
 
@@ -86,11 +83,11 @@ func SendNotification(dbConn *db.MConn,
 	childwg := new(sync.WaitGroup)
 
 	for _, channel := range topic.Channels {
-		go func() {
-			childwg.Add(1)
-			defer childwg.Done()
-			send(dbConn, channel, pending_item)
-		}()
+		go func(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingItem, wg *sync.WaitGroup) {
+			wg.Add(1)
+			defer wg.Done()
+			send(dbConn, channelIdent, pending_item)
+		}(dbConn, channel, pending_item, childwg)
 	}
 
 	childwg.Wait()
