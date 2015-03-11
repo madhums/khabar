@@ -52,3 +52,22 @@ func (self *Gully) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}
 }
+
+type Gullys struct {
+	gottp.BaseHandler
+}
+
+func (self *Gullys) Get(request *gottp.Request) {
+	var args struct {
+		Organization string `json:"org"`
+		AppName      string `json:"app_name"`
+		User         string `json:"user"`
+	}
+
+	request.ConvertArguments(&args)
+	paginator := request.GetPaginator()
+
+	all := gully.GetAll(db.Conn, paginator, args.User, args.AppName, args.Organization, args.Ident)
+
+	request.Write(all)
+}

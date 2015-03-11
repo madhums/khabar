@@ -3,6 +3,7 @@ package topics
 import (
 	"github.com/changer/khabar/db"
 	"github.com/changer/khabar/utils"
+	"gopkg.in/simversity/gottp.v2"
 )
 
 func Update(dbConn *db.MConn, user string, appName string, org string, topicName string, doc *utils.M) error {
@@ -33,6 +34,55 @@ func Get(dbConn *db.MConn, user string, appName string, org string, topicName st
 		return nil
 	}
 	return topic
+}
+
+func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string, ident string) *[]Topic {
+	var query utils.M = make(utils.M)
+	if paginator != nil {
+		query = *utils.GetPaginationToQuery(paginator)
+	}
+	var result []Topic
+
+	if len(user) > 0 {
+		query["user"] = user
+	}
+
+	if len(appName) > 0 {
+		query["app_name"] = appName
+	}
+
+	if len(org) > 0 {
+		query["org"] = org
+	}
+
+	if len(ident) > 0 {
+		query["ident"] = ident
+	}
+
+	var limit int
+	var skip int
+	var limitExists bool
+	var skipExists bool
+
+	limit, limitExists = query["limit"].(int)
+	skip, skipExists = query["skip"].(int)
+
+	delete(query, "limit")
+	delete(query, "skip")
+
+	if !limitExists {
+		limit = 30
+	}
+	if !skipExists {
+		skip = 0
+	}
+
+	delete(query, "limit")
+	delete(query, "skip")
+
+	dbConn.GetCursor(TopicCollection, query).Skip(skip).Limit(limit).All(&result)
+
+	return &result
 }
 
 func findPerUser(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
