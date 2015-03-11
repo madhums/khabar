@@ -65,9 +65,8 @@ func (self *Gullys) Get(request *gottp.Request) {
 	}
 
 	request.ConvertArguments(&args)
-	paginator := request.GetPaginator()
 
-	all := gully.GetAll(db.Conn, paginator, args.User, args.AppName, args.Organization, args.Ident)
+	all := gully.GetAll(db.Conn, args.User, args.AppName, args.Organization)
 
 	request.Write(all)
 }

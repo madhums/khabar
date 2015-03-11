@@ -135,9 +135,8 @@ func (self *Topics) Get(request *gottp.Request) {
 	}
 
 	request.ConvertArguments(&args)
-	paginator := request.GetPaginator()
 
-	all := topics.GetAll(db.Conn, paginator, args.User, args.AppName, args.Organization, args.Ident)
+	all := topics.GetAll(db.Conn, args.User, args.AppName, args.Organization)
 
 	request.Write(all)
 }

@@ -3,7 +3,6 @@ package gully
 import (
 	"github.com/changer/khabar/db"
 	"github.com/changer/khabar/utils"
-	"gopkg.in/simversity/gottp.v2"
 )
 
 func Get(dbConn *db.MConn, user string, appName string, org string, ident string) *Gully {
@@ -24,11 +23,9 @@ func Insert(dbConn *db.MConn, gully *Gully) string {
 	return dbConn.Insert(GullyCollection, gully)
 }
 
-func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string, ident string) *[]Gully {
+func GetAll(dbConn *db.MConn, user string, appName string, org string) *[]Gully {
 	var query utils.M = make(utils.M)
-	if paginator != nil {
-		query = *utils.GetPaginationToQuery(paginator)
-	}
+
 	var result []Gully
 
 	if len(user) > 0 {
@@ -43,32 +40,7 @@ func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName s
 		query["org"] = org
 	}
 
-	if len(ident) > 0 {
-		query["ident"] = ident
-	}
-
-	var limit int
-	var skip int
-	var limitExists bool
-	var skipExists bool
-
-	limit, limitExists = query["limit"].(int)
-	skip, skipExists = query["skip"].(int)
-
-	delete(query, "limit")
-	delete(query, "skip")
-
-	if !limitExists {
-		limit = 30
-	}
-	if !skipExists {
-		skip = 0
-	}
-
-	delete(query, "limit")
-	delete(query, "skip")
-
-	dbConn.GetCursor(GullyCollection, query).Skip(skip).Limit(limit).All(&result)
+	dbConn.GetCursor(GullyCollection, query).All(&result)
 
 	return &result
 }
