@@ -39,8 +39,8 @@ build:
             name: move executable
             code: mv $GOPATH/bin/khabar $WERCKER_OUTPUT_DIR
 
-    after-steps:
-        - wantedly/pretty-slack-notify:
+  after-steps:
+    - wantedly/pretty-slack-notify:
             webhook_url: $SLACK_WEBHOOK_URL
 
 deploy:
