@@ -142,20 +142,27 @@ Notifications engine
 2. Mark a single notification as read
 
   **Method**: `PUT`
+  
   **Endpoint**: `/notification/:_id`
+  
   **Response status**: `200`
 
 3. Mark all unread notifications as read
 
   **Method**: `PUT`
+  
   **Endpoint**: `/notifications`
+  
   **Response status**: `200`
 
 4. View notifications history
 
   **Method**: `GET`
+  
   **Endpoint**: `/notifications`
+  
   **Query params**: `user`, `org`, `app`
+  
   **Response**:
   
   ```js
