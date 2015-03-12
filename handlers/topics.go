@@ -65,7 +65,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		return
 	}
 
-	request.Write(topic)
+	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
 }
 
 func (self *TopicChannel) Delete(request *gottp.Request) {
@@ -101,7 +101,10 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
+		return
 	}
+
+	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
 
 }
 
@@ -120,7 +123,10 @@ func (self *Topic) Delete(request *gottp.Request) {
 		"org": topic.Organization, "user": topic.User, "ident": topic.Ident})
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
+		return
 	}
+
+	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
 }
 
 type Topics struct {

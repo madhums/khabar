@@ -26,6 +26,8 @@ func (self *UserLocale) Put(request *gottp.Request) {
 	updateParams["timezone"] = inputUserLocale.TimeZone
 	updateParams["locale"] = inputUserLocale.Locale
 	user_locale.Update(db.Conn, inputUserLocale.User, &updateParams)
+
+	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
 }
 
 func (self *UserLocale) Post(request *gottp.Request) {
@@ -48,4 +50,6 @@ func (self *UserLocale) Post(request *gottp.Request) {
 	}
 
 	user_locale.Insert(db.Conn, userLocale)
+
+	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
 }

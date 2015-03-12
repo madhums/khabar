@@ -27,5 +27,5 @@ func (self *Notification) Put(request *gottp.Request) {
 	sent_item.Id = bson.ObjectIdHex(_id)
 	sentApi.Update(db.Conn, sent_item.Id, &utils.M{"is_read": true})
 
-	request.Write(true)
+	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
 }
