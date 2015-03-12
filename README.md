@@ -19,7 +19,7 @@ Notifications engine
       ident:""
   }
   ``` 
-    **Response Code**: `200`
+    **Response Code**: `201`
   
 2. Removing a channel from notification setting
 
@@ -37,7 +37,7 @@ Notifications engine
       ident:""
   }
   ``` 
-  **Response Code**: `200`
+  **Response Code**: `204`
 
 3. Removing  notification setting
 
@@ -55,7 +55,7 @@ Notifications engine
       ident:""
  }
 ```
-  **Response Code**: `200`
+  **Response Code**: `204`
 
 4. Get all notification settings
 
@@ -145,7 +145,7 @@ Notifications engine
   
   **Endpoint**: `/notification/:_id`
   
-  **Response status**: `200`
+  **Response status**: `204`
 
 3. Mark all unread notifications as read
 
@@ -153,7 +153,7 @@ Notifications engine
   
   **Endpoint**: `/notifications`
   
-  **Response status**: `200`
+  **Response status**: `204`
 
 4. View notifications history
 
@@ -182,6 +182,7 @@ Notifications engine
     { _id: 2,... }
   ]
   ```
+  **Response Code** : `200`
   
 `destination_uri` is  the link to relevant entity. (i.e action, incident)
 `text` is the notification text
@@ -198,8 +199,29 @@ Every response has following structure :
 {
     "data": {..},
     "message": "",
-    "status": 200
+    "status": `201`
 }
 ```
+
+For `201` status code the response will be like this:
+
+```js
+{
+    "data": {..},
+    "message": "Created",
+    "status": `201`
+}
+```
+
+For `204` status code the response will be like this:
+
+```js
+{
+    "data": {..},
+    "message": "NoContent",
+    "status": `204`
+}
+```
+
 
 
