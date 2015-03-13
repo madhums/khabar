@@ -1,29 +1,28 @@
 package core
 
 import (
-	"log"
-
 	"github.com/changer/khabar/dbapi/pending"
 	"github.com/changer/khabar/utils"
+	"log"
 )
 
 func emailer(item *pending.PendingItem, text string, settings map[string]interface{}) {
 	log.Println("Sending email...")
 
-	if item.Context["Email"] == nil {
+	if item.Context["email"] == nil {
 		log.Println("Email field not found.")
 		return
 	}
 
-	email, ok := item.Context["Email"].(string)
+	email, ok := item.Context["email"].(string)
 	if !ok {
 		log.Println("Email field is of invalid type")
 		return
 	}
 
 	var fullname string = ""
-	if item.Context["FullName"] != nil {
-		fullname, ok = item.Context["FullName"].(string)
+	if item.Context["fullname"] != nil {
+		fullname, ok = item.Context["fullname"].(string)
 	}
 
 	mailConn := utils.MailConn{
