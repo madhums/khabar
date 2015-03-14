@@ -23,6 +23,28 @@ func Insert(dbConn *db.MConn, gully *Gully) string {
 	return dbConn.Insert(GullyCollection, gully)
 }
 
+func GetAll(dbConn *db.MConn, user string, appName string, org string) *[]Gully {
+	var query utils.M = make(utils.M)
+
+	var result []Gully
+
+	if len(user) > 0 {
+		query["user"] = user
+	}
+
+	if len(appName) > 0 {
+		query["app_name"] = appName
+	}
+
+	if len(org) > 0 {
+		query["org"] = org
+	}
+
+	dbConn.GetCursor(GullyCollection, query).All(&result)
+
+	return &result
+}
+
 func findPerUser(dbConn *db.MConn, user string, appName string, org string, ident string) *Gully {
 	var err error
 

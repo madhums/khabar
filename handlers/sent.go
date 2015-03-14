@@ -46,7 +46,7 @@ func (self *Notifications) Put(request *gottp.Request) {
 	sentApi.MarkRead(db.Conn, args.User, args.AppName,
 		args.Organization)
 
-	request.Write(true)
+	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
 }
 
 func (self *Notifications) Post(request *gottp.Request) {
@@ -64,6 +64,7 @@ func (self *Notifications) Post(request *gottp.Request) {
 	ntfInst.PrepareSave()
 
 	if !utils.ValidateAndRaiseError(request, ntfInst) {
+		request.Raise(gottp.HttpError{http.StatusBadRequest, "Entity is invalid."})
 		return
 	}
 
@@ -76,9 +77,10 @@ func (self *Notifications) Post(request *gottp.Request) {
 
 	if topic == nil {
 		log.Println("Unable to find suitable notification setting.")
+		request.Raise(gottp.HttpError{http.StatusNotFound, "Unable to find suitable notification setting."})
 		return
 	}
 
 	core.SendNotification(db.Conn, ntfInst, topic)
-
+	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
 }
