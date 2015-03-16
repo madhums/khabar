@@ -62,8 +62,10 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 	if err != nil {
 		log.Println("Error while inserting document :" + err.Error())
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
+		return
 	}
 
+	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
 }
 
 func (self *TopicChannel) Delete(request *gottp.Request) {
@@ -99,7 +101,10 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
+		return
 	}
+
+	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
 
 }
 
@@ -118,5 +123,26 @@ func (self *Topic) Delete(request *gottp.Request) {
 		"org": topic.Organization, "user": topic.User, "ident": topic.Ident})
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
+		return
 	}
+
+	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
+}
+
+type Topics struct {
+	gottp.BaseHandler
+}
+
+func (self *Topics) Get(request *gottp.Request) {
+	var args struct {
+		Organization string `json:"org"`
+		AppName      string `json:"app_name"`
+		User         string `json:"user"`
+	}
+
+	request.ConvertArguments(&args)
+
+	all := topics.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+
+	request.Write(all)
 }

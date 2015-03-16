@@ -35,6 +35,28 @@ func Get(dbConn *db.MConn, user string, appName string, org string, topicName st
 	return topic
 }
 
+func GetAll(dbConn *db.MConn, user string, appName string, org string) *[]Topic {
+	var query utils.M = make(utils.M)
+
+	var result []Topic
+
+	if len(user) > 0 {
+		query["user"] = user
+	}
+
+	if len(appName) > 0 {
+		query["app_name"] = appName
+	}
+
+	if len(org) > 0 {
+		query["org"] = org
+	}
+
+	dbConn.GetCursor(TopicCollection, query).All(&result)
+
+	return &result
+}
+
 func findPerUser(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
 	var err error
 	var topic *Topic

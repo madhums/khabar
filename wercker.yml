@@ -39,6 +39,10 @@ build:
             name: move executable
             code: mv $GOPATH/bin/khabar $WERCKER_OUTPUT_DIR
 
+  after-steps:
+    - wantedly/pretty-slack-notify:
+            webhook_url: $SLACK_WEBHOOK_URL
+
 deploy:
     steps:
         # upload khabar file to S3 using build timestamp
@@ -48,3 +52,6 @@ deploy:
             file:       khabar
             url:        s3://$S3_BUCKET/$S3_SUBDIR/khabar_$WERCKER_MAIN_PIPELINE_STARTED.bin
 
+    after-steps:
+        - wantedly/pretty-slack-notify:
+            webhook_url: $SLACK_WEBHOOK_URL
