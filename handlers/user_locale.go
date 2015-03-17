@@ -28,7 +28,7 @@ func (self *UserLocale) Put(request *gottp.Request) {
 	updateParams["locale"] = inputUserLocale.Locale
 	user_locale.Update(db.Conn, inputUserLocale.User, &updateParams)
 
-	request.Raise(gottp.HttpError{http.StatusNoContent, "True"})
+	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
 }
 
 func (self *UserLocale) Post(request *gottp.Request) {

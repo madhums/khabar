@@ -47,7 +47,7 @@ func (self *Notifications) Put(request *gottp.Request) {
 	sentApi.MarkRead(db.Conn, args.User, args.AppName,
 		args.Organization)
 
-	request.Raise(gottp.HttpError{http.StatusNoContent, "True"})
+	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
 }
 
 func (self *Notifications) Post(request *gottp.Request) {
