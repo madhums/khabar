@@ -28,6 +28,7 @@ func (self *UserLocale) Put(request *gottp.Request) {
 	user_locale.Update(db.Conn, inputUserLocale.User, &updateParams)
 
 	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+	return
 }
 
 func (self *UserLocale) Post(request *gottp.Request) {
@@ -52,4 +53,5 @@ func (self *UserLocale) Post(request *gottp.Request) {
 	user_locale.Insert(db.Conn, userLocale)
 
 	request.Write(utils.R{Data: userLocale.Id, Message: "Created", StatusCode: http.StatusCreated})
+	return
 }
