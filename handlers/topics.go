@@ -60,11 +60,13 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 			return
 		} else {
 			request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+			return
 		}
 	} else {
 		log.Println("Successfull call: Inserting document")
 		topics.Insert(db.Conn, topic)
 		request.Write(utils.R{Data: topic.Id, Message: "Created", StatusCode: http.StatusCreated})
+		return
 	}
 }
 
@@ -105,6 +107,7 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 	}
 
 	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+	return
 }
 
 type Topic struct {
@@ -126,6 +129,7 @@ func (self *Topic) Delete(request *gottp.Request) {
 	}
 
 	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+	return
 }
 
 type Topics struct {
@@ -144,4 +148,5 @@ func (self *Topics) Get(request *gottp.Request) {
 	all := topics.GetAll(db.Conn, args.User, args.AppName, args.Organization)
 
 	request.Write(all)
+	return
 }

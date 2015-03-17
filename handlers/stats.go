@@ -44,6 +44,7 @@ func (self *Stats) Get(request *gottp.Request) {
 	stats := statsApi.Get(db.Conn, args.User, args.AppName, args.Organization)
 
 	request.Write(stats)
+	return
 
 }
 
@@ -65,4 +66,5 @@ func (self *Stats) Post(request *gottp.Request) {
 	statsApi.Save(db.Conn, args.User, args.AppName, args.Organization)
 
 	request.Write(utils.R{Data: args, Message: "Created", StatusCode: http.StatusCreated})
+	return
 }

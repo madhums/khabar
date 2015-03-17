@@ -28,4 +28,5 @@ func (self *Notification) Put(request *gottp.Request) {
 	sentApi.Update(db.Conn, sent_item.Id, &utils.M{"is_read": true})
 
 	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
+	return
 }
