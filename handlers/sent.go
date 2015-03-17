@@ -12,6 +12,7 @@ import (
 	sentApi "github.com/changer/khabar/dbapi/sent"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/simversity/gottp.v2"
+	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
 )
 
 type Notifications struct {
@@ -46,7 +47,7 @@ func (self *Notifications) Put(request *gottp.Request) {
 	sentApi.MarkRead(db.Conn, args.User, args.AppName,
 		args.Organization)
 
-	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
+	request.Raise(gottp.HttpError{http.StatusNoContent, "True"})
 }
 
 func (self *Notifications) Post(request *gottp.Request) {
@@ -82,5 +83,5 @@ func (self *Notifications) Post(request *gottp.Request) {
 	}
 
 	core.SendNotification(db.Conn, ntfInst, topic)
-	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
+	request.Raise(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(ntfInst))})
 }

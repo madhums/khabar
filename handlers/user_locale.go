@@ -7,6 +7,7 @@ import (
 	"github.com/changer/khabar/dbapi/user_locale"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/simversity/gottp.v2"
+	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
 )
 
 type UserLocale struct {
@@ -27,7 +28,7 @@ func (self *UserLocale) Put(request *gottp.Request) {
 	updateParams["locale"] = inputUserLocale.Locale
 	user_locale.Update(db.Conn, inputUserLocale.User, &updateParams)
 
-	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
+	request.Raise(gottp.HttpError{http.StatusNoContent, "True"})
 }
 
 func (self *UserLocale) Post(request *gottp.Request) {
@@ -51,5 +52,5 @@ func (self *UserLocale) Post(request *gottp.Request) {
 
 	user_locale.Insert(db.Conn, userLocale)
 
-	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
+	request.Raise(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(userLocale))})
 }

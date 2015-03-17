@@ -63,5 +63,5 @@ func (self *Stats) Post(request *gottp.Request) {
 
 	statsApi.Save(db.Conn, args.User, args.AppName, args.Organization)
 
-	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
+	request.Raise(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(args))})
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/changer/khabar/dbapi/topics"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/simversity/gottp.v2"
+	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
 )
 
 type TopicChannel struct {
@@ -65,7 +66,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		return
 	}
 
-	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
+	request.Raise(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(topic))})
 }
 
 func (self *TopicChannel) Delete(request *gottp.Request) {

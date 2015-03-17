@@ -6,6 +6,7 @@ import (
 	"github.com/changer/khabar/dbapi/gully"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/simversity/gottp.v2"
+	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
 	"net/http"
 )
 
@@ -36,7 +37,7 @@ func (self *Gully) Post(request *gottp.Request) {
 	}
 
 	gully.Insert(db.Conn, inputGully)
-	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
+	request.Raise(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(inputGully))})
 }
 
 func (self *Gully) Delete(request *gottp.Request) {
