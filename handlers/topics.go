@@ -9,7 +9,6 @@ import (
 	"github.com/changer/khabar/dbapi/topics"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/simversity/gottp.v2"
-	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
 )
 
 type TopicChannel struct {
@@ -60,12 +59,12 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
 			return
 		} else {
-			request.Write(gottp.HttpError{http.StatusNoContent, "NoContent"})
+			request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
 		}
 	} else {
 		log.Println("Successfull call: Inserting document")
 		topics.Insert(db.Conn, topic)
-		request.Write(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(topic))})
+		request.Write(utils.R{Data: topic.Id, Message: "Created", StatusCode: http.StatusCreated})
 	}
 }
 
@@ -105,8 +104,7 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 		return
 	}
 
-	request.Write(gottp.HttpError{http.StatusNoContent, "NoContent"})
-
+	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
 }
 
 type Topic struct {
@@ -127,7 +125,7 @@ func (self *Topic) Delete(request *gottp.Request) {
 		return
 	}
 
-	request.Write(gottp.HttpError{http.StatusNoContent, "NoContent"})
+	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
 }
 
 type Topics struct {

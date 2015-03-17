@@ -6,6 +6,7 @@ import (
 	"github.com/changer/khabar/db"
 
 	statsApi "github.com/changer/khabar/dbapi/stats"
+	"github.com/changer/khabar/utils"
 	"gopkg.in/simversity/gottp.v2"
 	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
 )
@@ -63,5 +64,5 @@ func (self *Stats) Post(request *gottp.Request) {
 
 	statsApi.Save(db.Conn, args.User, args.AppName, args.Organization)
 
-	request.Write(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(args))})
+	request.Write(utils.R{Data: args, Message: "Created", StatusCode: http.StatusCreated})
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/changer/khabar/dbapi/gully"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/simversity/gottp.v2"
-	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
 	"net/http"
 )
 
@@ -37,7 +36,7 @@ func (self *Gully) Post(request *gottp.Request) {
 	}
 
 	gully.Insert(db.Conn, inputGully)
-	request.Write(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(inputGully))})
+	request.Write(utils.R{StatusCode: http.StatusCreated, Data: inputGully.Id, Message: "Created"})
 }
 
 func (self *Gully) Delete(request *gottp.Request) {
@@ -52,7 +51,7 @@ func (self *Gully) Delete(request *gottp.Request) {
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}
-	request.Write(gottp.HttpError{http.StatusNoContent, "NoContent"})
+	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
 }
 
 type Gullys struct {
