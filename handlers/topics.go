@@ -54,18 +54,20 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		err = topics.Update(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident, &utils.M{
 			"channels": topic.Channels,
 		})
+		if err != nil {
+			log.Println("Error while inserting document :" + err.Error())
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
+			return
+		} else {
+			request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+			return
+		}
 	} else {
 		log.Println("Successfull call: Inserting document")
 		topics.Insert(db.Conn, topic)
-	}
-
-	if err != nil {
-		log.Println("Error while inserting document :" + err.Error())
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
+		request.Write(utils.R{Data: topic.Id, Message: "Created", StatusCode: http.StatusCreated})
 		return
 	}
-
-	request.Raise(gottp.HttpError{http.StatusCreated, "Created"})
 }
 
 func (self *TopicChannel) Delete(request *gottp.Request) {
@@ -104,8 +106,8 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 		return
 	}
 
-	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
-
+	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+	return
 }
 
 type Topic struct {
@@ -126,7 +128,8 @@ func (self *Topic) Delete(request *gottp.Request) {
 		return
 	}
 
-	request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
+	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+	return
 }
 
 type Topics struct {
@@ -145,4 +148,5 @@ func (self *Topics) Get(request *gottp.Request) {
 	all := topics.GetAll(db.Conn, args.User, args.AppName, args.Organization)
 
 	request.Write(all)
+	return
 }
