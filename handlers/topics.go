@@ -55,18 +55,18 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		err = topics.Update(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident, &utils.M{
 			"channels": topic.Channels,
 		})
+		if err != nil {
+			log.Println("Error while inserting document :" + err.Error())
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
+			return
+		} else {
+			request.Raise(gottp.HttpError{http.StatusNoContent, "NoContent"})
+		}
 	} else {
 		log.Println("Successfull call: Inserting document")
 		topics.Insert(db.Conn, topic)
+		request.Raise(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(topic))})
 	}
-
-	if err != nil {
-		log.Println("Error while inserting document :" + err.Error())
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
-		return
-	}
-
-	request.Raise(gottp.HttpError{http.StatusCreated, string(gottp_utils.Encoder(topic))})
 }
 
 func (self *TopicChannel) Delete(request *gottp.Request) {
