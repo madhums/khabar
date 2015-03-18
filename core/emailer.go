@@ -21,21 +21,26 @@ func emailer(item *pending.PendingItem, text string, settings map[string]interfa
 	}
 
 	var fullname string = ""
+	var sender string = ""
 	if item.Context["fullname"] != nil {
 		fullname, ok = item.Context["fullname"].(string)
+	}
+
+	if item.Context["sender"] != nil {
+		sender, ok = item.Context["sender"].(string)
 	}
 
 	mailConn := utils.MailConn{
 		HostName:   settings["smtp_hostname"].(string),
 		UserName:   settings["smtp_username"].(string),
 		Password:   settings["smtp_password"].(string),
-		SenderName: "Changer Spyder",
+		SenderName: sender,
 		Port:       settings["smtp_port"].(string),
 		Host:       settings["smtp_hostname"].(string) + ":" + settings["smtp_port"].(string),
 	}
 
 	mailConn.SendEmail(utils.Message{
-		From:    "no-reply@safetychanger.com",
+		From:    settings["smtp_from"].(string),
 		To:      []string{email},
 		Subject: "Message intended for recipient :" + email + " " + "with name :" + fullname,
 		Body:    text,
