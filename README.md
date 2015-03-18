@@ -8,7 +8,7 @@ Notifications engine
 
   **Method**: `POST`
    
-  **EndPoint**: `/topic/<notification_ident>/channel/<channel_ident>`
+  **EndPoint**: `/topics/<notification_ident>/channels/<channel_ident>`
   
   **Request body** :
   ```js
@@ -44,7 +44,7 @@ Notifications engine
 
   **Method**: `DELETE`
 
-  **EndPoint**: `/topic/<notification_ident>/channel/<channel_ident>`
+  **EndPoint**: `/topics/<notification_ident>/channels/<channel_ident>`
   
   **Request body** :
   
@@ -71,7 +71,7 @@ Notifications engine
 
   **Method** : `DELETE`
  
-  **EndPoint**: `/topic/<notification_ident>`
+  **EndPoint**: `/topics/<notification_ident>`
  
   **Request Body**:
  
@@ -187,7 +187,7 @@ Notifications engine
 
   **Method**: `PUT`
   
-  **Endpoint**: `/notification/:_id`
+  **Endpoint**: `/notifications/:_id`
   
   **Response code**: `200`
 
