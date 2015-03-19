@@ -322,7 +322,6 @@ func GetConn(db_name string, address string, creds ...string) *MConn {
 		info := mgo.DialInfo{
 			Addrs:    []string{address},
 			Database: db_name,
-			Direct:   true,
 			Username: username,
 			Password: password,
 		}

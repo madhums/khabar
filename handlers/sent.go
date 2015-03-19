@@ -66,7 +66,6 @@ func (self *Notifications) Post(request *gottp.Request) {
 	ntfInst.PrepareSave()
 
 	if !utils.ValidateAndRaiseError(request, ntfInst) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Entity is invalid."})
 		return
 	}
 
