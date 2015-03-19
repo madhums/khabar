@@ -315,7 +315,7 @@ func GetConn(db_name string, address string, creds ...string) *MConn {
 		if len(creds) > 0 {
 			username = creds[0]
 			if len(creds) > 1 {
-				username = creds[1]
+				password = creds[1]
 			}
 		}
 
