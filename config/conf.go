@@ -11,11 +11,15 @@ type config struct {
 		DBAddress            string
 		TranslationDirectory string
 		Debug                bool
+		DBUsername           string
+		DBPassword           string
 	}
 }
 
 func (self *config) MakeConfig(configPath string) {
 	self.Gottp.Listen = "127.0.0.1:8911"
+	self.Khabar.DBAddress = "127.0.0.1:27017"
+	self.Khabar.DBName = "safetyapps"
 	if configPath != "" {
 		conf.MakeConfig(configPath, self)
 	}
