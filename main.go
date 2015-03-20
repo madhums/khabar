@@ -45,7 +45,10 @@ func sysInit() {
 }
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
+
 	go sysInit()
+
 	registerHandlers()
 	gottp.MakeServer(&config.Settings)
 }
