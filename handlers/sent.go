@@ -32,6 +32,7 @@ func (self *Notifications) Get(request *gottp.Request) {
 		args.Organization)
 
 	request.Write(all)
+	return
 }
 
 func (self *Notifications) Put(request *gottp.Request) {
@@ -46,7 +47,8 @@ func (self *Notifications) Put(request *gottp.Request) {
 	sentApi.MarkRead(db.Conn, args.User, args.AppName,
 		args.Organization)
 
-	request.Write(true)
+	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
+	return
 }
 
 func (self *Notifications) Post(request *gottp.Request) {
@@ -76,9 +78,11 @@ func (self *Notifications) Post(request *gottp.Request) {
 
 	if topic == nil {
 		log.Println("Unable to find suitable notification setting.")
+		request.Raise(gottp.HttpError{http.StatusNotFound, "Unable to find suitable notification setting."})
 		return
 	}
 
 	core.SendNotification(db.Conn, ntfInst, topic)
-
+	request.Write(utils.R{StatusCode: http.StatusCreated, Data: topic.Id, Message: "Created"})
+	return
 }

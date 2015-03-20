@@ -36,7 +36,8 @@ func (self *Gully) Post(request *gottp.Request) {
 	}
 
 	gully.Insert(db.Conn, inputGully)
-	request.Write(inputGully)
+	request.Write(utils.R{StatusCode: http.StatusCreated, Data: inputGully.Id, Message: "Created"})
+	return
 }
 
 func (self *Gully) Delete(request *gottp.Request) {
@@ -51,4 +52,25 @@ func (self *Gully) Delete(request *gottp.Request) {
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 	}
+	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
+	return
+}
+
+type Gullys struct {
+	gottp.BaseHandler
+}
+
+func (self *Gullys) Get(request *gottp.Request) {
+	var args struct {
+		Organization string `json:"org"`
+		AppName      string `json:"app_name"`
+		User         string `json:"user"`
+	}
+
+	request.ConvertArguments(&args)
+
+	all := gully.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+
+	request.Write(all)
+	return
 }

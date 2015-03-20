@@ -54,16 +54,20 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		err = topics.Update(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident, &utils.M{
 			"channels": topic.Channels,
 		})
+		if err != nil {
+			log.Println("Error while inserting document :" + err.Error())
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
+			return
+		} else {
+			request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+			return
+		}
 	} else {
 		log.Println("Successfull call: Inserting document")
 		topics.Insert(db.Conn, topic)
+		request.Write(utils.R{Data: topic.Id, Message: "Created", StatusCode: http.StatusCreated})
+		return
 	}
-
-	if err != nil {
-		log.Println("Error while inserting document :" + err.Error())
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
-	}
-
 }
 
 func (self *TopicChannel) Delete(request *gottp.Request) {
@@ -99,8 +103,11 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
+		return
 	}
 
+	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+	return
 }
 
 type Topic struct {
@@ -118,5 +125,28 @@ func (self *Topic) Delete(request *gottp.Request) {
 		"org": topic.Organization, "user": topic.User, "ident": topic.Ident})
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
+		return
 	}
+
+	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+	return
+}
+
+type Topics struct {
+	gottp.BaseHandler
+}
+
+func (self *Topics) Get(request *gottp.Request) {
+	var args struct {
+		Organization string `json:"org"`
+		AppName      string `json:"app_name"`
+		User         string `json:"user"`
+	}
+
+	request.ConvertArguments(&args)
+
+	all := topics.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+
+	request.Write(all)
+	return
 }

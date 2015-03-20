@@ -6,6 +6,7 @@ import (
 	"github.com/changer/khabar/db"
 
 	statsApi "github.com/changer/khabar/dbapi/stats"
+	"github.com/changer/khabar/utils"
 	"gopkg.in/simversity/gottp.v2"
 	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
 )
@@ -43,6 +44,7 @@ func (self *Stats) Get(request *gottp.Request) {
 	stats := statsApi.Get(db.Conn, args.User, args.AppName, args.Organization)
 
 	request.Write(stats)
+	return
 
 }
 
@@ -63,6 +65,6 @@ func (self *Stats) Post(request *gottp.Request) {
 
 	statsApi.Save(db.Conn, args.User, args.AppName, args.Organization)
 
-	stats := statsApi.Get(db.Conn, args.User, args.AppName, args.Organization)
-	request.Write(stats)
+	request.Write(utils.R{Data: nil, Message: "Created", StatusCode: http.StatusCreated})
+	return
 }

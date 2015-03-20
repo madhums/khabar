@@ -1,9 +1,6 @@
 package core
 
 import (
-	"log"
-	"sync"
-
 	"github.com/changer/khabar/db"
 	"github.com/changer/khabar/dbapi/gully"
 	"github.com/changer/khabar/dbapi/pending"
@@ -12,6 +9,8 @@ import (
 	"github.com/changer/khabar/dbapi/user_locale"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gotracer.v1"
+	"log"
+	"sync"
 )
 
 const DEFAULT_LOCALE = "en-US"
@@ -48,12 +47,6 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 
 	T, _ := i18n.Tfunc(userLocale.Locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+channel.Ident,
 		userLocale.Locale+"_"+pending_item.AppName+"_"+channel.Ident, userLocale.Locale+"_"+channel.Ident)
-
-	pending_item.Context["ChannelIdent"] = channelIdent
-	pending_item.Context["AppName"] = pending_item.AppName
-	pending_item.Context["User"] = pending_item.User
-	pending_item.Context["Organization"] = pending_item.Organization
-	pending_item.Context["DestinationUri"] = pending_item.DestinationUri
 
 	text := T(pending_item.Topic, pending_item.Context)
 
