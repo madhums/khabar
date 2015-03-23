@@ -7,8 +7,10 @@ import (
 
 	statsApi "github.com/changer/khabar/dbapi/stats"
 	"github.com/changer/khabar/utils"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
+	"log"
 )
 
 func ConcatenateErrors(errs *[]error) string {
@@ -41,7 +43,17 @@ func (self *Stats) Get(request *gottp.Request) {
 		return
 	}
 
-	stats := statsApi.Get(db.Conn, args.User, args.AppName, args.Organization)
+	stats, getErr := statsApi.Get(db.Conn, args.User, args.AppName, args.Organization)
+
+	if getErr != nil {
+		if getErr != mgo.ErrNotFound {
+			log.Println(getErr)
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+		} else {
+			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+		}
+		return
+	}
 
 	request.Write(stats)
 	return
@@ -63,7 +75,13 @@ func (self *Stats) Post(request *gottp.Request) {
 		return
 	}
 
-	statsApi.Save(db.Conn, args.User, args.AppName, args.Organization)
+	insErr := statsApi.Save(db.Conn, args.User, args.AppName, args.Organization)
+
+	if insErr != nil {
+		log.Println(insErr)
+		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to insert."})
+		return
+	}
 
 	request.Write(utils.R{Data: nil, Message: "Created", StatusCode: http.StatusCreated})
 	return

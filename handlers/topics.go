@@ -8,6 +8,7 @@ import (
 	"github.com/changer/khabar/dbapi"
 	"github.com/changer/khabar/dbapi/topics"
 	"github.com/changer/khabar/utils"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 )
 
@@ -23,7 +24,16 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 
 	request.ConvertArguments(intopic)
 
-	topic := topics.Get(db.Conn, intopic.User, intopic.AppName, intopic.Organization, intopic.Ident)
+	topic, err := topics.Get(db.Conn, intopic.User, intopic.AppName, intopic.Organization, intopic.Ident)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+		} else {
+			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+		}
+	}
 
 	hasData := true
 
@@ -49,7 +59,6 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		topic.AddChannel(channelIdent)
 	}
 
-	var err error
 	if hasData {
 		err = topics.Update(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident, &utils.M{
 			"channels": topic.Channels,
@@ -78,7 +87,17 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 
 	request.ConvertArguments(topic)
 
-	topic = topics.Get(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident)
+	topic, err := topics.Get(db.Conn, topic.User, topic.AppName, topic.Organization, topic.Ident)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+		} else {
+			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+		}
+		return
+	}
 
 	if topic == nil {
 		request.Raise(gottp.HttpError{http.StatusNotFound, "topics setting does not exists."})
@@ -87,8 +106,6 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 
 	topic.RemoveChannel(channelIdent)
 	log.Println(topic.Channels)
-
-	var err error
 
 	if len(topic.Channels) == 0 {
 		log.Println("Deleting from database, since channels are now empty.")
@@ -102,7 +119,7 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 	}
 
 	if err != nil {
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Internal server error."})
+		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
 		return
 	}
 
@@ -145,7 +162,17 @@ func (self *Topics) Get(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	all := topics.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+	all, err := topics.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+		} else {
+			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+		}
+		return
+	}
 
 	request.Write(all)
 	return

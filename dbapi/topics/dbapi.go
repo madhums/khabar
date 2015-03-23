@@ -26,16 +26,14 @@ func Delete(dbConn *db.MConn, doc *utils.M) error {
 	return dbConn.Delete(TopicCollection, *doc)
 }
 
-func Get(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
-	topic := new(Topic)
-	if dbConn.GetOne(TopicCollection, utils.M{"app_name": appName,
-		"org": org, "user": user, "ident": topicName}, topic) != nil {
-		return nil
-	}
-	return topic
+func Get(dbConn *db.MConn, user string, appName string, org string, topicName string) (topic *Topic, err error) {
+	topic = new(Topic)
+	err = dbConn.GetOne(TopicCollection, utils.M{"app_name": appName,
+		"org": org, "user": user, "ident": topicName}, topic)
+	return
 }
 
-func GetAll(dbConn *db.MConn, user string, appName string, org string) *[]Topic {
+func GetAll(dbConn *db.MConn, user string, appName string, org string) (*[]Topic, error) {
 	var query utils.M = make(utils.M)
 
 	var result []Topic
@@ -52,113 +50,90 @@ func GetAll(dbConn *db.MConn, user string, appName string, org string) *[]Topic 
 		query["org"] = org
 	}
 
-	dbConn.GetCursor(TopicCollection, query).All(&result)
+	session := dbConn.Session.Copy()
+	defer session.Close()
 
-	return &result
+	err := dbConn.GetCursor(session, TopicCollection, query).All(&result)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
-func findPerUser(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
-	var err error
-	var topic *Topic
+func findPerUser(dbConn *db.MConn, user string, appName string, org string, topicName string) (topic *Topic, err error) {
 
-	topic = Get(dbConn, user, appName, org, topicName)
-
-	if topic != nil {
-		return topic
-	}
-
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     user,
-		"app_name": appName,
-		"org":      "",
-		"ident":    topicName,
-	}, topic)
+	topic, err = Get(dbConn, user, appName, org, topicName)
 
 	if err == nil {
-		return topic
+		return
 	}
 
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     user,
-		"app_name": "",
-		"org":      org,
-		"ident":    topicName,
-	}, topic)
+	topic, err = Get(dbConn, user, appName, "", topicName)
 
 	if err == nil {
-		return topic
+		return
 	}
-	return nil
+
+	topic, err = Get(dbConn, user, "", org, topicName)
+
+	if err == nil {
+		return
+	}
+	return
 }
 
-func findPerOrgnaization(dbConn *db.MConn, appName string, org string, topicName string) *Topic {
-	var err error
-	topic := new(Topic)
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     "",
-		"app_name": appName,
-		"org":      org,
-		"ident":    topicName,
-	}, topic)
+func findPerOrgnaization(dbConn *db.MConn, appName string, org string, topicName string) (topic *Topic, err error) {
+
+	topic, err = Get(dbConn, "", appName, org, topicName)
 
 	if err == nil {
-		return topic
+		return
 	}
 
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     "",
-		"app_name": "",
-		"org":      org,
-		"ident":    topicName,
-	}, topic)
+	topic, err = Get(dbConn, "", "", org, topicName)
 
 	if err == nil {
-		return topic
+		return
 	}
 
-	return nil
+	return
 
 }
 
-func findGlobal(dbConn *db.MConn, topicName string) *Topic {
-	var err error
-	topic := new(Topic)
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     "",
-		"app_name": "",
-		"org":      "",
-		"ident":    topicName,
-	}, topic)
+func findGlobal(dbConn *db.MConn, topicName string) (topic *Topic, err error) {
+
+	topic, err = Get(dbConn, "", "", "", topicName)
 
 	if err == nil {
-		return topic
+		return
 	}
 
-	return nil
+	return
 
 }
 
-func Find(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
-	var topic *Topic
+func Find(dbConn *db.MConn, user string, appName string, org string, topicName string) (topic *Topic, err error) {
 
-	topic = findPerUser(dbConn, user, appName, org, topicName)
+	topic, err = findPerUser(dbConn, user, appName, org, topicName)
 
-	if topic != nil {
-		return topic
+	if err == nil {
+		return
 	}
 
-	topic = findPerOrgnaization(dbConn, appName, org, topicName)
+	topic, err = findPerOrgnaization(dbConn, appName, org, topicName)
 
-	if topic != nil {
-		return topic
+	if err == nil {
+		return
 	}
 
-	topic = findGlobal(dbConn, topicName)
+	topic, err = findGlobal(dbConn, topicName)
 
-	if topic != nil {
-		return topic
+	if err == nil {
+		return
 	}
 
-	return nil
+	return
 
 }
