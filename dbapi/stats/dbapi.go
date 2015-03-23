@@ -14,7 +14,7 @@ type Stats struct {
 	TotalUnread int   `json:"total_unread"`
 }
 
-func Save(dbConn *db.MConn, user string, appName string, org string) {
+func Save(dbConn *db.MConn, user string, appName string, org string) error {
 	stats_query := utils.M{
 		"user":     user,
 		"app_name": appName,
@@ -28,14 +28,10 @@ func Save(dbConn *db.MConn, user string, appName string, org string) {
 		"timestamp": utils.EpochNow(),
 	}
 
-	log.Println("hello Saving", stats_query)
-
-	dbConn.Upsert(StatsCollection, stats_query, save_doc)
-	return
+	return dbConn.Upsert(StatsCollection, stats_query, save_doc)
 }
 
-func Get(dbConn *db.MConn, user string, appName string, org string) *Stats {
-	var stats Stats
+func Get(dbConn *db.MConn, user string, appName string, org string) (stats *Stats, err error) {
 
 	stats_query := utils.M{}
 	unread_query := utils.M{"is_read": false}
@@ -60,9 +56,10 @@ func Get(dbConn *db.MConn, user string, appName string, org string) *Stats {
 
 	var last_seen LastSeen
 
-	err := dbConn.GetOne(StatsCollection, stats_query, &last_seen)
+	err = dbConn.GetOne(StatsCollection, stats_query, &last_seen)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	if last_seen.Timestamp > 0 {
@@ -75,5 +72,5 @@ func Get(dbConn *db.MConn, user string, appName string, org string) *Stats {
 	stats.UnreadCount = dbConn.Count(StatsCollection, unread_since_query)
 	stats.TotalUnread = dbConn.Count(StatsCollection, unread_query)
 
-	return &stats
+	return
 }

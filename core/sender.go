@@ -29,15 +29,15 @@ func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent 
 func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingItem) {
 	log.Println("Found Channel :" + channelIdent)
 
-	channel := gully.FindOne(db.Conn, pending_item.User, pending_item.AppName, pending_item.Organization, channelIdent)
-	if channel == nil {
-		log.Println("Unable to find channel")
+	channel, err := gully.FindOne(db.Conn, pending_item.User, pending_item.AppName, pending_item.Organization, channelIdent)
+	if err != nil {
+		log.Println("Unable to find channel :" + err.Error())
 		return
 	}
 
-	userLocale := user_locale.Get(db.Conn, pending_item.User)
-	if userLocale == nil {
-		log.Println("Unable to find locale for user")
+	userLocale, err := user_locale.Get(db.Conn, pending_item.User)
+	if err != nil {
+		log.Println("Unable to find locale for user :" + err.Error())
 		userLocale = new(user_locale.UserLocale)
 
 		//FIXME:: Please do not hardcode this.

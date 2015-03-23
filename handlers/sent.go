@@ -11,6 +11,7 @@ import (
 	"github.com/changer/khabar/dbapi/pending"
 	sentApi "github.com/changer/khabar/dbapi/sent"
 	"github.com/changer/khabar/utils"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 )
 
@@ -28,8 +29,18 @@ func (self *Notifications) Get(request *gottp.Request) {
 	request.ConvertArguments(&args)
 	paginator := request.GetPaginator()
 
-	all := sentApi.GetAll(db.Conn, paginator, args.User, args.AppName,
+	all, err := sentApi.GetAll(db.Conn, paginator, args.User, args.AppName,
 		args.Organization)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+		} else {
+			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+		}
+		return
+	}
 
 	request.Write(all)
 	return
@@ -44,8 +55,14 @@ func (self *Notifications) Put(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	sentApi.MarkRead(db.Conn, args.User, args.AppName,
+	err := sentApi.MarkRead(db.Conn, args.User, args.AppName,
 		args.Organization)
+
+	if err != nil {
+		log.Println(err)
+		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to insert."})
+		return
+	}
 
 	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
 	return
@@ -74,11 +91,15 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	topic := topics.Find(db.Conn, ntfInst.User, ntfInst.AppName, ntfInst.Organization, ntfInst.Topic)
+	topic, err := topics.Find(db.Conn, ntfInst.User, ntfInst.AppName, ntfInst.Organization, ntfInst.Topic)
 
-	if topic == nil {
-		log.Println("Unable to find suitable notification setting.")
-		request.Raise(gottp.HttpError{http.StatusNotFound, "Unable to find suitable notification setting."})
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+		} else {
+			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+		}
 		return
 	}
 

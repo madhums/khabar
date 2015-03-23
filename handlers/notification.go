@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"gopkg.in/mgo.v2/bson"
@@ -25,7 +26,14 @@ func (self *Notification) Put(request *gottp.Request) {
 	}
 
 	sent_item.Id = bson.ObjectIdHex(_id)
-	sentApi.Update(db.Conn, sent_item.Id, &utils.M{"is_read": true})
+
+	err := sentApi.Update(db.Conn, sent_item.Id, &utils.M{"is_read": true})
+
+	if err != nil {
+		log.Println(err)
+		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to insert."})
+		return
+	}
 
 	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
 	return
