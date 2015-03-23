@@ -72,7 +72,10 @@ func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName s
 	delete(query, "limit")
 	delete(query, "skip")
 
-	dbConn.GetCursor(SentCollection, query).Skip(skip).Limit(limit).All(&result)
+	session := dbConn.Session.Copy()
+	defer session.Close()
+
+	dbConn.GetCursor(session, SentCollection, query).Skip(skip).Limit(limit).All(&result)
 
 	return &result
 }

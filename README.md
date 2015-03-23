@@ -216,36 +216,6 @@ Notifications engine
       "status": 204
   }
   ```
-
-9. View notifications history
-
-  **Method**: `GET`
-  
-  **Endpoint**: `/notifications`
-  
-  **Query params**: `user`, `org`, `app`
-
-  **Response Code** : `200`
-  
-  **Response Body**:
-  
-  ```js
-  [
-    {
-      _id: 1,
-      org:"",
-      app_name: "",
-      user:"",
-      destination_uri:"",
-      text:"",
-      topic:"",
-      destination_uri:"",
-      is_read:false,
-      created_on: <milliseconds_since_epoch>
-    },
-    { _id: 2,... }
-  ]
-  ```
   
 `destination_uri` is  the link to relevant entity. (i.e action, incident)
 `text` is the notification text

@@ -52,7 +52,10 @@ func GetAll(dbConn *db.MConn, user string, appName string, org string) *[]Topic 
 		query["org"] = org
 	}
 
-	dbConn.GetCursor(TopicCollection, query).All(&result)
+	session := dbConn.Session.Copy()
+	defer session.Close()
+
+	dbConn.GetCursor(session, TopicCollection, query).All(&result)
 
 	return &result
 }
