@@ -20,13 +20,8 @@ func emailer(item *pending.PendingItem, text string, settings map[string]interfa
 		return
 	}
 
-	var fullname string = ""
 	var sender string = ""
 	var subject string = ""
-
-	if item.Context["fullname"] != nil {
-		fullname, ok = item.Context["fullname"].(string)
-	}
 
 	if item.Context["sender"] != nil {
 		sender, ok = item.Context["sender"].(string)
