@@ -22,12 +22,18 @@ func emailer(item *pending.PendingItem, text string, settings map[string]interfa
 
 	var fullname string = ""
 	var sender string = ""
+	var subject string = ""
+
 	if item.Context["fullname"] != nil {
 		fullname, ok = item.Context["fullname"].(string)
 	}
 
 	if item.Context["sender"] != nil {
 		sender, ok = item.Context["sender"].(string)
+	}
+
+	if item.Context["subject"] != nil {
+		subject, ok = item.Context["subject"].(string)
 	}
 
 	mailConn := utils.MailConn{
@@ -42,7 +48,7 @@ func emailer(item *pending.PendingItem, text string, settings map[string]interfa
 	mailConn.SendEmail(utils.Message{
 		From:    settings["smtp_from"].(string),
 		To:      []string{email},
-		Subject: "Message intended for recipient :" + email + " " + "with name :" + fullname,
+		Subject: subject,
 		Body:    text,
 	})
 }
