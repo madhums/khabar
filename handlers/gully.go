@@ -5,7 +5,9 @@ import (
 	"github.com/changer/khabar/dbapi"
 	"github.com/changer/khabar/dbapi/gully"
 	"github.com/changer/khabar/utils"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
+	"log"
 	"net/http"
 )
 
@@ -28,7 +30,17 @@ func (self *Gully) Post(request *gottp.Request) {
 		return
 	}
 
-	gly := gully.Get(db.Conn, inputGully.User, inputGully.AppName, inputGully.Organization, inputGully.Ident)
+	gly, err := gully.Get(db.Conn, inputGully.User, inputGully.AppName, inputGully.Organization, inputGully.Ident)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+		} else {
+			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+		}
+		return
+	}
 
 	if gly != nil {
 		request.Raise(gottp.HttpError{http.StatusConflict, "Channel already exists"})
@@ -36,6 +48,7 @@ func (self *Gully) Post(request *gottp.Request) {
 	}
 
 	gully.Insert(db.Conn, inputGully)
+
 	request.Write(utils.R{StatusCode: http.StatusCreated, Data: inputGully.Id, Message: "Created"})
 	return
 }
@@ -47,11 +60,15 @@ func (self *Gully) Delete(request *gottp.Request) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
+
 	err := gully.Delete(db.Conn, &utils.M{"app_name": gly.AppName,
 		"org": gly.Organization, "user": gly.User, "ident": gly.Ident})
 	if err != nil {
+		log.Println(err)
 		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
+		return
 	}
+
 	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
 	return
 }
@@ -69,7 +86,17 @@ func (self *Gullys) Get(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	all := gully.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+	all, err := gully.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+		} else {
+			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+		}
+		return
+	}
 
 	request.Write(all)
 	return

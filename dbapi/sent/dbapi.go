@@ -32,10 +32,9 @@ func MarkRead(dbConn *db.MConn, user string,
 	doc := utils.M{"$set": utils.M{"is_read": true}}
 
 	return dbConn.Update(SentCollection, query, doc)
-
 }
 
-func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string) *[]SentItem {
+func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string) (*[]SentItem, error) {
 	var query utils.M = make(utils.M)
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
@@ -75,9 +74,13 @@ func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName s
 	session := dbConn.Session.Copy()
 	defer session.Close()
 
-	dbConn.GetCursor(session, SentCollection, query).Skip(skip).Limit(limit).All(&result)
+	err := dbConn.GetCursor(session, SentCollection, query).Skip(skip).Limit(limit).All(&result)
 
-	return &result
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func Insert(dbConn *db.MConn, ntfInst *SentItem) string {
