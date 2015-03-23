@@ -41,7 +41,7 @@ func emailer(item *pending.PendingItem, text string, settings map[string]interfa
 
 	mailConn.SendEmail(utils.Message{
 		From:    settings["smtp_from"].(string),
-		To:      []string{"piyush.verma@safetychanger.com"},
+		To:      []string{email},
 		Subject: "Message intended for recipient :" + email + " " + "with name :" + fullname,
 		Body:    text,
 	})
