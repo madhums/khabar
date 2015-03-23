@@ -40,7 +40,10 @@ func GetAll(dbConn *db.MConn, user string, appName string, org string) *[]Gully 
 		query["org"] = org
 	}
 
-	dbConn.GetCursor(GullyCollection, query).All(&result)
+	session := dbConn.Session.Copy()
+	defer session.Close()
+
+	dbConn.GetCursor(session, GullyCollection, query).All(&result)
 
 	return &result
 }
