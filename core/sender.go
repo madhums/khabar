@@ -14,6 +14,7 @@ import (
 	"gopkg.in/simversity/gotracer.v1"
 )
 
+const webIdent = "web"
 const DEFAULT_LOCALE = "en-US"
 const DEFAULT_TIMEZONE = "GMT+0.0"
 
@@ -28,7 +29,29 @@ func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent 
 	handlerFunc(pending_item, text, context)
 }
 
-func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingItem) {
+func getText(locale string, ident string, pending_item *pending.PendingItem) (text string) {
+	T, _ := i18n.Tfunc(
+		locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+ident,
+		locale+"_"+pending_item.AppName+"_"+ident,
+		locale+"_"+ident,
+	)
+
+	text = T(pending_item.Topic, pending_item.Context)
+
+	if text == "" || text == pending_item.Topic {
+		// If Topic == text, do not send the notification. This can happen
+		// if the translation fails to find a sensible string in the JSON files
+		// OR the translation provided was meaningless. To prevent the users
+		// from being annpyed, abort this routine.
+
+		log.Println(pending_item.Topic + " == text. Abort sending")
+		return
+	}
+
+	return
+}
+
+func send(locale string, channelIdent string, pending_item *pending.PendingItem) {
 	log.Println("Found Channel :" + channelIdent)
 
 	channel, err := gully.FindOne(
@@ -42,6 +65,18 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 		return
 	}
 
+	text := getText(locale, channelIdent, pending_item)
+	if text == "" {
+		return
+	}
+
+	sendToChannel(pending_item, text, channel.Ident, channel.Data)
+}
+
+func SendNotification(dbConn *db.MConn,
+	pending_item *pending.PendingItem,
+	topic *topics.Topic,
+) {
 	userLocale, err := user_locale.Get(db.Conn, pending_item.User)
 	if err != nil {
 		log.Println("Unable to find locale for user :" + err.Error())
@@ -52,30 +87,30 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 		userLocale.TimeZone = DEFAULT_TIMEZONE
 	}
 
-	T, _ := i18n.Tfunc(
-		userLocale.Locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+channel.Ident,
-		userLocale.Locale+"_"+pending_item.AppName+"_"+channel.Ident, userLocale.Locale+"_"+channel.Ident,
-	)
+	childwg := new(sync.WaitGroup)
 
-	text := T(pending_item.Topic, pending_item.Context)
-
-	if text == "" || text == pending_item.Topic {
-		// If Topic == text, do not send the notification. This can happen
-		// if the translation fails to find a sensible string in the JSON files
-		// OR the translation provided was meaningless. To prevent the users
-		// from being annpyed, abort this routine.
-
-		log.Println(pending_item.Topic + " == text. Abort sending")
-		return
+	for _, channel := range topic.Channels {
+		go func(
+			locale string,
+			channelIdent string,
+			pending_item *pending.PendingItem,
+			wg *sync.WaitGroup,
+		) {
+			wg.Add(1)
+			defer wg.Done()
+			send(locale, channelIdent, pending_item)
+		}(userLocale.Locale, channel, pending_item, childwg)
 	}
 
-	sendToChannel(pending_item, text, channel.Ident, channel.Data)
+	childwg.Wait()
+
+	text := getText(userLocale.Locale, webIdent, pending_item)
 
 	sent_item := db.SentItem{
 		AppName:        pending_item.AppName,
 		Organization:   pending_item.Organization,
 		User:           pending_item.User,
-		IsRead:         pending_item.IsRead,
+		IsRead:         false,
 		Topic:          pending_item.Topic,
 		DestinationUri: pending_item.DestinationUri,
 		Text:           text,
@@ -84,21 +119,4 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 	sent_item.PrepareSave()
 
 	sent.Insert(dbConn, &sent_item)
-}
-
-func SendNotification(dbConn *db.MConn,
-	pending_item *pending.PendingItem,
-	topic *topics.Topic,
-) {
-	childwg := new(sync.WaitGroup)
-
-	for _, channel := range topic.Channels {
-		go func(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingItem, wg *sync.WaitGroup) {
-			wg.Add(1)
-			defer wg.Done()
-			send(dbConn, channelIdent, pending_item)
-		}(dbConn, channel, pending_item, childwg)
-	}
-
-	childwg.Wait()
 }
