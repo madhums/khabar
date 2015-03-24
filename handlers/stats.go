@@ -3,14 +3,13 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/changer/khabar/db"
+	"log"
 
 	statsApi "github.com/changer/khabar/dbapi/stats"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
-	"log"
 )
 
 func ConcatenateErrors(errs *[]error) string {
@@ -43,7 +42,7 @@ func (self *Stats) Get(request *gottp.Request) {
 		return
 	}
 
-	stats, getErr := statsApi.Get(db.Conn, args.User, args.AppName, args.Organization)
+	stats, getErr := statsApi.Get(args.User, args.AppName, args.Organization)
 
 	if getErr != nil {
 		if getErr != mgo.ErrNotFound {
@@ -75,7 +74,7 @@ func (self *Stats) Post(request *gottp.Request) {
 		return
 	}
 
-	insErr := statsApi.Save(db.Conn, args.User, args.AppName, args.Organization)
+	insErr := statsApi.Save(args.User, args.AppName, args.Organization)
 
 	if insErr != nil {
 		log.Println(insErr)

@@ -20,9 +20,10 @@ const DEFAULT_TIMEZONE = "GMT+0.0"
 func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent string, context map[string]interface{}) {
 	handlerFunc, ok := channelMap[channelIdent]
 	if !ok {
-		log.Println("Error : No channel handler found to send this Notification. Topic:" + pending_item.Topic + " Channel:" + channelIdent)
+		log.Println("No handler for Topic:" + pending_item.Topic + " Channel:" + channelIdent)
 		return
 	}
+
 	defer gotracer.Tracer{Dummy: true}.Notify()
 	handlerFunc(pending_item, text, context)
 }
@@ -30,7 +31,12 @@ func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent 
 func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingItem) {
 	log.Println("Found Channel :" + channelIdent)
 
-	channel, err := gully.FindOne(db.Conn, pending_item.User, pending_item.AppName, pending_item.Organization, channelIdent)
+	channel, err := gully.FindOne(
+		db.Conn, pending_item.User,
+		pending_item.AppName, pending_item.Organization,
+		channelIdent,
+	)
+
 	if err != nil {
 		log.Println("Unable to find channel :" + err.Error())
 		return
@@ -46,10 +52,22 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 		userLocale.TimeZone = DEFAULT_TIMEZONE
 	}
 
-	T, _ := i18n.Tfunc(userLocale.Locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+channel.Ident,
-		userLocale.Locale+"_"+pending_item.AppName+"_"+channel.Ident, userLocale.Locale+"_"+channel.Ident)
+	T, _ := i18n.Tfunc(
+		userLocale.Locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+channel.Ident,
+		userLocale.Locale+"_"+pending_item.AppName+"_"+channel.Ident, userLocale.Locale+"_"+channel.Ident,
+	)
 
 	text := T(pending_item.Topic, pending_item.Context)
+
+	if text == "" || text == pending_item.Topic {
+		// If Topic == text, do not send the notification. This can happen
+		// if the translation fails to find a sensible string in the JSON files
+		// OR the translation provided was meaningless. To prevent the users
+		// from being annpyed, abort this routine.
+
+		log.Println(pending_item.Topic + " == text. Abort sending")
+		return
+	}
 
 	sendToChannel(pending_item, text, channel.Ident, channel.Data)
 
@@ -66,8 +84,6 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 	sent_item.PrepareSave()
 
 	sent.Insert(dbConn, &sent_item)
-
-	log.Println(text)
 }
 
 func SendNotification(dbConn *db.MConn,

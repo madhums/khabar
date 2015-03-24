@@ -21,8 +21,22 @@ func (self *Gully) Post(request *gottp.Request) {
 	request.ConvertArguments(inputGully)
 	inputGully.PrepareSave()
 
+	_, allowed := db.Channels[inputGully.Ident]
+	if !allowed {
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Channel is not supported",
+		})
+
+		return
+	}
+
 	if !inputGully.IsValid(db.INSERT_OPERATION) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Atleast one of the user, org and app_name must be present.",
+		})
+
 		return
 	}
 
@@ -30,26 +44,46 @@ func (self *Gully) Post(request *gottp.Request) {
 		return
 	}
 
-	gly, err := gully.Get(db.Conn, inputGully.User, inputGully.AppName, inputGully.Organization, inputGully.Ident)
+	gly, err := gully.Get(
+		db.Conn, inputGully.User, inputGully.AppName,
+		inputGully.Organization, inputGully.Ident,
+	)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			log.Println(err)
-			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+
 		} else {
-			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+			request.Raise(gottp.HttpError{
+				http.StatusNotFound,
+				"Not Found.",
+			})
 		}
+
 		return
 	}
 
 	if gly != nil {
-		request.Raise(gottp.HttpError{http.StatusConflict, "Channel already exists"})
+		request.Raise(gottp.HttpError{
+			http.StatusConflict,
+			"Channel already exists",
+		})
+
 		return
 	}
 
 	gully.Insert(db.Conn, inputGully)
 
-	request.Write(utils.R{StatusCode: http.StatusCreated, Data: inputGully.Id, Message: "Created"})
+	request.Write(utils.R{
+		StatusCode: http.StatusCreated,
+		Data:       inputGully.Id,
+		Message:    "Created",
+	})
+
 	return
 }
 
@@ -57,7 +91,11 @@ func (self *Gully) Delete(request *gottp.Request) {
 	gly := new(db.Gully)
 	request.ConvertArguments(gly)
 	if !gly.IsValid(db.DELETE_OPERATION) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Atleast one of the user, org and app_name must be present.",
+		})
+
 		return
 	}
 
@@ -65,11 +103,20 @@ func (self *Gully) Delete(request *gottp.Request) {
 		"org": gly.Organization, "user": gly.User, "ident": gly.Ident})
 	if err != nil {
 		log.Println(err)
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
+		request.Raise(gottp.HttpError{
+			http.StatusInternalServerError,
+			"Unable to delete.",
+		})
+
 		return
 	}
 
-	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
+	request.Write(utils.R{
+		StatusCode: http.StatusNoContent,
+		Data:       nil,
+		Message:    "NoContent",
+	})
+
 	return
 }
 
@@ -91,10 +138,18 @@ func (self *Gullys) Get(request *gottp.Request) {
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			log.Println(err)
-			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+
 		} else {
-			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+			request.Raise(gottp.HttpError{
+				http.StatusNotFound,
+				"Not Found.",
+			})
 		}
+
 		return
 	}
 
