@@ -27,13 +27,9 @@ type Stats struct {
 	gottp.BaseHandler
 }
 
-var args struct {
-	Organization string `json:"org"`
-	AppName      string `json:"app_name"`
-	User         string `json:"user" required:"true"`
-}
-
 func (self *Stats) Get(request *gottp.Request) {
+	args := statsApi.RequestArgs{}
+
 	request.ConvertArguments(&args)
 
 	err := gottp_utils.Validate(&args)
@@ -46,7 +42,7 @@ func (self *Stats) Get(request *gottp.Request) {
 		return
 	}
 
-	stats, getErr := statsApi.Get(args.User, args.AppName, args.Organization)
+	stats, getErr := statsApi.Get(&args)
 
 	if getErr != nil {
 		if getErr != mgo.ErrNotFound {
@@ -68,6 +64,8 @@ func (self *Stats) Get(request *gottp.Request) {
 }
 
 func (self *Stats) Post(request *gottp.Request) {
+	args := statsApi.RequestArgs{}
+
 	request.ConvertArguments(&args)
 
 	err := gottp_utils.Validate(&args)
@@ -80,7 +78,7 @@ func (self *Stats) Post(request *gottp.Request) {
 		return
 	}
 
-	insErr := statsApi.Save(args.User, args.AppName, args.Organization)
+	insErr := statsApi.Save(&args)
 
 	if insErr != nil {
 		log.Println(insErr)

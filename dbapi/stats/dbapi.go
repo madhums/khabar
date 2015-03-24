@@ -14,7 +14,17 @@ type Stats struct {
 	TotalUnread int   `json:"total_unread"`
 }
 
-func Save(user string, appName string, org string) error {
+type RequestArgs struct {
+	Organization string `json:"org"`
+	AppName      string `json:"app_name"`
+	User         string `json:"user" required:"true"`
+}
+
+func Save(args *RequestArgs) error {
+	user := args.User
+	appName := args.AppName
+	org := args.Organization
+
 	dbConn := db.Conn
 
 	stats_query := utils.M{
@@ -33,7 +43,11 @@ func Save(user string, appName string, org string) error {
 	return dbConn.Upsert(db.StatsCollection, stats_query, save_doc)
 }
 
-func Get(user string, appName string, org string) (stats *Stats, err error) {
+func Get(args *RequestArgs) (stats *Stats, err error) {
+	user := args.User
+	appName := args.AppName
+	org := args.Organization
+
 	dbConn := db.Conn
 	stats = &Stats{}
 
@@ -62,7 +76,7 @@ func Get(user string, appName string, org string) (stats *Stats, err error) {
 
 	err = dbConn.GetOne(db.StatsCollection, stats_query, &last_seen)
 	if err != nil {
-		err = Save(user, appName, org)
+		err = Save(args)
 		if err == nil {
 			err = dbConn.GetOne(db.StatsCollection, stats_query, &last_seen)
 		} else {
