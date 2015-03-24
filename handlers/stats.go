@@ -3,14 +3,13 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/changer/khabar/db"
+	"log"
 
 	statsApi "github.com/changer/khabar/dbapi/stats"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
-	"log"
 )
 
 func ConcatenateErrors(errs *[]error) string {
@@ -29,26 +28,30 @@ type Stats struct {
 }
 
 func (self *Stats) Get(request *gottp.Request) {
-	var args struct {
-		Organization string `json:"org"`
-		AppName      string `json:"app_name"`
-		User         string `json:"user" required:"true"`
-	}
+	args := statsApi.RequestArgs{}
 
 	request.ConvertArguments(&args)
 
 	err := gottp_utils.Validate(&args)
 	if len(*err) > 0 {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, ConcatenateErrors(err)})
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			ConcatenateErrors(err),
+		})
+
 		return
 	}
 
-	stats, getErr := statsApi.Get(db.Conn, args.User, args.AppName, args.Organization)
+	stats, getErr := statsApi.Get(&args)
 
 	if getErr != nil {
 		if getErr != mgo.ErrNotFound {
 			log.Println(getErr)
-			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+
 		} else {
 			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
 		}
@@ -61,25 +64,29 @@ func (self *Stats) Get(request *gottp.Request) {
 }
 
 func (self *Stats) Post(request *gottp.Request) {
-	var args struct {
-		Organization string `json:"org"`
-		AppName      string `json:"app_name"`
-		User         string `json:"user" required:"true"`
-	}
+	args := statsApi.RequestArgs{}
 
 	request.ConvertArguments(&args)
 
 	err := gottp_utils.Validate(&args)
 	if len(*err) > 0 {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, ConcatenateErrors(err)})
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			ConcatenateErrors(err),
+		})
+
 		return
 	}
 
-	insErr := statsApi.Save(db.Conn, args.User, args.AppName, args.Organization)
+	insErr := statsApi.Save(&args)
 
 	if insErr != nil {
 		log.Println(insErr)
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to insert."})
+		request.Raise(gottp.HttpError{
+			http.StatusInternalServerError,
+			"Unable to insert.",
+		})
+
 		return
 	}
 

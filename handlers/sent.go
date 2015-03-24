@@ -35,9 +35,16 @@ func (self *Notifications) Get(request *gottp.Request) {
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			log.Println(err)
-			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+
 		} else {
-			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+			request.Raise(gottp.HttpError{
+				http.StatusNotFound,
+				"Not Found.",
+			})
 		}
 		return
 	}
@@ -60,7 +67,11 @@ func (self *Notifications) Put(request *gottp.Request) {
 
 	if err != nil {
 		log.Println(err)
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to insert."})
+		request.Raise(gottp.HttpError{
+			http.StatusInternalServerError,
+			"Unable to insert.",
+		})
+
 		return
 	}
 
@@ -69,41 +80,52 @@ func (self *Notifications) Put(request *gottp.Request) {
 }
 
 func (self *Notifications) Post(request *gottp.Request) {
-	ntfInst := new(pending.PendingItem)
-	request.ConvertArguments(ntfInst)
+	pending := new(pending.PendingItem)
+	request.ConvertArguments(pending)
 
 	if request.GetArgument("topic") == nil {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Please provide topic for notification."})
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Please provide topic for notification.",
+		})
+
 		return
 	}
 
-	ntfInst.Topic = request.GetArgument("topic").(string)
-	ntfInst.IsRead = false
+	pending.Topic = request.GetArgument("topic").(string)
+	pending.IsRead = false
 
-	ntfInst.PrepareSave()
+	pending.PrepareSave()
 
-	if !utils.ValidateAndRaiseError(request, ntfInst) {
+	if !utils.ValidateAndRaiseError(request, pending) {
 		return
 	}
 
-	if !ntfInst.IsValid() {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Context is required while inserting."})
+	if !pending.IsValid() {
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Context is required while inserting.",
+		})
+
 		return
 	}
 
-	topic, err := topics.Find(db.Conn, ntfInst.User, ntfInst.AppName, ntfInst.Organization, ntfInst.Topic)
-
+	topic, err := topics.Find(db.Conn, pending.User, pending.AppName, pending.Organization, pending.Topic)
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			log.Println(err)
-			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+
 		} else {
 			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
 		}
 		return
 	}
 
-	core.SendNotification(db.Conn, ntfInst, topic)
+	core.SendNotification(db.Conn, pending, topic)
 	request.Write(utils.R{StatusCode: http.StatusCreated, Data: topic.Id, Message: "Created"})
 	return
 }

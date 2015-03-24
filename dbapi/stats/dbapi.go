@@ -14,7 +14,19 @@ type Stats struct {
 	TotalUnread int   `json:"total_unread"`
 }
 
-func Save(dbConn *db.MConn, user string, appName string, org string) error {
+type RequestArgs struct {
+	Organization string `json:"org"`
+	AppName      string `json:"app_name"`
+	User         string `json:"user" required:"true"`
+}
+
+func Save(args *RequestArgs) error {
+	user := args.User
+	appName := args.AppName
+	org := args.Organization
+
+	dbConn := db.Conn
+
 	stats_query := utils.M{
 		"user":     user,
 		"app_name": appName,
@@ -31,8 +43,12 @@ func Save(dbConn *db.MConn, user string, appName string, org string) error {
 	return dbConn.Upsert(db.StatsCollection, stats_query, save_doc)
 }
 
-func Get(dbConn *db.MConn, user string, appName string, org string) (stats *Stats, err error) {
+func Get(args *RequestArgs) (stats *Stats, err error) {
+	user := args.User
+	appName := args.AppName
+	org := args.Organization
 
+	dbConn := db.Conn
 	stats = &Stats{}
 
 	stats_query := utils.M{}
@@ -40,18 +56,17 @@ func Get(dbConn *db.MConn, user string, appName string, org string) (stats *Stat
 	unread_since_query := utils.M{"is_read": false}
 
 	stats_query["user"] = user
-	stats_query["app_name"] = appName
-	stats_query["org"] = org
-
 	unread_query["user"] = user
 	unread_since_query["user"] = user
 
 	if len(appName) > 0 {
+		stats_query["app_name"] = appName
 		unread_query["app_name"] = appName
 		unread_since_query["app_name"] = appName
 	}
 
 	if len(org) > 0 {
+		stats_query["org"] = org
 		unread_query["org"] = org
 		unread_since_query["org"] = org
 	}
@@ -60,7 +75,7 @@ func Get(dbConn *db.MConn, user string, appName string, org string) (stats *Stat
 
 	err = dbConn.GetOne(db.StatsCollection, stats_query, &last_seen)
 	if err != nil {
-		err = Save(dbConn, user, appName, org)
+		err = Save(args)
 		if err == nil {
 			err = dbConn.GetOne(db.StatsCollection, stats_query, &last_seen)
 		} else {
