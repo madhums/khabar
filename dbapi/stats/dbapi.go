@@ -56,18 +56,17 @@ func Get(args *RequestArgs) (stats *Stats, err error) {
 	unread_since_query := utils.M{"is_read": false}
 
 	stats_query["user"] = user
-	stats_query["app_name"] = appName
-	stats_query["org"] = org
-
 	unread_query["user"] = user
 	unread_since_query["user"] = user
 
 	if len(appName) > 0 {
+		stats_query["app_name"] = appName
 		unread_query["app_name"] = appName
 		unread_since_query["app_name"] = appName
 	}
 
 	if len(org) > 0 {
+		stats_query["org"] = org
 		unread_query["org"] = org
 		unread_since_query["org"] = org
 	}
