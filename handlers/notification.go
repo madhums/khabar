@@ -17,7 +17,7 @@ type Notification struct {
 }
 
 func (self *Notification) Put(request *gottp.Request) {
-	sent_item := new(sentApi.SentItem)
+	sent_item := new(db.SentItem)
 	_id := request.GetArgument("_id").(string)
 
 	if !bson.IsObjectIdHex(_id) {

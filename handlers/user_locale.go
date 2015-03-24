@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/changer/khabar/db"
 	"github.com/changer/khabar/dbapi/user_locale"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
-	"log"
-	"net/http"
 )
 
 type UserLocale struct {
@@ -15,7 +16,7 @@ type UserLocale struct {
 }
 
 func (self *UserLocale) Put(request *gottp.Request) {
-	inputUserLocale := new(user_locale.UserLocale)
+	inputUserLocale := new(db.UserLocale)
 	request.ConvertArguments(inputUserLocale)
 
 	if !inputUserLocale.IsValid() {
@@ -40,7 +41,7 @@ func (self *UserLocale) Put(request *gottp.Request) {
 }
 
 func (self *UserLocale) Post(request *gottp.Request) {
-	userLocale := new(user_locale.UserLocale)
+	userLocale := new(db.UserLocale)
 	request.ConvertArguments(userLocale)
 	userLocale.PrepareSave()
 

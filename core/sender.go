@@ -1,6 +1,9 @@
 package core
 
 import (
+	"log"
+	"sync"
+
 	"github.com/changer/khabar/db"
 	"github.com/changer/khabar/dbapi/gully"
 	"github.com/changer/khabar/dbapi/pending"
@@ -9,8 +12,6 @@ import (
 	"github.com/changer/khabar/dbapi/user_locale"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gotracer.v1"
-	"log"
-	"sync"
 )
 
 const DEFAULT_LOCALE = "en-US"
@@ -38,7 +39,7 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 	userLocale, err := user_locale.Get(db.Conn, pending_item.User)
 	if err != nil {
 		log.Println("Unable to find locale for user :" + err.Error())
-		userLocale = new(user_locale.UserLocale)
+		userLocale = new(db.UserLocale)
 
 		//FIXME:: Please do not hardcode this.
 		userLocale.Locale = DEFAULT_LOCALE
@@ -52,7 +53,7 @@ func send(dbConn *db.MConn, channelIdent string, pending_item *pending.PendingIt
 
 	sendToChannel(pending_item, text, channel.Ident, channel.Data)
 
-	sent_item := sent.SentItem{
+	sent_item := db.SentItem{
 		AppName:        pending_item.AppName,
 		Organization:   pending_item.Organization,
 		User:           pending_item.User,

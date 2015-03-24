@@ -17,7 +17,7 @@ type Gully struct {
 
 func (self *Gully) Post(request *gottp.Request) {
 
-	inputGully := new(gully.Gully)
+	inputGully := new(db.Gully)
 	request.ConvertArguments(inputGully)
 	inputGully.PrepareSave()
 
@@ -54,9 +54,9 @@ func (self *Gully) Post(request *gottp.Request) {
 }
 
 func (self *Gully) Delete(request *gottp.Request) {
-	gly := new(gully.Gully)
+	gly := new(db.Gully)
 	request.ConvertArguments(gly)
-	if !gly.IsValid(dbapi.DELETE_OPERATION) {
+	if !gly.IsValid(db.DELETE_OPERATION) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}

@@ -42,7 +42,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		intopic.AddChannel(channelIdent)
 
 		intopic.PrepareSave()
-		if !intopic.IsValid(dbapi.INSERT_OPERATION) {
+		if !intopic.IsValid(db.INSERT_OPERATION) {
 			request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 			return
 		}
@@ -133,7 +133,7 @@ type Topic struct {
 func (self *Topic) Delete(request *gottp.Request) {
 	topic := new(topics.Topic)
 	request.ConvertArguments(topic)
-	if !topic.IsValid(dbapi.DELETE_OPERATION) {
+	if !topic.IsValid(db.DELETE_OPERATION) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
