@@ -7,9 +7,10 @@ import (
 
 const BLANK = ""
 
-func Update(dbConn *db.MConn, user string, appName string, org string, topicName string, doc *utils.M) error {
+func Update(user string, appName string,
+	org string, topicName string, doc *utils.M) error {
 
-	return dbConn.Update(db.TopicCollection,
+	return db.Conn.Update(db.TopicCollection,
 		utils.M{"app_name": appName,
 			"org":   org,
 			"user":  user,
@@ -20,19 +21,20 @@ func Update(dbConn *db.MConn, user string, appName string, org string, topicName
 		})
 }
 
-func Insert(dbConn *db.MConn, topic *Topic) string {
-	return dbConn.Insert(db.TopicCollection, topic)
+func Insert(topic *Topic) string {
+	return db.Conn.Insert(db.TopicCollection, topic)
 }
 
-func Delete(dbConn *db.MConn, doc *utils.M) error {
-	return dbConn.Delete(db.TopicCollection, *doc)
+func Delete(doc *utils.M) error {
+	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
-func Get(dbConn *db.MConn, user, appName, org, topicName string) (topic *Topic, err error) {
+func Get(user, appName, org,
+	topicName string) (topic *Topic, err error) {
 
 	topic = new(Topic)
 
-	err = dbConn.GetOne(
+	err = db.Conn.GetOne(
 		db.TopicCollection,
 		utils.M{
 			"app_name": appName,
@@ -50,7 +52,7 @@ func Get(dbConn *db.MConn, user, appName, org, topicName string) (topic *Topic, 
 	return
 }
 
-func GetAll(dbConn *db.MConn, user, appName, org string) (*[]Topic, error) {
+func GetAll(user, appName, org string) (*[]Topic, error) {
 	var query utils.M = make(utils.M)
 
 	var result []Topic
@@ -67,10 +69,10 @@ func GetAll(dbConn *db.MConn, user, appName, org string) (*[]Topic, error) {
 		query["org"] = org
 	}
 
-	session := dbConn.Session.Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
-	err := dbConn.GetCursor(session, db.TopicCollection, query).All(&result)
+	err := db.Conn.GetCursor(session, db.TopicCollection, query).All(&result)
 
 	if err != nil {
 		return nil, err
@@ -79,45 +81,49 @@ func GetAll(dbConn *db.MConn, user, appName, org string) (*[]Topic, error) {
 	return &result, nil
 }
 
-func findPerUser(dbConn *db.MConn, user, appName, org, topicName string) (topic *Topic, err error) {
+func findPerUser(user, appName, org,
+	topicName string) (topic *Topic, err error) {
 
-	topic, err = Get(dbConn, user, appName, org, topicName)
+	topic, err = Get(user, appName, org, topicName)
 	if err != nil {
-		topic, err = Get(dbConn, user, appName, BLANK, topicName)
+		topic, err = Get(user, appName, BLANK, topicName)
 		if err != nil {
-			topic, err = Get(dbConn, user, BLANK, org, topicName)
+			topic, err = Get(user, BLANK, org, topicName)
 		}
 	}
 
 	return
 }
 
-func findPerOrgnaization(dbConn *db.MConn, appName, org, topicName string) (topic *Topic, err error) {
+func findPerOrgnaization(appName, org,
+	topicName string) (topic *Topic, err error) {
 
-	topic, err = Get(dbConn, BLANK, appName, org, topicName)
+	topic, err = Get(BLANK, appName, org, topicName)
 	if err != nil {
-		topic, err = Get(dbConn, BLANK, BLANK, org, topicName)
+		topic, err = Get(BLANK, BLANK, org, topicName)
 	}
 
 	return
 }
 
-func findGlobal(dbConn *db.MConn, appName, topicName string) (topic *Topic, err error) {
-	topic, err = Get(dbConn, BLANK, appName, BLANK, topicName)
+func findGlobal(appName,
+	topicName string) (topic *Topic, err error) {
+	topic, err = Get(BLANK, appName, BLANK, topicName)
 	if err != nil {
-		topic, err = Get(dbConn, BLANK, BLANK, BLANK, topicName)
+		topic, err = Get(BLANK, BLANK, BLANK, topicName)
 	}
 
 	return
 }
 
-func Find(dbConn *db.MConn, user, appName, org, topicName string) (topic *Topic, err error) {
+func Find(user, appName, org,
+	topicName string) (topic *Topic, err error) {
 
-	topic, err = findPerUser(dbConn, user, appName, org, topicName)
+	topic, err = findPerUser(user, appName, org, topicName)
 	if err != nil {
-		topic, err = findPerOrgnaization(dbConn, appName, org, topicName)
+		topic, err = findPerOrgnaization(appName, org, topicName)
 		if err != nil {
-			topic, err = findGlobal(dbConn, appName, topicName)
+			topic, err = findGlobal(appName, topicName)
 		}
 	}
 

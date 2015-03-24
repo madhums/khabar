@@ -7,7 +7,8 @@ import (
 	"github.com/changer/khabar/utils"
 )
 
-func emailHandler(item *pending.PendingItem, text string, settings map[string]interface{}) {
+func emailHandler(item *pending.PendingItem, text string,
+	settings map[string]interface{}) {
 	log.Println("Sending email...")
 
 	if item.Context["email"] == nil {
@@ -38,7 +39,8 @@ func emailHandler(item *pending.PendingItem, text string, settings map[string]in
 		Password:   settings["smtp_password"].(string),
 		SenderName: sender,
 		Port:       settings["smtp_port"].(string),
-		Host:       settings["smtp_hostname"].(string) + ":" + settings["smtp_port"].(string),
+		Host: settings["smtp_hostname"].(string) + ":" +
+			settings["smtp_port"].(string),
 	}
 
 	mailConn.SendEmail(utils.Message{

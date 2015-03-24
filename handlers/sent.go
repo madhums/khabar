@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/changer/khabar/core"
-	"github.com/changer/khabar/db"
 	"github.com/changer/khabar/dbapi/topics"
 
 	"github.com/changer/khabar/dbapi/pending"
@@ -29,7 +28,7 @@ func (self *Notifications) Get(request *gottp.Request) {
 	request.ConvertArguments(&args)
 	paginator := request.GetPaginator()
 
-	all, err := sentApi.GetAll(db.Conn, paginator, args.User, args.AppName,
+	all, err := sentApi.GetAll(paginator, args.User, args.AppName,
 		args.Organization)
 
 	if err != nil {
@@ -62,7 +61,7 @@ func (self *Notifications) Put(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	err := sentApi.MarkRead(db.Conn, args.User, args.AppName,
+	err := sentApi.MarkRead(args.User, args.AppName,
 		args.Organization)
 
 	if err != nil {
@@ -75,7 +74,8 @@ func (self *Notifications) Put(request *gottp.Request) {
 		return
 	}
 
-	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
+	request.Write(utils.R{StatusCode: http.StatusNoContent,
+		Data: nil, Message: "NoContent"})
 	return
 }
 
@@ -110,7 +110,8 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	topic, err := topics.Find(db.Conn, pending.User, pending.AppName, pending.Organization, pending.Topic)
+	topic, err := topics.Find(pending.User, pending.AppName,
+		pending.Organization, pending.Topic)
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			log.Println(err)
@@ -125,7 +126,8 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	core.SendNotification(db.Conn, pending, topic)
-	request.Write(utils.R{StatusCode: http.StatusCreated, Data: topic.Id, Message: "Created"})
+	core.SendNotification(pending, topic)
+	request.Write(utils.R{StatusCode: http.StatusCreated,
+		Data: topic.Id, Message: "Created"})
 	return
 }

@@ -25,8 +25,6 @@ func Save(args *RequestArgs) error {
 	appName := args.AppName
 	org := args.Organization
 
-	dbConn := db.Conn
-
 	stats_query := utils.M{
 		"user":     user,
 		"app_name": appName,
@@ -40,7 +38,7 @@ func Save(args *RequestArgs) error {
 		"timestamp": utils.EpochNow(),
 	}
 
-	return dbConn.Upsert(db.StatsCollection, stats_query, save_doc)
+	return db.Conn.Upsert(db.StatsCollection, stats_query, save_doc)
 }
 
 func Get(args *RequestArgs) (stats *Stats, err error) {
@@ -48,7 +46,6 @@ func Get(args *RequestArgs) (stats *Stats, err error) {
 	appName := args.AppName
 	org := args.Organization
 
-	dbConn := db.Conn
 	stats = &Stats{}
 
 	stats_query := utils.M{}
@@ -73,11 +70,11 @@ func Get(args *RequestArgs) (stats *Stats, err error) {
 
 	var last_seen db.LastSeen
 
-	err = dbConn.GetOne(db.StatsCollection, stats_query, &last_seen)
+	err = db.Conn.GetOne(db.StatsCollection, stats_query, &last_seen)
 	if err != nil {
 		err = Save(args)
 		if err == nil {
-			err = dbConn.GetOne(db.StatsCollection, stats_query, &last_seen)
+			err = db.Conn.GetOne(db.StatsCollection, stats_query, &last_seen)
 		} else {
 			log.Println(err)
 			return
@@ -90,9 +87,9 @@ func Get(args *RequestArgs) (stats *Stats, err error) {
 
 	stats.LastSeen = last_seen.Timestamp
 
-	stats.TotalCount = dbConn.Count(db.SentCollection, stats_query)
-	stats.UnreadCount = dbConn.Count(db.SentCollection, unread_since_query)
-	stats.TotalUnread = dbConn.Count(db.SentCollection, unread_query)
+	stats.TotalCount = db.Conn.Count(db.SentCollection, stats_query)
+	stats.UnreadCount = db.Conn.Count(db.SentCollection, unread_since_query)
+	stats.TotalUnread = db.Conn.Count(db.SentCollection, unread_query)
 
 	return
 }

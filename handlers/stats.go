@@ -90,6 +90,7 @@ func (self *Stats) Post(request *gottp.Request) {
 		return
 	}
 
-	request.Write(utils.R{Data: nil, Message: "Created", StatusCode: http.StatusCreated})
+	request.Write(utils.R{Data: nil, Message: "Created",
+		StatusCode: http.StatusCreated})
 	return
 }

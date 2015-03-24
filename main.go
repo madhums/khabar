@@ -14,8 +14,9 @@ import (
 func sysInit() {
 	<-(gottp.SysInitChan) //Buffered Channel to receive the server upstart boolean
 
-	db.Conn = db.GetConn(config.Settings.Khabar.DBName, config.Settings.Khabar.DBAddress,
-		config.Settings.Khabar.DBUsername, config.Settings.Khabar.DBPassword)
+	db.Conn = db.GetConn(config.Settings.Khabar.DBName,
+		config.Settings.Khabar.DBAddress, config.Settings.Khabar.DBUsername,
+		config.Settings.Khabar.DBPassword)
 	log.Println("Database Connected :" + config.Settings.Khabar.DBName + " " +
 		"at address:" + config.Settings.Khabar.DBAddress)
 
@@ -33,7 +34,8 @@ func sysInit() {
 			log.Println("Loading translation file:" + path)
 			i18n.MustLoadTranslationFile(path)
 		} else {
-			log.Print("Skipping translation file:" + path + " " + "File Extension:" + fileExt + " ")
+			log.Print("Skipping translation file:" + path + " " +
+				"File Extension:" + fileExt + " ")
 			if err != nil {
 				log.Print("Error:" + err.Error())
 			}
