@@ -114,6 +114,7 @@ func SendNotification(dbConn *db.MConn,
 		Topic:          pending_item.Topic,
 		DestinationUri: pending_item.DestinationUri,
 		Text:           text,
+		Context:        pending_item.Context,
 	}
 
 	sent_item.PrepareSave()
