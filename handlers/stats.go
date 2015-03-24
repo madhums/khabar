@@ -27,18 +27,22 @@ type Stats struct {
 	gottp.BaseHandler
 }
 
-func (self *Stats) Get(request *gottp.Request) {
-	var args struct {
-		Organization string `json:"org"`
-		AppName      string `json:"app_name"`
-		User         string `json:"user" required:"true"`
-	}
+var args struct {
+	Organization string `json:"org"`
+	AppName      string `json:"app_name"`
+	User         string `json:"user" required:"true"`
+}
 
+func (self *Stats) Get(request *gottp.Request) {
 	request.ConvertArguments(&args)
 
 	err := gottp_utils.Validate(&args)
 	if len(*err) > 0 {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, ConcatenateErrors(err)})
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			ConcatenateErrors(err),
+		})
+
 		return
 	}
 
@@ -47,7 +51,11 @@ func (self *Stats) Get(request *gottp.Request) {
 	if getErr != nil {
 		if getErr != mgo.ErrNotFound {
 			log.Println(getErr)
-			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+
 		} else {
 			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
 		}
@@ -60,17 +68,15 @@ func (self *Stats) Get(request *gottp.Request) {
 }
 
 func (self *Stats) Post(request *gottp.Request) {
-	var args struct {
-		Organization string `json:"org"`
-		AppName      string `json:"app_name"`
-		User         string `json:"user" required:"true"`
-	}
-
 	request.ConvertArguments(&args)
 
 	err := gottp_utils.Validate(&args)
 	if len(*err) > 0 {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, ConcatenateErrors(err)})
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			ConcatenateErrors(err),
+		})
+
 		return
 	}
 
@@ -78,7 +84,11 @@ func (self *Stats) Post(request *gottp.Request) {
 
 	if insErr != nil {
 		log.Println(insErr)
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to insert."})
+		request.Raise(gottp.HttpError{
+			http.StatusInternalServerError,
+			"Unable to insert.",
+		})
+
 		return
 	}
 

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/changer/khabar/core"
 	"github.com/changer/khabar/db"
 	"github.com/changer/khabar/dbapi/gully"
 	"github.com/changer/khabar/utils"
@@ -21,7 +22,7 @@ func (self *Gully) Post(request *gottp.Request) {
 	request.ConvertArguments(inputGully)
 	inputGully.PrepareSave()
 
-	_, allowed := db.Channels[inputGully.Ident]
+	_, allowed := core.ChannelMap[inputGully.Ident]
 	if !allowed {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,

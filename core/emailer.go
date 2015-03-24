@@ -1,12 +1,13 @@
 package core
 
 import (
+	"log"
+
 	"github.com/changer/khabar/dbapi/pending"
 	"github.com/changer/khabar/utils"
-	"log"
 )
 
-func emailer(item *pending.PendingItem, text string, settings map[string]interface{}) {
+func emailHandler(item *pending.PendingItem, text string, settings map[string]interface{}) {
 	log.Println("Sending email...")
 
 	if item.Context["email"] == nil {

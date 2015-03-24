@@ -18,7 +18,7 @@ const DEFAULT_LOCALE = "en-US"
 const DEFAULT_TIMEZONE = "GMT+0.0"
 
 func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent string, context map[string]interface{}) {
-	handlerFunc, ok := channelMap[channelIdent]
+	handlerFunc, ok := ChannelMap[channelIdent]
 	if !ok {
 		log.Println("No handler for Topic:" + pending_item.Topic + " Channel:" + channelIdent)
 		return

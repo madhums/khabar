@@ -15,7 +15,7 @@ type Stats struct {
 }
 
 func Save(user string, appName string, org string) error {
-	db := db.Conn
+	dbConn := db.Conn
 
 	stats_query := utils.M{
 		"user":     user,
@@ -34,7 +34,7 @@ func Save(user string, appName string, org string) error {
 }
 
 func Get(user string, appName string, org string) (stats *Stats, err error) {
-	db := db.Conn
+	dbConn := db.Conn
 	stats = &Stats{}
 
 	stats_query := utils.M{}
@@ -62,7 +62,7 @@ func Get(user string, appName string, org string) (stats *Stats, err error) {
 
 	err = dbConn.GetOne(db.StatsCollection, stats_query, &last_seen)
 	if err != nil {
-		err = Save(dbConn, user, appName, org)
+		err = Save(user, appName, org)
 		if err == nil {
 			err = dbConn.GetOne(db.StatsCollection, stats_query, &last_seen)
 		} else {
