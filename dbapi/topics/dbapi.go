@@ -7,7 +7,7 @@ import (
 
 func Update(dbConn *db.MConn, user string, appName string, org string, topicName string, doc *utils.M) error {
 
-	return dbConn.Update(TopicCollection,
+	return dbConn.Update(db.TopicCollection,
 		utils.M{"app_name": appName,
 			"org":   org,
 			"user":  user,
@@ -19,16 +19,16 @@ func Update(dbConn *db.MConn, user string, appName string, org string, topicName
 }
 
 func Insert(dbConn *db.MConn, topic *Topic) string {
-	return dbConn.Insert(TopicCollection, topic)
+	return dbConn.Insert(db.TopicCollection, topic)
 }
 
 func Delete(dbConn *db.MConn, doc *utils.M) error {
-	return dbConn.Delete(TopicCollection, *doc)
+	return dbConn.Delete(db.TopicCollection, *doc)
 }
 
 func Get(dbConn *db.MConn, user string, appName string, org string, topicName string) (topic *Topic, err error) {
 	topic = new(Topic)
-	err = dbConn.GetOne(TopicCollection, utils.M{"app_name": appName,
+	err = dbConn.GetOne(db.TopicCollection, utils.M{"app_name": appName,
 		"org": org, "user": user, "ident": topicName}, topic)
 	return
 }
@@ -53,7 +53,7 @@ func GetAll(dbConn *db.MConn, user string, appName string, org string) (*[]Topic
 	session := dbConn.Session.Copy()
 	defer session.Close()
 
-	err := dbConn.GetCursor(session, TopicCollection, query).All(&result)
+	err := dbConn.GetCursor(session, db.TopicCollection, query).All(&result)
 
 	if err != nil {
 		return nil, err

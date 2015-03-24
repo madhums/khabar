@@ -2,12 +2,7 @@ package topics
 
 import (
 	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/dbapi"
 	"github.com/changer/khabar/utils"
-)
-
-const (
-	TopicCollection = "topics"
 )
 
 type Topic struct {
@@ -28,7 +23,7 @@ func (self *Topic) IsValid(op_type int) bool {
 		return false
 	}
 
-	if op_type == dbapi.INSERT_OPERATION {
+	if op_type == db.INSERT_OPERATION {
 
 		if len(self.Channels) == 0 {
 			return false

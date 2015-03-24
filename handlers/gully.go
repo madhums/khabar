@@ -1,14 +1,14 @@
 package handlers
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/dbapi"
 	"github.com/changer/khabar/dbapi/gully"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
-	"log"
-	"net/http"
 )
 
 type Gully struct {
@@ -17,11 +17,11 @@ type Gully struct {
 
 func (self *Gully) Post(request *gottp.Request) {
 
-	inputGully := new(gully.Gully)
+	inputGully := new(db.Gully)
 	request.ConvertArguments(inputGully)
 	inputGully.PrepareSave()
 
-	if !inputGully.IsValid(dbapi.INSERT_OPERATION) {
+	if !inputGully.IsValid(db.INSERT_OPERATION) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}
@@ -54,9 +54,9 @@ func (self *Gully) Post(request *gottp.Request) {
 }
 
 func (self *Gully) Delete(request *gottp.Request) {
-	gly := new(gully.Gully)
+	gly := new(db.Gully)
 	request.ConvertArguments(gly)
-	if !gly.IsValid(dbapi.DELETE_OPERATION) {
+	if !gly.IsValid(db.DELETE_OPERATION) {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
 		return
 	}

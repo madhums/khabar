@@ -5,18 +5,18 @@ import (
 	"github.com/changer/khabar/utils"
 )
 
-func Get(dbConn *db.MConn, user string) (userLocale *UserLocale, err error) {
-	userLocale = new(UserLocale)
-	err = dbConn.GetOne(UserLocaleCollection, utils.M{"user": user}, userLocale)
+func Get(dbConn *db.MConn, user string) (userLocale *db.UserLocale, err error) {
+	userLocale = new(db.UserLocale)
+	err = dbConn.GetOne(db.UserLocaleCollection, utils.M{"user": user}, userLocale)
 	return
 }
 
-func Insert(dbConn *db.MConn, userLocale *UserLocale) string {
-	return dbConn.Insert(UserLocaleCollection, userLocale)
+func Insert(dbConn *db.MConn, userLocale *db.UserLocale) string {
+	return dbConn.Insert(db.UserLocaleCollection, userLocale)
 }
 
 func Update(dbConn *db.MConn, user string, doc *utils.M) error {
-	return dbConn.Update(UserLocaleCollection, utils.M{"user": user},
+	return dbConn.Update(db.UserLocaleCollection, utils.M{"user": user},
 		utils.M{
 			"$set": *doc,
 		})

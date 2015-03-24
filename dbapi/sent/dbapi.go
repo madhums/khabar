@@ -8,7 +8,7 @@ import (
 )
 
 func Update(dbConn *db.MConn, id bson.ObjectId, doc *utils.M) error {
-	return dbConn.Update(SentCollection, utils.M{
+	return dbConn.Update(db.SentCollection, utils.M{
 		"_id": id,
 	}, utils.M{
 		"$set": *doc,
@@ -31,15 +31,15 @@ func MarkRead(dbConn *db.MConn, user string,
 
 	doc := utils.M{"$set": utils.M{"is_read": true}}
 
-	return dbConn.Update(SentCollection, query, doc)
+	return dbConn.Update(db.SentCollection, query, doc)
 }
 
-func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string) (*[]SentItem, error) {
+func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string) (*[]db.SentItem, error) {
 	var query utils.M = make(utils.M)
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
 	}
-	var result []SentItem
+	var result []db.SentItem
 	query["user"] = user
 
 	if len(appName) > 0 {
@@ -74,7 +74,7 @@ func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName s
 	session := dbConn.Session.Copy()
 	defer session.Close()
 
-	err := dbConn.GetCursor(session, SentCollection, query).Skip(skip).Limit(limit).All(&result)
+	err := dbConn.GetCursor(session, db.SentCollection, query).Skip(skip).Limit(limit).All(&result)
 
 	if err != nil {
 		return nil, err
@@ -83,6 +83,6 @@ func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName s
 	return &result, nil
 }
 
-func Insert(dbConn *db.MConn, ntfInst *SentItem) string {
-	return dbConn.Insert(SentCollection, ntfInst)
+func Insert(dbConn *db.MConn, ntfInst *db.SentItem) string {
+	return dbConn.Insert(db.SentCollection, ntfInst)
 }
