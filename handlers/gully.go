@@ -12,6 +12,11 @@ import (
 	"gopkg.in/simversity/gottp.v2"
 )
 
+func isChannelAvailable(ident string) bool {
+	_, allowed := core.ChannelMap[ident]
+	return allowed
+}
+
 type Gully struct {
 	gottp.BaseHandler
 }
@@ -22,8 +27,7 @@ func (self *Gully) Post(request *gottp.Request) {
 	request.ConvertArguments(inputGully)
 	inputGully.PrepareSave()
 
-	_, allowed := core.ChannelMap[inputGully.Ident]
-	if !allowed {
+	if !isChannelAvailable(inputGully.Ident) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
 			"Channel is not supported",

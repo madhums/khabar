@@ -27,9 +27,24 @@ func Delete(dbConn *db.MConn, doc *utils.M) error {
 }
 
 func Get(dbConn *db.MConn, user string, appName string, org string, topicName string) (topic *Topic, err error) {
+
 	topic = new(Topic)
-	err = dbConn.GetOne(db.TopicCollection, utils.M{"app_name": appName,
-		"org": org, "user": user, "ident": topicName}, topic)
+
+	err = dbConn.GetOne(
+		db.TopicCollection,
+		utils.M{
+			"app_name": appName,
+			"org":      org,
+			"user":     user,
+			"ident":    topicName,
+		},
+		topic,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return
 }
 
