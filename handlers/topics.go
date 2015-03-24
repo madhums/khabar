@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/dbapi"
 	"github.com/changer/khabar/dbapi/topics"
 	"github.com/changer/khabar/utils"
 	"gopkg.in/mgo.v2"

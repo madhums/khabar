@@ -33,6 +33,8 @@ func Save(dbConn *db.MConn, user string, appName string, org string) error {
 
 func Get(dbConn *db.MConn, user string, appName string, org string) (stats *Stats, err error) {
 
+	stats = &Stats{}
+
 	stats_query := utils.M{}
 	unread_query := utils.M{"is_read": false}
 	unread_since_query := utils.M{"is_read": false}
@@ -58,8 +60,13 @@ func Get(dbConn *db.MConn, user string, appName string, org string) (stats *Stat
 
 	err = dbConn.GetOne(StatsCollection, stats_query, &last_seen)
 	if err != nil {
-		log.Println(err)
-		return
+		err = Save(dbConn, user, appName, org)
+		if err == nil {
+			err = dbConn.GetOne(StatsCollection, stats_query, &last_seen)
+		} else {
+			log.Println(err)
+			return
+		}
 	}
 
 	if last_seen.Timestamp > 0 {
@@ -67,6 +74,10 @@ func Get(dbConn *db.MConn, user string, appName string, org string) (stats *Stat
 	}
 
 	stats.LastSeen = last_seen.Timestamp
+
+	log.Println(stats_query)
+	log.Println(unread_since_query)
+	log.Println(unread_query)
 
 	stats.TotalCount = dbConn.Count(StatsCollection, stats_query)
 	stats.UnreadCount = dbConn.Count(StatsCollection, unread_since_query)

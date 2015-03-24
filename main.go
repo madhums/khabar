@@ -41,14 +41,14 @@ func sysInit() {
 		return nil
 	})
 
+	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
 	log.Println("Translation has been parsed.")
 }
 
 func main() {
-	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
-
 	go sysInit()
 
 	registerHandlers()
+
 	gottp.MakeServer(&config.Settings)
 }
