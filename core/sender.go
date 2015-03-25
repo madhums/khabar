@@ -47,6 +47,7 @@ func getText(locale string, ident string,
 		// from being annpyed, abort this routine.
 
 		log.Println(pending_item.Topic + " == text. Abort sending")
+		text = ""
 		return
 	}
 
