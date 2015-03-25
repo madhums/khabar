@@ -63,7 +63,7 @@ func (self *Stats) Get(request *gottp.Request) {
 
 }
 
-func (self *Stats) Post(request *gottp.Request) {
+func (self *Stats) Put(request *gottp.Request) {
 	args := statsApi.RequestArgs{}
 
 	request.ConvertArguments(&args)
