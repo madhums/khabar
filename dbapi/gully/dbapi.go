@@ -21,6 +21,10 @@ func Get(user, appName, org,
 		gully,
 	)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return
 }
 

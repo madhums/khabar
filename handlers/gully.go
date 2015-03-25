@@ -61,15 +61,8 @@ func (self *Gully) Post(request *gottp.Request) {
 				http.StatusInternalServerError,
 				"Unable to fetch data, Please try again later.",
 			})
-
-		} else {
-			request.Raise(gottp.HttpError{
-				http.StatusNotFound,
-				"Not Found.",
-			})
+			return
 		}
-
-		return
 	}
 
 	if gly != nil {
