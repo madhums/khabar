@@ -20,7 +20,8 @@ func (self *UserLocale) Put(request *gottp.Request) {
 	request.ConvertArguments(inputUserLocale)
 
 	if !inputUserLocale.IsValid() {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "user, region_id and language_id must be present."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest,
+			"user, region_id and language_id must be present."})
 		return
 	}
 
@@ -28,15 +29,17 @@ func (self *UserLocale) Put(request *gottp.Request) {
 	updateParams["timezone"] = inputUserLocale.TimeZone
 	updateParams["locale"] = inputUserLocale.Locale
 
-	err := user_locale.Update(db.Conn, inputUserLocale.User, &updateParams)
+	err := user_locale.Update(inputUserLocale.User, &updateParams)
 
 	if err != nil {
 		log.Println(err)
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to update."})
+		request.Raise(gottp.HttpError{http.StatusInternalServerError,
+			"Unable to update."})
 		return
 	}
 
-	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+	request.Write(utils.R{Data: nil, Message: "NoContent",
+		StatusCode: http.StatusNoContent})
 	return
 }
 
@@ -46,7 +49,8 @@ func (self *UserLocale) Post(request *gottp.Request) {
 	userLocale.PrepareSave()
 
 	if !userLocale.IsValid() {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "user, region_id and language_id must be present."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest,
+			"user, region_id and language_id must be present."})
 		return
 	}
 
@@ -54,25 +58,29 @@ func (self *UserLocale) Post(request *gottp.Request) {
 		return
 	}
 
-	dblocale, err := user_locale.Get(db.Conn, userLocale.User)
+	dblocale, err := user_locale.Get(userLocale.User)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			log.Println(err)
-			request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to fetch data, Please try again later."})
+			request.Raise(gottp.HttpError{http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later."})
 		} else {
-			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
+			request.Raise(gottp.HttpError{http.StatusNotFound,
+				"Not Found."})
 		}
 		return
 	}
 
 	if dblocale != nil {
-		request.Raise(gottp.HttpError{http.StatusConflict, "User locale information already exists"})
+		request.Raise(gottp.HttpError{http.StatusConflict,
+			"User locale information already exists"})
 		return
 	}
 
-	user_locale.Insert(db.Conn, userLocale)
+	user_locale.Insert(userLocale)
 
-	request.Write(utils.R{Data: userLocale.Id, Message: "Created", StatusCode: http.StatusCreated})
+	request.Write(utils.R{Data: userLocale.Id, Message: "Created",
+		StatusCode: http.StatusCreated})
 	return
 }

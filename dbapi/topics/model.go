@@ -15,7 +15,8 @@ type Topic struct {
 }
 
 func (self *Topic) IsValid(op_type int) bool {
-	if (len(self.User) == 0) && (len(self.Organization) == 0) && (len(self.AppName) == 0) {
+	if (len(self.User) == 0) && (len(self.Organization) == 0) &&
+		(len(self.AppName) == 0) {
 		return false
 	}
 
