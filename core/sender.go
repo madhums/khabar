@@ -111,6 +111,7 @@ func SendNotification(
 	text := getText(userLocale.Locale, webIdent, pending_item)
 
 	sent_item := db.SentItem{
+		CreatedBy:      pending_item.CreatedBy,
 		AppName:        pending_item.AppName,
 		Organization:   pending_item.Organization,
 		User:           pending_item.User,

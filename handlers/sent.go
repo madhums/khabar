@@ -80,8 +80,8 @@ func (self *Notifications) Put(request *gottp.Request) {
 }
 
 func (self *Notifications) Post(request *gottp.Request) {
-	pending := new(pending.PendingItem)
-	request.ConvertArguments(pending)
+	pending_item := new(pending.PendingItem)
+	request.ConvertArguments(pending_item)
 
 	if request.GetArgument("topic") == nil {
 		request.Raise(gottp.HttpError{
@@ -92,16 +92,32 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	pending.Topic = request.GetArgument("topic").(string)
-	pending.IsRead = false
+	if pending_item.CreatedBy == pending_item.User {
+		MSG := "Receiver is the same as the notification creator. Skipping."
 
-	pending.PrepareSave()
-
-	if !utils.ValidateAndRaiseError(request, pending) {
+		log.Println(MSG)
+		request.Raise(gottp.HttpError{http.StatusOK, MSG})
 		return
 	}
 
-	if !pending.IsValid() {
+	if pending.Throttled(pending_item) {
+		MSG := "Repeated Notifications are Blocked. Skipping."
+
+		log.Println(MSG)
+		request.Raise(gottp.HttpError{http.StatusBadRequest, MSG})
+		return
+	}
+
+	pending_item.Topic = request.GetArgument("topic").(string)
+	pending_item.IsRead = false
+
+	pending_item.PrepareSave()
+
+	if !utils.ValidateAndRaiseError(request, pending_item) {
+		return
+	}
+
+	if !pending_item.IsValid() {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
 			"Context is required while inserting.",
@@ -110,8 +126,8 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	topic, err := topics.Find(pending.User, pending.AppName,
-		pending.Organization, pending.Topic)
+	topic, err := topics.Find(pending_item.User, pending_item.AppName,
+		pending_item.Organization, pending_item.Topic)
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			log.Println(err)
@@ -126,7 +142,7 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	core.SendNotification(pending, topic)
+	core.SendNotification(pending_item, topic)
 	request.Write(utils.R{StatusCode: http.StatusCreated,
 		Data: topic.Id, Message: "Created"})
 	return

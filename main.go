@@ -17,6 +17,7 @@ func sysInit() {
 	db.Conn = db.GetConn(config.Settings.Khabar.DBName,
 		config.Settings.Khabar.DBAddress, config.Settings.Khabar.DBUsername,
 		config.Settings.Khabar.DBPassword)
+
 	log.Println("Database Connected :" + config.Settings.Khabar.DBName + " " +
 		"at address:" + config.Settings.Khabar.DBAddress)
 
