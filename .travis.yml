@@ -1,7 +1,24 @@
 language: go
-
 go:
-  - tip
+- tip
 
+env:
+  global:
+    - PATH=$HOME/gopath/bin:$HOME/bin:$PATH
+    - ARTIFACTS_TARGET_PATHS="$TRAVIS_BRANCH/khabar_$TRAVIS_JOB_NUMBER:$TRAVIS_BRANCH/khabar_latest"
+    - ARTIFACTS_PERMISSIONS=public-read
+    - ARTIFACTS_CACHE_CONTROL='public, max-age=315360000'
+    - ARTIFACTS_LOG_FORMAT=multiline
+    - ARTIFACTS_DEBUG=1
 script:
-  - go build -v ./...
+- go build -v ./...
+deploy:
+  provider: s3
+  access_key_id: AKIAIZSYFKJDF6ENQRGA
+  secret_access_key:
+    secure: Z69qxfZ/GHKSY0gz63zyrTa9Fp6uVBUEq3lLGChPoUlQyXLdDEtVP3/hcwhGOc6c4LZbQQLsbmDUym0zLVosvc/6JmR9ewc09GqHpKfrFiZp425MzA8tsyih34yIatd4KwLBBBd3J+rv3/NYFHmK5WJ6qCPEZWikh/8qWSN01mU=
+  bucket: sc-artifacts
+  acl: public_read
+  on:
+    repo: bulletind/khabar
+    branch: develop
