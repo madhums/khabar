@@ -1,13 +1,16 @@
 package topics
 
 import (
-	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
-func Update(dbConn *db.MConn, user string, appName string, org string, topicName string, doc *utils.M) error {
+const BLANK = ""
 
-	return dbConn.Update(TopicCollection,
+func Update(user string, appName string,
+	org string, topicName string, doc *utils.M) error {
+
+	return db.Conn.Update(db.TopicCollection,
 		utils.M{"app_name": appName,
 			"org":   org,
 			"user":  user,
@@ -18,24 +21,38 @@ func Update(dbConn *db.MConn, user string, appName string, org string, topicName
 		})
 }
 
-func Insert(dbConn *db.MConn, topic *Topic) string {
-	return dbConn.Insert(TopicCollection, topic)
+func Insert(topic *Topic) string {
+	return db.Conn.Insert(db.TopicCollection, topic)
 }
 
-func Delete(dbConn *db.MConn, doc *utils.M) error {
-	return dbConn.Delete(TopicCollection, *doc)
+func Delete(doc *utils.M) error {
+	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
-func Get(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
-	topic := new(Topic)
-	if dbConn.GetOne(TopicCollection, utils.M{"app_name": appName,
-		"org": org, "user": user, "ident": topicName}, topic) != nil {
-		return nil
+func Get(user, appName, org,
+	topicName string) (topic *Topic, err error) {
+
+	topic = new(Topic)
+
+	err = db.Conn.GetOne(
+		db.TopicCollection,
+		utils.M{
+			"app_name": appName,
+			"org":      org,
+			"user":     user,
+			"ident":    topicName,
+		},
+		topic,
+	)
+
+	if err != nil {
+		return nil, err
 	}
-	return topic
+
+	return
 }
 
-func GetAll(dbConn *db.MConn, user string, appName string, org string) *[]Topic {
+func GetAll(user, appName, org string) (*[]Topic, error) {
 	var query utils.M = make(utils.M)
 
 	var result []Topic
@@ -52,116 +69,64 @@ func GetAll(dbConn *db.MConn, user string, appName string, org string) *[]Topic 
 		query["org"] = org
 	}
 
-	session := dbConn.Session.Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
-	dbConn.GetCursor(session, TopicCollection, query).All(&result)
+	err := db.Conn.GetCursor(session, db.TopicCollection, query).All(&result)
 
-	return &result
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
-func findPerUser(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
-	var err error
-	var topic *Topic
+func findPerUser(user, appName, org,
+	topicName string) (topic *Topic, err error) {
 
-	topic = Get(dbConn, user, appName, org, topicName)
-
-	if topic != nil {
-		return topic
+	topic, err = Get(user, appName, org, topicName)
+	if err != nil {
+		topic, err = Get(user, appName, BLANK, topicName)
+		if err != nil {
+			topic, err = Get(user, BLANK, org, topicName)
+		}
 	}
 
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     user,
-		"app_name": appName,
-		"org":      "",
-		"ident":    topicName,
-	}, topic)
-
-	if err == nil {
-		return topic
-	}
-
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     user,
-		"app_name": "",
-		"org":      org,
-		"ident":    topicName,
-	}, topic)
-
-	if err == nil {
-		return topic
-	}
-	return nil
+	return
 }
 
-func findPerOrgnaization(dbConn *db.MConn, appName string, org string, topicName string) *Topic {
-	var err error
-	topic := new(Topic)
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     "",
-		"app_name": appName,
-		"org":      org,
-		"ident":    topicName,
-	}, topic)
+func findPerOrgnaization(appName, org,
+	topicName string) (topic *Topic, err error) {
 
-	if err == nil {
-		return topic
+	topic, err = Get(BLANK, appName, org, topicName)
+	if err != nil {
+		topic, err = Get(BLANK, BLANK, org, topicName)
 	}
 
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     "",
-		"app_name": "",
-		"org":      org,
-		"ident":    topicName,
-	}, topic)
-
-	if err == nil {
-		return topic
-	}
-
-	return nil
-
+	return
 }
 
-func findGlobal(dbConn *db.MConn, topicName string) *Topic {
-	var err error
-	topic := new(Topic)
-	err = dbConn.GetOne(TopicCollection, utils.M{
-		"user":     "",
-		"app_name": "",
-		"org":      "",
-		"ident":    topicName,
-	}, topic)
-
-	if err == nil {
-		return topic
+func findGlobal(appName,
+	topicName string) (topic *Topic, err error) {
+	topic, err = Get(BLANK, appName, BLANK, topicName)
+	if err != nil {
+		topic, err = Get(BLANK, BLANK, BLANK, topicName)
 	}
 
-	return nil
-
+	return
 }
 
-func Find(dbConn *db.MConn, user string, appName string, org string, topicName string) *Topic {
-	var topic *Topic
+func Find(user, appName, org,
+	topicName string) (topic *Topic, err error) {
 
-	topic = findPerUser(dbConn, user, appName, org, topicName)
-
-	if topic != nil {
-		return topic
+	topic, err = findPerUser(user, appName, org, topicName)
+	if err != nil {
+		topic, err = findPerOrgnaization(appName, org, topicName)
+		if err != nil {
+			topic, err = findGlobal(appName, topicName)
+		}
 	}
 
-	topic = findPerOrgnaization(dbConn, appName, org, topicName)
-
-	if topic != nil {
-		return topic
-	}
-
-	topic = findGlobal(dbConn, topicName)
-
-	if topic != nil {
-		return topic
-	}
-
-	return nil
+	return
 
 }

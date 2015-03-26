@@ -1,13 +1,21 @@
 package handlers
 
 import (
-	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/dbapi"
-	"github.com/changer/khabar/dbapi/gully"
-	"github.com/changer/khabar/utils"
-	"gopkg.in/simversity/gottp.v2"
+	"log"
 	"net/http"
+
+	"github.com/bulletind/khabar/core"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/gully"
+	"github.com/bulletind/khabar/utils"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/simversity/gottp.v2"
 )
+
+func isChannelAvailable(ident string) bool {
+	_, allowed := core.ChannelMap[ident]
+	return allowed
+}
 
 type Gully struct {
 	gottp.BaseHandler
@@ -15,12 +23,25 @@ type Gully struct {
 
 func (self *Gully) Post(request *gottp.Request) {
 
-	inputGully := new(gully.Gully)
+	inputGully := new(db.Gully)
 	request.ConvertArguments(inputGully)
 	inputGully.PrepareSave()
 
-	if !inputGully.IsValid(dbapi.INSERT_OPERATION) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
+	if !isChannelAvailable(inputGully.Ident) {
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Channel is not supported",
+		})
+
+		return
+	}
+
+	if !inputGully.IsValid(db.INSERT_OPERATION) {
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Atleast one of the user, org and app_name must be present.",
+		})
+
 		return
 	}
 
@@ -28,31 +49,72 @@ func (self *Gully) Post(request *gottp.Request) {
 		return
 	}
 
-	gly := gully.Get(db.Conn, inputGully.User, inputGully.AppName, inputGully.Organization, inputGully.Ident)
+	gly, err := gully.Get(
+		inputGully.User, inputGully.AppName,
+		inputGully.Organization, inputGully.Ident,
+	)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+			return
+		}
+	}
 
 	if gly != nil {
-		request.Raise(gottp.HttpError{http.StatusConflict, "Channel already exists"})
+		request.Raise(gottp.HttpError{
+			http.StatusConflict,
+			"Channel already exists",
+		})
+
 		return
 	}
 
-	gully.Insert(db.Conn, inputGully)
-	request.Write(utils.R{StatusCode: http.StatusCreated, Data: inputGully.Id, Message: "Created"})
+	gully.Insert(inputGully)
+
+	request.Write(utils.R{
+		StatusCode: http.StatusCreated,
+		Data:       inputGully.Id,
+		Message:    "Created",
+	})
+
 	return
 }
 
 func (self *Gully) Delete(request *gottp.Request) {
-	gly := new(gully.Gully)
+	gly := new(db.Gully)
 	request.ConvertArguments(gly)
-	if !gly.IsValid(dbapi.DELETE_OPERATION) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "Atleast one of the user, org and app_name must be present."})
+	if !gly.IsValid(db.DELETE_OPERATION) {
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Atleast one of the user, org and app_name must be present.",
+		})
+
 		return
 	}
-	err := gully.Delete(db.Conn, &utils.M{"app_name": gly.AppName,
+
+	err := gully.Delete(&utils.M{"app_name": gly.AppName,
 		"org": gly.Organization, "user": gly.User, "ident": gly.Ident})
 	if err != nil {
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to delete."})
+		log.Println(err)
+		request.Raise(gottp.HttpError{
+			http.StatusInternalServerError,
+			"Unable to delete.",
+		})
+
+		return
 	}
-	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
+
+	request.Write(utils.R{
+		StatusCode: http.StatusNoContent,
+		Data:       nil,
+		Message:    "NoContent",
+	})
+
 	return
 }
 
@@ -69,7 +131,26 @@ func (self *Gullys) Get(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	all := gully.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+	all, err := gully.GetAll(args.User,
+		args.AppName, args.Organization)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+
+		} else {
+			request.Raise(gottp.HttpError{
+				http.StatusNotFound,
+				"Not Found.",
+			})
+		}
+
+		return
+	}
 
 	request.Write(all)
 	return

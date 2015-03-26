@@ -55,7 +55,8 @@ func ValidateAndRaiseError(request *gottp.Request, structure interface{}) bool {
 	utils.ValidateStruct(&errs, structure)
 
 	if len(errs) > 0 {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, ConcatenateErrors(&errs)})
+		request.Raise(gottp.HttpError{http.StatusBadRequest,
+			ConcatenateErrors(&errs)})
 		return false
 	}
 

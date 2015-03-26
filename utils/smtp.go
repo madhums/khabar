@@ -35,7 +35,8 @@ func (conn *MailConn) MessageBytes(message Message) []byte {
 	to := strings.TrimSpace("To: " + strings.Join(message.To, ", "))
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";"
 
-	return []byte(subject + "\n" + from + "\n" + to + "\n" + mime + "\n\n" + strings.TrimSpace(message.Body))
+	return []byte(subject + "\n" + from + "\n" + to + "\n" + mime +
+		"\n\n" + strings.TrimSpace(message.Body))
 
 }
 

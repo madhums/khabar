@@ -1,12 +1,14 @@
 package core
 
 import (
-	"github.com/changer/khabar/dbapi/pending"
-	"github.com/changer/khabar/utils"
 	"log"
+
+	"github.com/bulletind/khabar/dbapi/pending"
+	"github.com/bulletind/khabar/utils"
 )
 
-func emailer(item *pending.PendingItem, text string, settings map[string]interface{}) {
+func emailHandler(item *pending.PendingItem, text string,
+	settings map[string]interface{}) {
 	log.Println("Sending email...")
 
 	if item.Context["email"] == nil {
@@ -20,13 +22,8 @@ func emailer(item *pending.PendingItem, text string, settings map[string]interfa
 		return
 	}
 
-	var fullname string = ""
 	var sender string = ""
 	var subject string = ""
-
-	if item.Context["fullname"] != nil {
-		fullname, ok = item.Context["fullname"].(string)
-	}
 
 	if item.Context["sender"] != nil {
 		sender, ok = item.Context["sender"].(string)
@@ -42,7 +39,8 @@ func emailer(item *pending.PendingItem, text string, settings map[string]interfa
 		Password:   settings["smtp_password"].(string),
 		SenderName: sender,
 		Port:       settings["smtp_port"].(string),
-		Host:       settings["smtp_hostname"].(string) + ":" + settings["smtp_port"].(string),
+		Host: settings["smtp_hostname"].(string) + ":" +
+			settings["smtp_port"].(string),
 	}
 
 	mailConn.SendEmail(utils.Message{

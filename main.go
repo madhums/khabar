@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/changer/khabar/config"
-	"github.com/changer/khabar/db"
+	"github.com/bulletind/khabar/config"
+	"github.com/bulletind/khabar/db"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gottp.v2"
 )
@@ -14,8 +14,10 @@ import (
 func sysInit() {
 	<-(gottp.SysInitChan) //Buffered Channel to receive the server upstart boolean
 
-	db.Conn = db.GetConn(config.Settings.Khabar.DBName, config.Settings.Khabar.DBAddress,
-		config.Settings.Khabar.DBUsername, config.Settings.Khabar.DBPassword)
+	db.Conn = db.GetConn(config.Settings.Khabar.DBName,
+		config.Settings.Khabar.DBAddress, config.Settings.Khabar.DBUsername,
+		config.Settings.Khabar.DBPassword)
+
 	log.Println("Database Connected :" + config.Settings.Khabar.DBName + " " +
 		"at address:" + config.Settings.Khabar.DBAddress)
 
@@ -33,7 +35,8 @@ func sysInit() {
 			log.Println("Loading translation file:" + path)
 			i18n.MustLoadTranslationFile(path)
 		} else {
-			log.Print("Skipping translation file:" + path + " " + "File Extension:" + fileExt + " ")
+			log.Print("Skipping translation file:" + path + " " +
+				"File Extension:" + fileExt + " ")
 			if err != nil {
 				log.Print("Error:" + err.Error())
 			}
@@ -41,14 +44,14 @@ func sysInit() {
 		return nil
 	})
 
+	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
 	log.Println("Translation has been parsed.")
 }
 
 func main() {
-	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
-
 	go sysInit()
 
 	registerHandlers()
+
 	gottp.MakeServer(&config.Settings)
 }

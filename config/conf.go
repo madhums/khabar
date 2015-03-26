@@ -19,7 +19,7 @@ type config struct {
 func (self *config) MakeConfig(configPath string) {
 	self.Gottp.Listen = "127.0.0.1:8911"
 	self.Khabar.DBAddress = "127.0.0.1:27017"
-	self.Khabar.DBName = "safetyapps"
+	self.Khabar.DBName = "notifications_testing"
 	if configPath != "" {
 		conf.MakeConfig(configPath, self)
 	}
