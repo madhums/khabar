@@ -8,5 +8,5 @@ script:
 
 after_success:
   - export OUTPUT_DIR=$HOME/gopath/bin
-  - curl -T $OUTPUT_DIR/khabar -u$BINTRAY_USER:$BINTRAY_AP_KEY https://api.bintray.com/content/bulletind/khabar/$TRAVIS_BRANCH/khabar_$TRAVIS_BUILD_NUMBER
+  - curl -T $OUTPUT_DIR/khabar -u$BINTRAY_USER:$BINTRAY_AP_KEY https://api.bintray.com/content/bulletind/khabar/$TRAVIS_BRANCH/$TRAVIS_BUILD_NUMBER/khabar
   - curl -T $OUTPUT_DIR/khabar -u$BINTRAY_USER:$BINTRAY_AP_KEY https://api.bintray.com/content/bulletind/khabar/$TRAVIS_BRANCH/latest/khabar
