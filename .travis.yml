@@ -5,6 +5,7 @@ go:
 env:
   global:
     - PATH=$HOME/gopath/bin:$HOME/bin:$PATH
+    - ARTIFACTS_WORKING_DIR: $HOME/gopath/bin
     - ARTIFACTS_TARGET_PATHS="$TRAVIS_BRANCH/khabar_$TRAVIS_JOB_NUMBER:$TRAVIS_BRANCH/khabar_latest"
     - ARTIFACTS_PERMISSIONS=public-read
     - ARTIFACTS_CACHE_CONTROL='public, max-age=315360000'
