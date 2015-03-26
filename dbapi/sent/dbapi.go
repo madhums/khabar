@@ -76,7 +76,7 @@ func GetAll(paginator *gottp.Paginator,
 	defer session.Close()
 
 	err := db.Conn.GetCursor(session, db.SentCollection,
-		query).Skip(skip).Limit(limit).All(&result)
+		query).Sort("-created_on").Skip(skip).Limit(limit).All(&result)
 
 	if err != nil {
 		return nil, err
