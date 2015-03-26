@@ -10,17 +10,12 @@ env:
     - ARTIFACTS_CACHE_CONTROL='public, max-age=315360000'
     - ARTIFACTS_LOG_FORMAT=multiline
     - ARTIFACTS_DEBUG=1
+
+before_script:
+  - curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
+
 script:
-- go build -v ./...
-deploy:
-  provider: s3
-  access_key_id: AKIAIZSYFKJDF6ENQRGA
-  secret_access_key:
-    secure: Z69qxfZ/GHKSY0gz63zyrTa9Fp6uVBUEq3lLGChPoUlQyXLdDEtVP3/hcwhGOc6c4LZbQQLsbmDUym0zLVosvc/6JmR9ewc09GqHpKfrFiZp425MzA8tsyih34yIatd4KwLBBBd3J+rv3/NYFHmK5WJ6qCPEZWikh/8qWSN01mU=
-  bucket: sc-artifacts
-  acl: public_read
-  upload-dir: $TRAVIS_BRANCH/latest/
-  local-dir: $HOME/gopath/bin
-  on:
-    repo: bulletind/khabar
-    branch: develop
+  - go build -v ./...
+
+after_success:
+  - artifacts upload $HOME/gopath/bin/khabar
