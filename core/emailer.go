@@ -3,8 +3,8 @@ package core
 import (
 	"log"
 
-	"github.com/changer/khabar/dbapi/pending"
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/dbapi/pending"
+	"github.com/bulletind/khabar/utils"
 )
 
 func emailHandler(item *pending.PendingItem, text string,

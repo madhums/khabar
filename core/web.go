@@ -3,7 +3,7 @@ package core
 import (
 	"log"
 
-	"github.com/changer/khabar/dbapi/pending"
+	"github.com/bulletind/khabar/dbapi/pending"
 )
 
 func webHandler(item *pending.PendingItem, text string,

@@ -1,6 +1,6 @@
 package core
 
-import "github.com/changer/khabar/dbapi/pending"
+import "github.com/bulletind/khabar/dbapi/pending"
 
 const (
 	EMAIL = "email"

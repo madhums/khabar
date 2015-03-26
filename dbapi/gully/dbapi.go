@@ -1,8 +1,8 @@
 package gully
 
 import (
-	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
 const BLANK = ""

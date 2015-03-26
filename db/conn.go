@@ -8,7 +8,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/utils"
 )
 
 var Conn *MConn

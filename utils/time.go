@@ -9,5 +9,5 @@ func EpochHours() int64 {
 
 func EpochNow() int64 {
 	now := time.Now()
-	return now.UnixNano() / 1000000 //Convert to Milliseconds
+	return now.UnixNano() / int64(time.Millisecond) //Convert to Milliseconds
 }

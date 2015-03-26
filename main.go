@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/changer/khabar/config"
-	"github.com/changer/khabar/db"
+	"github.com/bulletind/khabar/config"
+	"github.com/bulletind/khabar/db"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gottp.v2"
 )

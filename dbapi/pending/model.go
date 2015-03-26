@@ -1,7 +1,7 @@
 package pending
 
 import (
-	"github.com/changer/khabar/db"
+	"github.com/bulletind/khabar/db"
 )
 
 type PendingItem struct {

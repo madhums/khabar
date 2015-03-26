@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/changer/khabar/core"
-	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/dbapi/gully"
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/core"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/gully"
+	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 )

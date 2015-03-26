@@ -1,8 +1,8 @@
 package user_locale
 
 import (
-	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
 func Get(user string) (userLocale *db.UserLocale, err error) {
