@@ -19,6 +19,8 @@ deploy:
     secure: Z69qxfZ/GHKSY0gz63zyrTa9Fp6uVBUEq3lLGChPoUlQyXLdDEtVP3/hcwhGOc6c4LZbQQLsbmDUym0zLVosvc/6JmR9ewc09GqHpKfrFiZp425MzA8tsyih34yIatd4KwLBBBd3J+rv3/NYFHmK5WJ6qCPEZWikh/8qWSN01mU=
   bucket: sc-artifacts
   acl: public_read
+  upload-dir: $TRAVIS_BRANCH/latest/
+  local-dir: $HOME/gopath/bin
   on:
     repo: bulletind/khabar
     branch: develop
