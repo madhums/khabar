@@ -23,6 +23,7 @@ type SentItem struct {
 	Text           string                 `json:"text" bson:"text" required:"true"`
 	IsRead         bool                   `json:"is_read" bson:"is_read"`
 	Context        map[string]interface{} `json:"context" bson:"context"`
+	Entity         string                 `json:"entity" bson:"entity" required:"true"`
 }
 
 func (self *SentItem) IsValid() bool {

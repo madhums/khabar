@@ -18,6 +18,7 @@ func Throttled(pending_item *PendingItem) bool {
 	query["user"] = pending_item.User
 	query["created_by"] = pending_item.CreatedBy
 	query["created_on"] = utils.M{"$gt": utils.EpochNow() - LATENCY}
+	query["entity"] = pending_item.Entity
 
 	count := db.Conn.Count(db.SentCollection, query)
 
