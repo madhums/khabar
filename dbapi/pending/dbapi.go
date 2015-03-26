@@ -3,8 +3,8 @@ package pending
 import (
 	"time"
 
-	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
 const LATENCY = 2 * int64(time.Minute/time.Millisecond)

@@ -7,9 +7,9 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/simversity/gottp.v2"
 
-	"github.com/changer/khabar/db"
-	sentApi "github.com/changer/khabar/dbapi/sent"
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/db"
+	sentApi "github.com/bulletind/khabar/dbapi/sent"
+	"github.com/bulletind/khabar/utils"
 )
 
 type Notification struct {

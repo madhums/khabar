@@ -4,12 +4,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/changer/khabar/core"
-	"github.com/changer/khabar/dbapi/topics"
+	"github.com/bulletind/khabar/core"
+	"github.com/bulletind/khabar/dbapi/topics"
 
-	"github.com/changer/khabar/dbapi/pending"
-	sentApi "github.com/changer/khabar/dbapi/sent"
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/dbapi/pending"
+	sentApi "github.com/bulletind/khabar/dbapi/sent"
+	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 )

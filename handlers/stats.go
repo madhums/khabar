@@ -5,8 +5,8 @@ import (
 
 	"log"
 
-	statsApi "github.com/changer/khabar/dbapi/stats"
-	"github.com/changer/khabar/utils"
+	statsApi "github.com/bulletind/khabar/dbapi/stats"
+	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 	gottp_utils "gopkg.in/simversity/gottp.v2/utils"

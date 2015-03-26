@@ -4,12 +4,12 @@ import (
 	"log"
 	"sync"
 
-	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/dbapi/gully"
-	"github.com/changer/khabar/dbapi/pending"
-	"github.com/changer/khabar/dbapi/sent"
-	"github.com/changer/khabar/dbapi/topics"
-	"github.com/changer/khabar/dbapi/user_locale"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/gully"
+	"github.com/bulletind/khabar/dbapi/pending"
+	"github.com/bulletind/khabar/dbapi/sent"
+	"github.com/bulletind/khabar/dbapi/topics"
+	"github.com/bulletind/khabar/dbapi/user_locale"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gotracer.v1"
 )
