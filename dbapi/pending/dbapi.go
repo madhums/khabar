@@ -7,7 +7,7 @@ import (
 	"github.com/changer/khabar/utils"
 )
 
-const LATENCY = 2 * int64(time.Minute/time.Nanosecond)
+const LATENCY = 2 * int64(time.Minute/time.Millisecond)
 
 func Throttled(pending_item *PendingItem) bool {
 	var query utils.M = make(utils.M)
