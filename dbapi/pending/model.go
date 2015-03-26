@@ -6,6 +6,7 @@ import (
 
 type PendingItem struct {
 	db.BaseModel   `bson:",inline"`
+	CreatedBy      string                 `json:"created_by" bson:"created_by" required:"true"`
 	Organization   string                 `json:"org" bson:"org" required:"true"`
 	AppName        string                 `json:"app_name" bson:"app_name" required:"true"`
 	Topic          string                 `json:"topic" bson:"topic" required:"true"`

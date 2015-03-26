@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/changer/khabar/core"
-	"github.com/changer/khabar/db"
 	"github.com/changer/khabar/dbapi/topics"
 
 	"github.com/changer/khabar/dbapi/pending"
@@ -29,7 +28,7 @@ func (self *Notifications) Get(request *gottp.Request) {
 	request.ConvertArguments(&args)
 	paginator := request.GetPaginator()
 
-	all, err := sentApi.GetAll(db.Conn, paginator, args.User, args.AppName,
+	all, err := sentApi.GetAll(paginator, args.User, args.AppName,
 		args.Organization)
 
 	if err != nil {
@@ -62,7 +61,7 @@ func (self *Notifications) Put(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	err := sentApi.MarkRead(db.Conn, args.User, args.AppName,
+	err := sentApi.MarkRead(args.User, args.AppName,
 		args.Organization)
 
 	if err != nil {
@@ -75,13 +74,14 @@ func (self *Notifications) Put(request *gottp.Request) {
 		return
 	}
 
-	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
+	request.Write(utils.R{StatusCode: http.StatusNoContent,
+		Data: nil, Message: "NoContent"})
 	return
 }
 
 func (self *Notifications) Post(request *gottp.Request) {
-	pending := new(pending.PendingItem)
-	request.ConvertArguments(pending)
+	pending_item := new(pending.PendingItem)
+	request.ConvertArguments(pending_item)
 
 	if request.GetArgument("topic") == nil {
 		request.Raise(gottp.HttpError{
@@ -92,16 +92,32 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	pending.Topic = request.GetArgument("topic").(string)
-	pending.IsRead = false
+	if pending_item.CreatedBy == pending_item.User {
+		MSG := "Receiver is the same as the notification creator. Skipping."
 
-	pending.PrepareSave()
-
-	if !utils.ValidateAndRaiseError(request, pending) {
+		log.Println(MSG)
+		request.Raise(gottp.HttpError{http.StatusOK, MSG})
 		return
 	}
 
-	if !pending.IsValid() {
+	if pending.Throttled(pending_item) {
+		MSG := "Repeated Notifications are Blocked. Skipping."
+
+		log.Println(MSG)
+		request.Raise(gottp.HttpError{http.StatusBadRequest, MSG})
+		return
+	}
+
+	pending_item.Topic = request.GetArgument("topic").(string)
+	pending_item.IsRead = false
+
+	pending_item.PrepareSave()
+
+	if !utils.ValidateAndRaiseError(request, pending_item) {
+		return
+	}
+
+	if !pending_item.IsValid() {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
 			"Context is required while inserting.",
@@ -110,7 +126,8 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	topic, err := topics.Find(db.Conn, pending.User, pending.AppName, pending.Organization, pending.Topic)
+	topic, err := topics.Find(pending_item.User, pending_item.AppName,
+		pending_item.Organization, pending_item.Topic)
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			log.Println(err)
@@ -125,7 +142,8 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	core.SendNotification(db.Conn, pending, topic)
-	request.Write(utils.R{StatusCode: http.StatusCreated, Data: topic.Id, Message: "Created"})
+	core.SendNotification(pending_item, topic)
+	request.Write(utils.R{StatusCode: http.StatusCreated,
+		Data: topic.Id, Message: "Created"})
 	return
 }

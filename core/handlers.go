@@ -8,7 +8,8 @@ const (
 	WEB   = "web"
 )
 
-var ChannelMap = map[string]func(*pending.PendingItem, string, map[string]interface{}){
+var ChannelMap = map[string]func(*pending.PendingItem, string,
+	map[string]interface{}){
 	EMAIL: emailHandler,
 	WEB:   webHandler,
 }

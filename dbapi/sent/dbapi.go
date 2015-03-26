@@ -7,15 +7,15 @@ import (
 	"gopkg.in/simversity/gottp.v2"
 )
 
-func Update(dbConn *db.MConn, id bson.ObjectId, doc *utils.M) error {
-	return dbConn.Update(db.SentCollection, utils.M{
+func Update(id bson.ObjectId, doc *utils.M) error {
+	return db.Conn.Update(db.SentCollection, utils.M{
 		"_id": id,
 	}, utils.M{
 		"$set": *doc,
 	})
 }
 
-func MarkRead(dbConn *db.MConn, user string,
+func MarkRead(user string,
 	appName string, org string) error {
 	var query utils.M = make(utils.M)
 
@@ -31,10 +31,11 @@ func MarkRead(dbConn *db.MConn, user string,
 
 	doc := utils.M{"$set": utils.M{"is_read": true}}
 
-	return dbConn.Update(db.SentCollection, query, doc)
+	return db.Conn.Update(db.SentCollection, query, doc)
 }
 
-func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName string, org string) (*[]db.SentItem, error) {
+func GetAll(paginator *gottp.Paginator,
+	user string, appName string, org string) (*[]db.SentItem, error) {
 	var query utils.M = make(utils.M)
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
@@ -71,10 +72,11 @@ func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName s
 	delete(query, "limit")
 	delete(query, "skip")
 
-	session := dbConn.Session.Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
-	err := dbConn.GetCursor(session, db.SentCollection, query).Skip(skip).Limit(limit).All(&result)
+	err := db.Conn.GetCursor(session, db.SentCollection,
+		query).Sort("-created_on").Skip(skip).Limit(limit).All(&result)
 
 	if err != nil {
 		return nil, err
@@ -83,6 +85,6 @@ func GetAll(dbConn *db.MConn, paginator *gottp.Paginator, user string, appName s
 	return &result, nil
 }
 
-func Insert(dbConn *db.MConn, ntfInst *db.SentItem) string {
-	return dbConn.Insert(db.SentCollection, ntfInst)
+func Insert(ntfInst *db.SentItem) string {
+	return db.Conn.Insert(db.SentCollection, ntfInst)
 }

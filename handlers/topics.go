@@ -37,7 +37,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 	request.ConvertArguments(intopic)
 
 	topic, err := topics.Get(
-		db.Conn, intopic.User, intopic.AppName,
+		intopic.User, intopic.AppName,
 		intopic.Organization, intopic.Ident,
 	)
 
@@ -95,7 +95,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 
 	if hasData {
 		err = topics.Update(
-			db.Conn, topic.User, topic.AppName,
+			topic.User, topic.AppName,
 			topic.Organization, topic.Ident,
 			&utils.M{"channels": topic.Channels},
 		)
@@ -119,7 +119,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		}
 	} else {
 		log.Println("Successfull call: Inserting document")
-		topics.Insert(db.Conn, topic)
+		topics.Insert(topic)
 		request.Write(utils.R{
 			Data:       topic.Id,
 			Message:    "Created",
@@ -139,7 +139,7 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 	request.ConvertArguments(topic)
 
 	topic, err := topics.Get(
-		db.Conn, topic.User, topic.AppName,
+		topic.User, topic.AppName,
 		topic.Organization, topic.Ident,
 	)
 
@@ -176,7 +176,7 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 	if len(topic.Channels) == 0 {
 		log.Println("Deleting from database, since channels are now empty.")
 		err = topics.Delete(
-			db.Conn,
+
 			&utils.M{
 				"app_name": topic.AppName,
 				"org":      topic.Organization,
@@ -189,7 +189,7 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 		log.Println("Updating...")
 
 		err = topics.Update(
-			db.Conn, topic.User, topic.AppName, topic.Organization,
+			topic.User, topic.AppName, topic.Organization,
 			topic.Ident, &utils.M{"channels": topic.Channels},
 		)
 	}
@@ -229,7 +229,7 @@ func (self *Topic) Delete(request *gottp.Request) {
 	}
 
 	err := topics.Delete(
-		db.Conn,
+
 		&utils.M{
 			"app_name": topic.AppName,
 			"org":      topic.Organization,
@@ -247,7 +247,8 @@ func (self *Topic) Delete(request *gottp.Request) {
 		return
 	}
 
-	request.Write(utils.R{Data: nil, Message: "NoContent", StatusCode: http.StatusNoContent})
+	request.Write(utils.R{Data: nil, Message: "NoContent",
+		StatusCode: http.StatusNoContent})
 	return
 }
 
@@ -264,7 +265,8 @@ func (self *Topics) Get(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	all, err := topics.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+	all, err := topics.GetAll(args.User, args.AppName,
+		args.Organization)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {

@@ -21,20 +21,23 @@ func (self *Notification) Put(request *gottp.Request) {
 	_id := request.GetArgument("_id").(string)
 
 	if !bson.IsObjectIdHex(_id) {
-		request.Raise(gottp.HttpError{http.StatusBadRequest, "_id is not a valid Hex object."})
+		request.Raise(gottp.HttpError{http.StatusBadRequest,
+			"_id is not a valid Hex object."})
 		return
 	}
 
 	sent_item.Id = bson.ObjectIdHex(_id)
 
-	err := sentApi.Update(db.Conn, sent_item.Id, &utils.M{"is_read": true})
+	err := sentApi.Update(sent_item.Id, &utils.M{"is_read": true})
 
 	if err != nil {
 		log.Println(err)
-		request.Raise(gottp.HttpError{http.StatusInternalServerError, "Unable to insert."})
+		request.Raise(gottp.HttpError{http.StatusInternalServerError,
+			"Unable to insert."})
 		return
 	}
 
-	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil, Message: "NoContent"})
+	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil,
+		Message: "NoContent"})
 	return
 }

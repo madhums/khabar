@@ -18,7 +18,8 @@ const webIdent = "web"
 const DEFAULT_LOCALE = "en-US"
 const DEFAULT_TIMEZONE = "GMT+0.0"
 
-func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent string, context map[string]interface{}) {
+func sendToChannel(pending_item *pending.PendingItem, text string,
+	channelIdent string, context map[string]interface{}) {
 	handlerFunc, ok := ChannelMap[channelIdent]
 	if !ok {
 		log.Println("No handler for Topic:" + pending_item.Topic + " Channel:" + channelIdent)
@@ -29,7 +30,8 @@ func sendToChannel(pending_item *pending.PendingItem, text string, channelIdent 
 	handlerFunc(pending_item, text, context)
 }
 
-func getText(locale string, ident string, pending_item *pending.PendingItem) (text string) {
+func getText(locale string, ident string,
+	pending_item *pending.PendingItem) (text string) {
 	T, _ := i18n.Tfunc(
 		locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+ident,
 		locale+"_"+pending_item.AppName+"_"+ident,
@@ -45,17 +47,19 @@ func getText(locale string, ident string, pending_item *pending.PendingItem) (te
 		// from being annpyed, abort this routine.
 
 		log.Println(pending_item.Topic + " == text. Abort sending")
+		text = ""
 		return
 	}
 
 	return
 }
 
-func send(locale string, channelIdent string, pending_item *pending.PendingItem) {
+func send(locale string, channelIdent string,
+	pending_item *pending.PendingItem) {
 	log.Println("Found Channel :" + channelIdent)
 
 	channel, err := gully.FindOne(
-		db.Conn, pending_item.User,
+		pending_item.User,
 		pending_item.AppName, pending_item.Organization,
 		channelIdent,
 	)
@@ -73,11 +77,11 @@ func send(locale string, channelIdent string, pending_item *pending.PendingItem)
 	sendToChannel(pending_item, text, channel.Ident, channel.Data)
 }
 
-func SendNotification(dbConn *db.MConn,
+func SendNotification(
 	pending_item *pending.PendingItem,
 	topic *topics.Topic,
 ) {
-	userLocale, err := user_locale.Get(db.Conn, pending_item.User)
+	userLocale, err := user_locale.Get(pending_item.User)
 	if err != nil {
 		log.Println("Unable to find locale for user :" + err.Error())
 		userLocale = new(db.UserLocale)
@@ -107,6 +111,7 @@ func SendNotification(dbConn *db.MConn,
 	text := getText(userLocale.Locale, webIdent, pending_item)
 
 	sent_item := db.SentItem{
+		CreatedBy:      pending_item.CreatedBy,
 		AppName:        pending_item.AppName,
 		Organization:   pending_item.Organization,
 		User:           pending_item.User,
@@ -119,5 +124,5 @@ func SendNotification(dbConn *db.MConn,
 
 	sent_item.PrepareSave()
 
-	sent.Insert(dbConn, &sent_item)
+	sent.Insert(&sent_item)
 }

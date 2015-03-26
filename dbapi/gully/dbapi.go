@@ -7,9 +7,10 @@ import (
 
 const BLANK = ""
 
-func Get(dbConn *db.MConn, user, appName, org, ident string) (gully *db.Gully, err error) {
+func Get(user, appName, org,
+	ident string) (gully *db.Gully, err error) {
 	gully = new(db.Gully)
-	err = dbConn.GetOne(
+	err = db.Conn.GetOne(
 		db.GullyCollection,
 		utils.M{
 			"app_name": appName,
@@ -20,18 +21,22 @@ func Get(dbConn *db.MConn, user, appName, org, ident string) (gully *db.Gully, e
 		gully,
 	)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return
 }
 
-func Delete(dbConn *db.MConn, doc *utils.M) error {
-	return dbConn.Delete(db.GullyCollection, *doc)
+func Delete(doc *utils.M) error {
+	return db.Conn.Delete(db.GullyCollection, *doc)
 }
 
-func Insert(dbConn *db.MConn, gully *db.Gully) string {
-	return dbConn.Insert(db.GullyCollection, gully)
+func Insert(gully *db.Gully) string {
+	return db.Conn.Insert(db.GullyCollection, gully)
 }
 
-func GetAll(dbConn *db.MConn, user, appName, org string) (*[]db.Gully, error) {
+func GetAll(user, appName, org string) (*[]db.Gully, error) {
 	var query utils.M = make(utils.M)
 
 	var result []db.Gully
@@ -48,10 +53,10 @@ func GetAll(dbConn *db.MConn, user, appName, org string) (*[]db.Gully, error) {
 		query["org"] = org
 	}
 
-	session := dbConn.Session.Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
-	err := dbConn.GetCursor(session, db.GullyCollection, query).All(&result)
+	err := db.Conn.GetCursor(session, db.GullyCollection, query).All(&result)
 
 	if err != nil {
 		return nil, err
@@ -60,13 +65,14 @@ func GetAll(dbConn *db.MConn, user, appName, org string) (*[]db.Gully, error) {
 	return &result, nil
 }
 
-func findPerUser(dbConn *db.MConn, user, appName, org, ident string) (gully *db.Gully, err error) {
+func findPerUser(user, appName, org,
+	ident string) (gully *db.Gully, err error) {
 
-	gully, err = Get(dbConn, user, appName, org, ident)
+	gully, err = Get(user, appName, org, ident)
 	if err != nil {
-		gully, err = Get(dbConn, user, BLANK, org, ident)
+		gully, err = Get(user, BLANK, org, ident)
 		if err != nil {
-			err = dbConn.GetOne(db.GullyCollection, utils.M{
+			err = db.Conn.GetOne(db.GullyCollection, utils.M{
 				"user":     user,
 				"app_name": BLANK,
 				"org":      org,
@@ -77,7 +83,7 @@ func findPerUser(dbConn *db.MConn, user, appName, org, ident string) (gully *db.
 
 	/*
 		Curently, Cannot have the case of App setting without organization.
-		err = dbConn.GetOne(db.GullyCollection, utils.M{
+		err = db.Conn.GetOne(db.GullyCollection, utils.M{
 			"user":     user,
 			"app_name": appName,
 			"org":      BLANK,
@@ -92,10 +98,11 @@ func findPerUser(dbConn *db.MConn, user, appName, org, ident string) (gully *db.
 	return
 }
 
-func findPerOrgnaization(dbConn *db.MConn, appName, org, ident string) (gully *db.Gully, err error) {
+func findPerOrgnaization(appName, org,
+	ident string) (gully *db.Gully, err error) {
 
 	gully = new(db.Gully)
-	err = dbConn.GetOne(db.GullyCollection, utils.M{
+	err = db.Conn.GetOne(db.GullyCollection, utils.M{
 		"user":     BLANK,
 		"app_name": appName,
 		"org":      org,
@@ -103,7 +110,7 @@ func findPerOrgnaization(dbConn *db.MConn, appName, org, ident string) (gully *d
 	}, gully)
 
 	if err != nil {
-		err = dbConn.GetOne(db.GullyCollection, utils.M{
+		err = db.Conn.GetOne(db.GullyCollection, utils.M{
 			"user":     BLANK,
 			"app_name": BLANK,
 			"org":      org,
@@ -114,9 +121,9 @@ func findPerOrgnaization(dbConn *db.MConn, appName, org, ident string) (gully *d
 	return
 }
 
-func findGlobal(dbConn *db.MConn, appName, ident string) (gully *db.Gully, err error) {
+func findGlobal(appName, ident string) (gully *db.Gully, err error) {
 	gully = new(db.Gully)
-	err = dbConn.GetOne(db.GullyCollection, utils.M{
+	err = db.Conn.GetOne(db.GullyCollection, utils.M{
 		"user":     BLANK,
 		"app_name": appName,
 		"org":      BLANK,
@@ -124,7 +131,7 @@ func findGlobal(dbConn *db.MConn, appName, ident string) (gully *db.Gully, err e
 	}, gully)
 
 	if err != nil {
-		err = dbConn.GetOne(db.GullyCollection, utils.M{
+		err = db.Conn.GetOne(db.GullyCollection, utils.M{
 			"user":     BLANK,
 			"app_name": BLANK,
 			"org":      BLANK,
@@ -137,13 +144,13 @@ func findGlobal(dbConn *db.MConn, appName, ident string) (gully *db.Gully, err e
 
 }
 
-func FindOne(dbConn *db.MConn, user, appName, org, ident string) (gully *db.Gully, err error) {
+func FindOne(user, appName, org, ident string) (gully *db.Gully, err error) {
 
-	gully, err = findPerUser(dbConn, user, appName, org, ident)
+	gully, err = findPerUser(user, appName, org, ident)
 	if err != nil {
-		gully, err = findPerOrgnaization(dbConn, appName, org, ident)
+		gully, err = findPerOrgnaization(appName, org, ident)
 		if err != nil {
-			gully, err = findGlobal(dbConn, appName, ident)
+			gully, err = findGlobal(appName, ident)
 		}
 	}
 

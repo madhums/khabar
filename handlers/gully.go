@@ -50,7 +50,7 @@ func (self *Gully) Post(request *gottp.Request) {
 	}
 
 	gly, err := gully.Get(
-		db.Conn, inputGully.User, inputGully.AppName,
+		inputGully.User, inputGully.AppName,
 		inputGully.Organization, inputGully.Ident,
 	)
 
@@ -61,15 +61,8 @@ func (self *Gully) Post(request *gottp.Request) {
 				http.StatusInternalServerError,
 				"Unable to fetch data, Please try again later.",
 			})
-
-		} else {
-			request.Raise(gottp.HttpError{
-				http.StatusNotFound,
-				"Not Found.",
-			})
+			return
 		}
-
-		return
 	}
 
 	if gly != nil {
@@ -81,7 +74,7 @@ func (self *Gully) Post(request *gottp.Request) {
 		return
 	}
 
-	gully.Insert(db.Conn, inputGully)
+	gully.Insert(inputGully)
 
 	request.Write(utils.R{
 		StatusCode: http.StatusCreated,
@@ -104,7 +97,7 @@ func (self *Gully) Delete(request *gottp.Request) {
 		return
 	}
 
-	err := gully.Delete(db.Conn, &utils.M{"app_name": gly.AppName,
+	err := gully.Delete(&utils.M{"app_name": gly.AppName,
 		"org": gly.Organization, "user": gly.User, "ident": gly.Ident})
 	if err != nil {
 		log.Println(err)
@@ -138,7 +131,8 @@ func (self *Gullys) Get(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	all, err := gully.GetAll(db.Conn, args.User, args.AppName, args.Organization)
+	all, err := gully.GetAll(args.User,
+		args.AppName, args.Organization)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
