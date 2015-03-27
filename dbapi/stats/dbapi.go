@@ -77,7 +77,7 @@ func Get(args *RequestArgs) (stats *Stats, err error) {
 			err = db.Conn.GetOne(db.StatsCollection, stats_query, &last_seen)
 		} else {
 			log.Println(err)
-			return
+			return nil, err
 		}
 	}
 

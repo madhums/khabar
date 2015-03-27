@@ -65,11 +65,8 @@ func (self *UserLocale) Post(request *gottp.Request) {
 			log.Println(err)
 			request.Raise(gottp.HttpError{http.StatusInternalServerError,
 				"Unable to fetch data, Please try again later."})
-		} else {
-			request.Raise(gottp.HttpError{http.StatusNotFound,
-				"Not Found."})
+			return
 		}
-		return
 	}
 
 	if dblocale != nil {
