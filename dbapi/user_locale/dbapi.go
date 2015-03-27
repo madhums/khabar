@@ -9,6 +9,9 @@ func Get(user string) (userLocale *db.UserLocale, err error) {
 	userLocale = new(db.UserLocale)
 	err = db.Conn.GetOne(db.UserLocaleCollection, utils.M{"user": user},
 		userLocale)
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
