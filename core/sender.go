@@ -120,6 +120,7 @@ func SendNotification(
 		DestinationUri: pending_item.DestinationUri,
 		Text:           text,
 		Context:        pending_item.Context,
+		Entity:         pending_item.Entity,
 	}
 
 	sent_item.PrepareSave()

@@ -15,6 +15,7 @@ type PendingItem struct {
 	DestinationUri string                 `json:"destination_uri" bson:"destination_uri" required:"true"`
 	Context        map[string]interface{} `json:"context" bson:"context" required:"true"`
 	IsRead         bool                   `json:"is_read" bson:"is_read"`
+	Entity         string                 `json:"entity" bson:"entity" required:"true"`
 }
 
 func (self *PendingItem) IsValid() bool {

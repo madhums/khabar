@@ -23,6 +23,7 @@ type SentItem struct {
 	Text           string                 `json:"text" bson:"text" required:"true"`
 	IsRead         bool                   `json:"is_read" bson:"is_read"`
 	Context        map[string]interface{} `json:"context" bson:"context"`
+	Entity         string                 `json:"entity" bson:"entity" required:"true"`
 }
 
 func (self *SentItem) IsValid() bool {
@@ -50,9 +51,6 @@ type Gully struct {
 }
 
 func (self *Gully) IsValid(op_type int) bool {
-	if (len(self.User) == 0) && (len(self.Organization) == 0) && (len(self.AppName) == 0) {
-		return false
-	}
 
 	if len(self.Ident) == 0 {
 		return false
