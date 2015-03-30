@@ -46,7 +46,7 @@ type Gully struct {
 	User         string                 `json:"user" bson:"user"`
 	Organization string                 `json:"org" bson:"org"`
 	AppName      string                 `json:"app_name" bson:"app_name"`
-	Data         map[string]interface{} `json:"-" bson:"data" required:"true"`
+	Data         map[string]interface{} `json:"data" bson:"data" required:"true"`
 	Ident        string                 `json:"ident" bson:"ident" required:"true"`
 }
 
