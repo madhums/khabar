@@ -3,10 +3,14 @@ package gully
 import (
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/utils"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const BLANK = ""
 
+//CAUTION: This call does not filter out sensitive information,
+//Since it is required by the application.
+//DO NOT DIRECTLY WRITE THIS OUTPUT TO USER.
 func Get(user, appName, org,
 	ident string) (gully *db.Gully, err error) {
 	gully = new(db.Gully)
@@ -56,7 +60,8 @@ func GetAll(user, appName, org string) (*[]db.Gully, error) {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
-	err := db.Conn.GetCursor(session, db.GullyCollection, query).All(&result)
+	err := db.Conn.GetCursor(session, db.GullyCollection, query).
+		Select(bson.M{"data": 0}).All(&result)
 
 	if err != nil {
 		return nil, err
