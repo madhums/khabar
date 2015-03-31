@@ -134,6 +134,15 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 	channelIdent := request.GetArgument("channel").(string)
 	topic.Ident = request.GetArgument("ident").(string)
 
+	if !core.IsChannelAvailable(channelIdent) {
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Channel is not supported",
+		})
+
+		return
+	}
+
 	request.ConvertArguments(topic)
 
 	topic, err := topics.Get(
