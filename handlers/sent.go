@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/bulletind/khabar/core"
-	"github.com/bulletind/khabar/dbapi/topics"
 
 	"github.com/bulletind/khabar/dbapi/pending"
 	sentApi "github.com/bulletind/khabar/dbapi/sent"
@@ -120,30 +119,14 @@ func (self *Notifications) Post(request *gottp.Request) {
 	if !pending_item.IsValid() {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
-			"Context is required while inserting.",
+			"Context is required for sending notification.",
 		})
 
 		return
 	}
 
-	topic, err := topics.Find(pending_item.User, pending_item.AppName,
-		pending_item.Organization, pending_item.Topic)
-	if err != nil {
-		if err != mgo.ErrNotFound {
-			log.Println(err)
-			request.Raise(gottp.HttpError{
-				http.StatusInternalServerError,
-				"Unable to fetch data, Please try again later.",
-			})
-
-		} else {
-			request.Raise(gottp.HttpError{http.StatusNotFound, "Not Found."})
-		}
-		return
-	}
-
-	core.SendNotification(pending_item, topic)
+	core.SendNotification(pending_item)
 	request.Write(utils.R{StatusCode: http.StatusCreated,
-		Data: topic.Id, Message: "Created"})
+		Data: pending_item.Id, Message: "Created"})
 	return
 }

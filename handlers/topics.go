@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/bulletind/khabar/core"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/utils"
@@ -15,15 +16,12 @@ type TopicChannel struct {
 	gottp.BaseHandler
 }
 
-func (self *TopicChannel) Post(request *gottp.Request) {
+func (self *TopicChannel) Delete(request *gottp.Request) {
 	intopic := new(topics.Topic)
 
 	channelIdent := request.GetArgument("channel").(string)
 
-	//FIXME: Use some common location for this function instead of
-	// handlers/gully.go.
-
-	if !isChannelAvailable(channelIdent) {
+	if !core.IsChannelAvailable(channelIdent) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
 			"Channel is not supported",
@@ -82,7 +80,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 			if ident == channelIdent {
 				request.Raise(gottp.HttpError{
 					http.StatusConflict,
-					"Channel is already a part of this Topic.",
+					"You have already unsubscribed this channel",
 				})
 
 				return
@@ -111,7 +109,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		} else {
 			request.Write(utils.R{
 				Data:       nil,
-				Message:    "NoContent",
+				Message:    "true",
 				StatusCode: http.StatusNoContent,
 			})
 
@@ -121,16 +119,16 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		log.Println("Successfull call: Inserting document")
 		topics.Insert(topic)
 		request.Write(utils.R{
-			Data:       topic.Id,
-			Message:    "Created",
-			StatusCode: http.StatusCreated,
+			Data:       nil,
+			Message:    "true",
+			StatusCode: http.StatusNoContent,
 		})
 
 		return
 	}
 }
 
-func (self *TopicChannel) Delete(request *gottp.Request) {
+func (self *TopicChannel) Post(request *gottp.Request) {
 	topic := new(topics.Topic)
 
 	channelIdent := request.GetArgument("channel").(string)
@@ -152,20 +150,12 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 			})
 
 		} else {
-			request.Raise(gottp.HttpError{
-				http.StatusNotFound,
-				"Not Found.",
+			request.Write(utils.R{
+				Data:       nil,
+				Message:    "true",
+				StatusCode: http.StatusNoContent,
 			})
 		}
-
-		return
-	}
-
-	if topic == nil {
-		request.Raise(gottp.HttpError{
-			http.StatusNotFound,
-			"topics setting does not exists.",
-		})
 
 		return
 	}
@@ -205,13 +195,14 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 
 	request.Write(utils.R{
 		Data:       nil,
-		Message:    "NoContent",
+		Message:    "true",
 		StatusCode: http.StatusNoContent,
 	})
 
 	return
 }
 
+//Disabled
 type Topic struct {
 	gottp.BaseHandler
 }

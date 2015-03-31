@@ -7,7 +7,6 @@ import (
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/gully"
 	"github.com/bulletind/khabar/dbapi/pending"
-	"github.com/bulletind/khabar/dbapi/sent"
 	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/dbapi/user_locale"
 	"github.com/nicksnyder/go-i18n/i18n"
@@ -56,7 +55,12 @@ func getText(locale string, ident string,
 
 func send(locale string, channelIdent string,
 	pending_item *pending.PendingItem) {
-	log.Println("Found Channel :" + channelIdent)
+
+	if !topics.ChannelAllowed(pending_item.User, pending_item.AppName,
+		pending_item.Organization, pending_item.Topic, channelIdent) {
+		log.Println("Channel :" + channelIdent + " " + "is blocked for topic :" + pending_item.Topic)
+		return
+	}
 
 	channel, err := gully.FindOne(
 		pending_item.User,
@@ -65,7 +69,7 @@ func send(locale string, channelIdent string,
 	)
 
 	if err != nil {
-		log.Println("Unable to find channel :" + err.Error())
+		log.Println("Unable to find channel : " + channelIdent + err.Error())
 		return
 	}
 
@@ -78,9 +82,7 @@ func send(locale string, channelIdent string,
 }
 
 func SendNotification(
-	pending_item *pending.PendingItem,
-	topic *topics.Topic,
-) {
+	pending_item *pending.PendingItem) {
 	userLocale, err := user_locale.Get(pending_item.User)
 	if err != nil {
 		log.Println("Unable to find locale for user :" + err.Error())
@@ -93,7 +95,7 @@ func SendNotification(
 
 	childwg := new(sync.WaitGroup)
 
-	for _, channel := range topic.Channels {
+	for channel, _ := range ChannelMap {
 		go func(
 			locale string,
 			channelIdent string,
@@ -107,23 +109,4 @@ func SendNotification(
 	}
 
 	childwg.Wait()
-
-	text := getText(userLocale.Locale, webIdent, pending_item)
-
-	sent_item := db.SentItem{
-		CreatedBy:      pending_item.CreatedBy,
-		AppName:        pending_item.AppName,
-		Organization:   pending_item.Organization,
-		User:           pending_item.User,
-		IsRead:         false,
-		Topic:          pending_item.Topic,
-		DestinationUri: pending_item.DestinationUri,
-		Text:           text,
-		Context:        pending_item.Context,
-		Entity:         pending_item.Entity,
-	}
-
-	sent_item.PrepareSave()
-
-	sent.Insert(&sent_item)
 }

@@ -29,6 +29,18 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
+func ChannelAllowed(user, appname, org, topicName, channel string) bool {
+	return db.Conn.Count(db.TopicCollection, utils.M{
+		"$or": []utils.M{
+			utils.M{"org": org},
+			utils.M{"app_name": appname},
+			utils.M{"user": user},
+		},
+		"ident":    topicName,
+		"channels": channel,
+	}) == 0
+}
+
 func Get(user, appName, org,
 	topicName string) (topic *Topic, err error) {
 
