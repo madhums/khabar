@@ -126,7 +126,7 @@ func (self *Notifications) Post(request *gottp.Request) {
 	}
 
 	core.SendNotification(pending_item)
-	request.Write(utils.R{StatusCode: http.StatusCreated,
-		Data: pending_item.Id, Message: "Created"})
+	request.Write(utils.R{StatusCode: http.StatusNoContent,
+		Data: nil, Message: "true"})
 	return
 }
