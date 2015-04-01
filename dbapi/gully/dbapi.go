@@ -45,9 +45,13 @@ func GetAll(user, appName, org string) (*[]db.Gully, error) {
 
 	var result []db.Gully
 
-	if len(user) > 0 {
+	//Currently, we do not allow to query user level channels
+	//Making user value blank so that only channels which are not customized
+	//For users will be returned.
+	/**if len(user) > 0 {
 		query["user"] = user
-	}
+	} **/
+	query["user"] = BLANK
 
 	if len(appName) > 0 {
 		query["app_name"] = appName

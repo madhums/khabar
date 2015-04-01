@@ -3,6 +3,7 @@ package topics
 import (
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/utils"
+	"gopkg.in/mgo.v2"
 )
 
 const BLANK = ""
@@ -29,6 +30,18 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
+func ChannelAllowed(user, appname, org, topicName, channel string) bool {
+	return db.Conn.Count(db.TopicCollection, utils.M{
+		"$or": []utils.M{
+			utils.M{"org": org},
+			utils.M{"app_name": appname},
+			utils.M{"user": user},
+		},
+		"ident":    topicName,
+		"channels": channel,
+	}) == 0
+}
+
 func Get(user, appName, org,
 	topicName string) (topic *Topic, err error) {
 
@@ -52,10 +65,8 @@ func Get(user, appName, org,
 	return
 }
 
-func GetAll(user, appName, org string) (*[]Topic, error) {
+func GetAll(user, appName, org string) (*mgo.Iter, error) {
 	var query utils.M = make(utils.M)
-
-	var result []Topic
 
 	if len(user) > 0 {
 		query["user"] = user
@@ -72,13 +83,13 @@ func GetAll(user, appName, org string) (*[]Topic, error) {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
-	err := db.Conn.GetCursor(session, db.TopicCollection, query).All(&result)
+	iter := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
 
-	if err != nil {
-		return nil, err
+	if iter.Err() != nil {
+		return nil, iter.Err()
 	}
 
-	return &result, nil
+	return iter, nil
 }
 
 func findPerUser(user, appName, org,
