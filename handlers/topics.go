@@ -215,18 +215,19 @@ type Topics struct {
 	gottp.BaseHandler
 }
 
-func TransformData(iter *mgo.Iter) (topicMap map[string][]string, err error) {
+func TransformData(iter *mgo.Iter) (topicMap map[string]*[]string, err error) {
 
-	topicMap = map[string][]string{}
+	topicMap = map[string]*[]string{}
 	topic := new(topics.Topic)
 	for iter.Next(topic) {
 		_, ok := topicMap[topic.Ident]
 		if !ok {
-			topicMap[topic.Ident] = []string{}
+			topicMap[topic.Ident] = new([]string)
 		}
 
 		for _, channel := range topic.Channels {
-			topicMap[topic.Ident] = append(topicMap[topic.Ident], channel)
+			newChannels := append(*topicMap[topic.Ident], channel)
+			topicMap[topic.Ident] = &newChannels
 		}
 	}
 
@@ -235,7 +236,7 @@ func TransformData(iter *mgo.Iter) (topicMap map[string][]string, err error) {
 	}
 
 	for _, topicList := range topicMap {
-		utils.RemoveDuplicates(&topicList)
+		utils.RemoveDuplicates(topicList)
 	}
 	return topicMap, nil
 }
