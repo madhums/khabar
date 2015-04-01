@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/bulletind/khabar/core"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/utils"
@@ -15,15 +16,12 @@ type TopicChannel struct {
 	gottp.BaseHandler
 }
 
-func (self *TopicChannel) Post(request *gottp.Request) {
+func (self *TopicChannel) Delete(request *gottp.Request) {
 	intopic := new(topics.Topic)
 
 	channelIdent := request.GetArgument("channel").(string)
 
-	//FIXME: Use some common location for this function instead of
-	// handlers/gully.go.
-
-	if !isChannelAvailable(channelIdent) {
+	if !core.IsChannelAvailable(channelIdent) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
 			"Channel is not supported",
@@ -82,7 +80,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 			if ident == channelIdent {
 				request.Raise(gottp.HttpError{
 					http.StatusConflict,
-					"Channel is already a part of this Topic.",
+					"You have already unsubscribed this channel",
 				})
 
 				return
@@ -111,7 +109,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		} else {
 			request.Write(utils.R{
 				Data:       nil,
-				Message:    "NoContent",
+				Message:    "true",
 				StatusCode: http.StatusNoContent,
 			})
 
@@ -121,20 +119,29 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		log.Println("Successfull call: Inserting document")
 		topics.Insert(topic)
 		request.Write(utils.R{
-			Data:       topic.Id,
-			Message:    "Created",
-			StatusCode: http.StatusCreated,
+			Data:       nil,
+			Message:    "true",
+			StatusCode: http.StatusNoContent,
 		})
 
 		return
 	}
 }
 
-func (self *TopicChannel) Delete(request *gottp.Request) {
+func (self *TopicChannel) Post(request *gottp.Request) {
 	topic := new(topics.Topic)
 
 	channelIdent := request.GetArgument("channel").(string)
 	topic.Ident = request.GetArgument("ident").(string)
+
+	if !core.IsChannelAvailable(channelIdent) {
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Channel is not supported",
+		})
+
+		return
+	}
 
 	request.ConvertArguments(topic)
 
@@ -152,20 +159,12 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 			})
 
 		} else {
-			request.Raise(gottp.HttpError{
-				http.StatusNotFound,
-				"Not Found.",
+			request.Write(utils.R{
+				Data:       nil,
+				Message:    "true",
+				StatusCode: http.StatusNoContent,
 			})
 		}
-
-		return
-	}
-
-	if topic == nil {
-		request.Raise(gottp.HttpError{
-			http.StatusNotFound,
-			"topics setting does not exists.",
-		})
 
 		return
 	}
@@ -205,13 +204,74 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 
 	request.Write(utils.R{
 		Data:       nil,
-		Message:    "NoContent",
+		Message:    "true",
 		StatusCode: http.StatusNoContent,
 	})
 
 	return
 }
 
+type Topics struct {
+	gottp.BaseHandler
+}
+
+func TransformData(iter *mgo.Iter) map[string]*[]string {
+
+	topicMap := map[string]*[]string{}
+	topic := new(topics.Topic)
+	for iter.Next(topic) {
+		_, ok := topicMap[topic.Ident]
+		if !ok {
+			topicMap[topic.Ident] = new([]string)
+		}
+
+		for _, channel := range topic.Channels {
+			newChannels := append(*topicMap[topic.Ident], channel)
+			topicMap[topic.Ident] = &newChannels
+		}
+	}
+
+	for _, topicList := range topicMap {
+		utils.RemoveDuplicates(topicList)
+	}
+	return topicMap
+}
+
+func (self *Topics) Get(request *gottp.Request) {
+	var args struct {
+		Organization string `json:"org"`
+		AppName      string `json:"app_name"`
+		User         string `json:"user"`
+	}
+
+	request.ConvertArguments(&args)
+
+	iter, err := topics.GetAll(args.User, args.AppName,
+		args.Organization)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+
+		} else {
+			request.Raise(gottp.HttpError{
+				http.StatusNotFound,
+				"Not Found.",
+			})
+		}
+
+		return
+	}
+
+	request.Write(TransformData(iter))
+	return
+}
+
+/**
 type Topic struct {
 	gottp.BaseHandler
 }
@@ -251,41 +311,4 @@ func (self *Topic) Delete(request *gottp.Request) {
 		StatusCode: http.StatusNoContent})
 	return
 }
-
-type Topics struct {
-	gottp.BaseHandler
-}
-
-func (self *Topics) Get(request *gottp.Request) {
-	var args struct {
-		Organization string `json:"org"`
-		AppName      string `json:"app_name"`
-		User         string `json:"user"`
-	}
-
-	request.ConvertArguments(&args)
-
-	all, err := topics.GetAll(args.User, args.AppName,
-		args.Organization)
-
-	if err != nil {
-		if err != mgo.ErrNotFound {
-			log.Println(err)
-			request.Raise(gottp.HttpError{
-				http.StatusInternalServerError,
-				"Unable to fetch data, Please try again later.",
-			})
-
-		} else {
-			request.Raise(gottp.HttpError{
-				http.StatusNotFound,
-				"Not Found.",
-			})
-		}
-
-		return
-	}
-
-	request.Write(all)
-	return
-}
+**/
