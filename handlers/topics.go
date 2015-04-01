@@ -211,7 +211,65 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 	return
 }
 
-//Disabled
+type Topics struct {
+	gottp.BaseHandler
+}
+
+func TransformData(topics *[]topics.Topic) map[string][]string {
+
+	topicMap := map[string][]string{}
+	for _, topic := range *topics {
+		_, ok := topicMap[topic.Ident]
+		if !ok {
+			topicMap[topic.Ident] = []string{}
+		}
+
+		for _, channel := range topic.Channels {
+			topicMap[topic.Ident] = append(topicMap[topic.Ident], channel)
+		}
+	}
+
+	for _, topicList := range topicMap {
+		utils.RemoveDuplicates(&topicList)
+	}
+	return topicMap
+}
+
+func (self *Topics) Get(request *gottp.Request) {
+	var args struct {
+		Organization string `json:"org"`
+		AppName      string `json:"app_name"`
+		User         string `json:"user"`
+	}
+
+	request.ConvertArguments(&args)
+
+	all, err := topics.GetAll(args.User, args.AppName,
+		args.Organization)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+
+		} else {
+			request.Raise(gottp.HttpError{
+				http.StatusNotFound,
+				"Not Found.",
+			})
+		}
+
+		return
+	}
+
+	request.Write(TransformData(all))
+	return
+}
+
+/**
 type Topic struct {
 	gottp.BaseHandler
 }
@@ -251,41 +309,4 @@ func (self *Topic) Delete(request *gottp.Request) {
 		StatusCode: http.StatusNoContent})
 	return
 }
-
-type Topics struct {
-	gottp.BaseHandler
-}
-
-func (self *Topics) Get(request *gottp.Request) {
-	var args struct {
-		Organization string `json:"org"`
-		AppName      string `json:"app_name"`
-		User         string `json:"user"`
-	}
-
-	request.ConvertArguments(&args)
-
-	all, err := topics.GetAll(args.User, args.AppName,
-		args.Organization)
-
-	if err != nil {
-		if err != mgo.ErrNotFound {
-			log.Println(err)
-			request.Raise(gottp.HttpError{
-				http.StatusInternalServerError,
-				"Unable to fetch data, Please try again later.",
-			})
-
-		} else {
-			request.Raise(gottp.HttpError{
-				http.StatusNotFound,
-				"Not Found.",
-			})
-		}
-
-		return
-	}
-
-	request.Write(all)
-	return
-}
+**/
