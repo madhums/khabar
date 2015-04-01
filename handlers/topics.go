@@ -215,10 +215,11 @@ type Topics struct {
 	gottp.BaseHandler
 }
 
-func TransformData(topics *[]topics.Topic) map[string][]string {
+func TransformData(iter *mgo.Iter) (topicMap map[string][]string, err error) {
 
-	topicMap := map[string][]string{}
-	for _, topic := range *topics {
+	topicMap = map[string][]string{}
+	topic := new(topics.Topic)
+	for iter.Next(topic) {
 		_, ok := topicMap[topic.Ident]
 		if !ok {
 			topicMap[topic.Ident] = []string{}
@@ -229,10 +230,14 @@ func TransformData(topics *[]topics.Topic) map[string][]string {
 		}
 	}
 
+	if err := iter.Close(); err != nil {
+		return nil, err
+	}
+
 	for _, topicList := range topicMap {
 		utils.RemoveDuplicates(&topicList)
 	}
-	return topicMap
+	return topicMap, nil
 }
 
 func (self *Topics) Get(request *gottp.Request) {
@@ -244,7 +249,7 @@ func (self *Topics) Get(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	all, err := topics.GetAll(args.User, args.AppName,
+	iter, err := topics.GetAll(args.User, args.AppName,
 		args.Organization)
 
 	if err != nil {
@@ -265,7 +270,18 @@ func (self *Topics) Get(request *gottp.Request) {
 		return
 	}
 
-	request.Write(TransformData(all))
+	all, err := TransformData(iter)
+
+	if err != nil {
+		log.Println(err)
+		request.Raise(gottp.HttpError{
+			http.StatusInternalServerError,
+			"Unable to fetch data, Please try again later.",
+		})
+		return
+	}
+
+	request.Write(all)
 	return
 }
 
