@@ -215,9 +215,9 @@ type Topics struct {
 	gottp.BaseHandler
 }
 
-func TransformData(iter *mgo.Iter) (topicMap map[string]*[]string, err error) {
+func TransformData(iter *mgo.Iter) map[string]*[]string {
 
-	topicMap = map[string]*[]string{}
+	topicMap := map[string]*[]string{}
 	topic := new(topics.Topic)
 	for iter.Next(topic) {
 		_, ok := topicMap[topic.Ident]
@@ -231,14 +231,10 @@ func TransformData(iter *mgo.Iter) (topicMap map[string]*[]string, err error) {
 		}
 	}
 
-	if err := iter.Close(); err != nil {
-		return nil, err
-	}
-
 	for _, topicList := range topicMap {
 		utils.RemoveDuplicates(topicList)
 	}
-	return topicMap, nil
+	return topicMap
 }
 
 func (self *Topics) Get(request *gottp.Request) {
@@ -271,18 +267,7 @@ func (self *Topics) Get(request *gottp.Request) {
 		return
 	}
 
-	all, err := TransformData(iter)
-
-	if err != nil {
-		log.Println(err)
-		request.Raise(gottp.HttpError{
-			http.StatusInternalServerError,
-			"Unable to fetch data, Please try again later.",
-		})
-		return
-	}
-
-	request.Write(all)
+	request.Write(TransformData(iter))
 	return
 }
 
