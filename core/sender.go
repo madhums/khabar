@@ -14,11 +14,14 @@ import (
 )
 
 const webIdent = "web"
-const DEFAULT_LOCALE = "en-US"
+const DEFAULT_LOCALE = "en_US"
 const DEFAULT_TIMEZONE = "GMT+0.0"
 
-func sendToChannel(pending_item *pending.PendingItem, text string,
-	channelIdent string, context map[string]interface{}) {
+func sendToChannel(
+	pending_item *pending.PendingItem,
+	text, channelIdent string,
+	context map[string]interface{},
+) {
 	handlerFunc, ok := ChannelMap[channelIdent]
 	if !ok {
 		log.Println("No handler for Topic:" + pending_item.Topic + " Channel:" + channelIdent)
@@ -29,8 +32,7 @@ func sendToChannel(pending_item *pending.PendingItem, text string,
 	handlerFunc(pending_item, text, context)
 }
 
-func getText(locale string, ident string,
-	pending_item *pending.PendingItem) (text string) {
+func getText(locale, ident string, pending_item *pending.PendingItem) (text string) {
 	T, _ := i18n.Tfunc(
 		locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+ident,
 		locale+"_"+pending_item.AppName+"_"+ident,
@@ -53,8 +55,7 @@ func getText(locale string, ident string,
 	return
 }
 
-func send(locale string, channelIdent string,
-	pending_item *pending.PendingItem) {
+func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 
 	if !topics.ChannelAllowed(pending_item.User, pending_item.AppName,
 		pending_item.Organization, pending_item.Topic, channelIdent) {
