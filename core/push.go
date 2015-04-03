@@ -12,12 +12,12 @@ import (
 
 const PARSE_URL = "https://api.parse.com/1/push"
 
-func parseHandler(
+func pushHandler(
 	item *pending.PendingItem,
 	text string,
 	settings map[string]interface{},
 ) {
-	log.Println("Sending parse...")
+	log.Println("Sending Push Notification...")
 
 	application_id, ok := settings["parse_application_id"].(string)
 	if !ok {
@@ -54,5 +54,5 @@ func parseHandler(
 	}
 	defer resp.Body.Close()
 
-	log.Println("Parse push Status:", resp.Status)
+	log.Println("Push notification status:", resp.Status)
 }

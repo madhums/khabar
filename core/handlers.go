@@ -8,14 +8,14 @@ const (
 	EMAIL = "email"
 	SMS   = "sms"
 	WEB   = "web"
-	PARSE = "parse"
+	PUSH  = "push"
 )
 
 var ChannelMap = map[string]func(*pending.PendingItem, string,
 	map[string]interface{}){
 	EMAIL: emailHandler,
 	WEB:   webHandler,
-	PARSE: parseHandler,
+	PUSH:  pushHandler,
 }
 
 func IsChannelAvailable(ident string) bool {
