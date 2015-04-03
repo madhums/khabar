@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
@@ -49,6 +50,10 @@ func sysInit() {
 }
 
 func main() {
+	cores := runtime.NumCPU()
+	log.Println("Setting no. of Cores as", cores)
+	runtime.GOMAXPROCS(cores)
+
 	go sysInit()
 
 	registerHandlers()
