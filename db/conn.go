@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"log"
+	"sync"
 	"time"
 
 	"gopkg.in/mgo.v2"
@@ -352,11 +353,20 @@ func (self *MConn) Aggregate(session *mgo.Session, table string,
 	return coll.Pipe(doc)
 }
 
-var cachedConnections = map[string]*mgo.Session{}
+var cached = struct {
+	sync.RWMutex
+	sessions map[string]*mgo.Session
+}{sessions: map[string]*mgo.Session{}}
 
 func GetConn(db_name string, address string, creds ...string) *MConn {
 	//Check if the connection has been stored already.
-	_, ok := cachedConnections[db_name]
+	var session *mgo.Session
+	var ok bool
+
+	cached.RLock()
+	session, ok = cached.sessions[db_name]
+	cached.RUnlock()
+
 	if !ok {
 		var username, password string
 
@@ -387,16 +397,18 @@ func GetConn(db_name string, address string, creds ...string) *MConn {
 			Password: password,
 		}
 
-		session, err := mgo.DialWithInfo(&info)
+		var err error
+		session, err = mgo.DialWithInfo(&info)
 		if err != nil {
 			panic(err)
 		}
 
-		cachedConnections[db_name] = session
-	}
+		//Save the Session for Later use.
 
-	//Save the Session for Later use.
-	session := cachedConnections[db_name]
+		cached.Lock()
+		cached.sessions[db_name] = session
+		cached.Unlock()
+	}
 
 	//Return only a Session & the name. Let the Consumer make a Session.Copy()
 	//to ensure that database state is resumed.
