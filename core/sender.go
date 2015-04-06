@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
-	"os"
 	"sync"
 
 	"text/template"
@@ -38,15 +37,15 @@ func sendToChannel(
 	handlerFunc(pending_item, text, context)
 }
 
-func getText(locale, ident string, pending_item *pending.PendingItem) string {
+func getText(locale, ident, channel string, pending_item *pending.PendingItem) string {
 	T, _ := i18n.Tfunc(
-		locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+ident,
-		locale+"_"+pending_item.AppName+"_"+ident,
-		locale+"_"+ident,
+		locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+channel,
+		locale+"_"+pending_item.AppName+"_"+channel,
+		locale+"_"+channel,
 	)
 
-	text := T(pending_item.Topic, pending_item.Context)
-	if text == pending_item.Topic {
+	text := T(ident, pending_item.Context)
+	if text == ident {
 		text = ""
 	}
 
@@ -72,7 +71,7 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		return
 	}
 
-	text := getText(locale, channelIdent, pending_item)
+	text := getText(locale, pending_item.Topic, channelIdent, pending_item)
 	if text == "" {
 		// If Topic == text, do not send the notification. This can happen
 		// if the translation fails to find a sensible string in the JSON files
@@ -83,35 +82,29 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		return
 	}
 
-	if channel.Ident == EMAIL || channel.Ident == PUSH {
-		var buffer bytes.Buffer
-		buffer.WriteString(channelIdent)
-		buffer.WriteString("_subject")
-		subjectIdent := buffer.String()
+	if channelIdent == EMAIL || channel.Ident == PUSH {
+		subject := getText(locale, pending_item.Topic+"_subject", channelIdent, pending_item)
 
-		subject := getText(locale, subjectIdent, pending_item)
 		if subject != "" {
 			pending_item.Context["subject"] = subject
 		}
 	}
 
-	if channel.Ident == EMAIL {
+	if channelIdent == EMAIL {
 		buffer := new(bytes.Buffer)
 
 		transDir := config.Settings.Khabar.TranslationDirectory
 		path := transDir + "/" + locale + "_base_email.tmpl"
 
-		if _, err := os.Stat(path); err == nil {
-			content, err := ioutil.ReadFile(path)
-			if err != nil {
-				log.Println("Cannot Load the base email template")
-			} else {
-				t := template.Must(template.New("email").Parse(string(content)))
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			log.Println("Cannot Load the base email template")
+		} else {
+			t := template.Must(template.New("email").Parse(string(content)))
 
-				data := struct{ Content string }{text}
-				t.Execute(buffer, &data)
-				text = buffer.String()
-			}
+			data := struct{ Content string }{text}
+			t.Execute(buffer, &data)
+			text = buffer.String()
 		}
 	}
 
