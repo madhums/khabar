@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
-	"os"
 	"sync"
 
 	"text/template"
@@ -97,17 +96,15 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		transDir := config.Settings.Khabar.TranslationDirectory
 		path := transDir + "/" + locale + "_base_email.tmpl"
 
-		if _, err := os.Stat(path); err == nil {
-			content, err := ioutil.ReadFile(path)
-			if err != nil {
-				log.Println("Cannot Load the base email template")
-			} else {
-				t := template.Must(template.New("email").Parse(string(content)))
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			log.Println("Cannot Load the base email template")
+		} else {
+			t := template.Must(template.New("email").Parse(string(content)))
 
-				data := struct{ Content string }{text}
-				t.Execute(buffer, &data)
-				text = buffer.String()
-			}
+			data := struct{ Content string }{text}
+			t.Execute(buffer, &data)
+			text = buffer.String()
 		}
 	}
 
