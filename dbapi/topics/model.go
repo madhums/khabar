@@ -1,13 +1,8 @@
 package topics
 
 import (
-	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/dbapi"
-	"github.com/changer/khabar/utils"
-)
-
-const (
-	TopicCollection = "topics"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
 type Topic struct {
@@ -20,7 +15,8 @@ type Topic struct {
 }
 
 func (self *Topic) IsValid(op_type int) bool {
-	if (len(self.User) == 0) && (len(self.Organization) == 0) && (len(self.AppName) == 0) {
+	if (len(self.User) == 0) && (len(self.Organization) == 0) &&
+		(len(self.AppName) == 0) {
 		return false
 	}
 
@@ -28,7 +24,7 @@ func (self *Topic) IsValid(op_type int) bool {
 		return false
 	}
 
-	if op_type == dbapi.INSERT_OPERATION {
+	if op_type == db.INSERT_OPERATION {
 
 		if len(self.Channels) == 0 {
 			return false

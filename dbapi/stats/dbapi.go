@@ -3,8 +3,8 @@ package stats
 import (
 	"log"
 
-	"github.com/changer/khabar/db"
-	"github.com/changer/khabar/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
 type Stats struct {
@@ -14,7 +14,17 @@ type Stats struct {
 	TotalUnread int   `json:"total_unread"`
 }
 
-func Save(dbConn *db.MConn, user string, appName string, org string) {
+type RequestArgs struct {
+	Organization string `json:"org"`
+	AppName      string `json:"app_name"`
+	User         string `json:"user" required:"true"`
+}
+
+func Save(args *RequestArgs) error {
+	user := args.User
+	appName := args.AppName
+	org := args.Organization
+
 	stats_query := utils.M{
 		"user":     user,
 		"app_name": appName,
@@ -28,41 +38,47 @@ func Save(dbConn *db.MConn, user string, appName string, org string) {
 		"timestamp": utils.EpochNow(),
 	}
 
-	log.Println("hello Saving", stats_query)
-
-	dbConn.Upsert(StatsCollection, stats_query, save_doc)
-	return
+	return db.Conn.Upsert(db.StatsCollection, stats_query, save_doc)
 }
 
-func Get(dbConn *db.MConn, user string, appName string, org string) *Stats {
-	var stats Stats
+func Get(args *RequestArgs) (stats *Stats, err error) {
+	user := args.User
+	appName := args.AppName
+	org := args.Organization
+
+	stats = &Stats{}
 
 	stats_query := utils.M{}
 	unread_query := utils.M{"is_read": false}
 	unread_since_query := utils.M{"is_read": false}
 
 	stats_query["user"] = user
-	stats_query["app_name"] = appName
-	stats_query["org"] = org
-
 	unread_query["user"] = user
 	unread_since_query["user"] = user
 
 	if len(appName) > 0 {
+		stats_query["app_name"] = appName
 		unread_query["app_name"] = appName
 		unread_since_query["app_name"] = appName
 	}
 
 	if len(org) > 0 {
+		stats_query["org"] = org
 		unread_query["org"] = org
 		unread_since_query["org"] = org
 	}
 
-	var last_seen LastSeen
+	var last_seen db.LastSeen
 
-	err := dbConn.GetOne(StatsCollection, stats_query, &last_seen)
+	err = db.Conn.GetOne(db.StatsCollection, stats_query, &last_seen)
 	if err != nil {
-		log.Println(err)
+		err = Save(args)
+		if err == nil {
+			err = db.Conn.GetOne(db.StatsCollection, stats_query, &last_seen)
+		} else {
+			log.Println(err)
+			return nil, err
+		}
 	}
 
 	if last_seen.Timestamp > 0 {
@@ -71,9 +87,9 @@ func Get(dbConn *db.MConn, user string, appName string, org string) *Stats {
 
 	stats.LastSeen = last_seen.Timestamp
 
-	stats.TotalCount = dbConn.Count(StatsCollection, stats_query)
-	stats.UnreadCount = dbConn.Count(StatsCollection, unread_since_query)
-	stats.TotalUnread = dbConn.Count(StatsCollection, unread_query)
+	stats.TotalCount = db.Conn.Count(db.SentCollection, stats_query)
+	stats.UnreadCount = db.Conn.Count(db.SentCollection, unread_since_query)
+	stats.TotalUnread = db.Conn.Count(db.SentCollection, unread_query)
 
-	return &stats
+	return
 }

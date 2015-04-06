@@ -4,22 +4,30 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 
-	"github.com/changer/khabar/config"
-	"github.com/changer/khabar/db"
+	"github.com/bulletind/khabar/config"
+	"github.com/bulletind/khabar/db"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gottp.v2"
 )
 
 func sysInit() {
 	<-(gottp.SysInitChan) //Buffered Channel to receive the server upstart boolean
-	db.Conn = db.GetConn(config.Settings.Khabar.DBName, config.Settings.Khabar.DBAddress)
-	log.Println("Database Connected :" + config.Settings.Khabar.DBName + " " + "at address:" + config.Settings.Khabar.DBAddress)
+
+	db.Conn = db.GetConn(config.Settings.Khabar.DBName,
+		config.Settings.Khabar.DBAddress, config.Settings.Khabar.DBUsername,
+		config.Settings.Khabar.DBPassword)
+
+	log.Println("Database Connected :" + config.Settings.Khabar.DBName + " " +
+		"at address:" + config.Settings.Khabar.DBAddress)
 
 	transDir := config.Settings.Khabar.TranslationDirectory
 
 	if len(transDir) == 0 {
-		transDir = os.Getenv("PWD") + "/translations"
+		cwd := os.Getenv("PWD")
+		transDir = cwd + "/translations"
+		config.Settings.Khabar.TranslationDirectory = cwd
 	}
 
 	log.Println("Directory for translation :" + transDir)
@@ -30,7 +38,8 @@ func sysInit() {
 			log.Println("Loading translation file:" + path)
 			i18n.MustLoadTranslationFile(path)
 		} else {
-			log.Print("Skipping translation file:" + path + " " + "File Extension:" + fileExt + " ")
+			log.Print("Skipping translation file:" + path + " " +
+				"File Extension:" + fileExt + " ")
 			if err != nil {
 				log.Print("Error:" + err.Error())
 			}
@@ -38,11 +47,18 @@ func sysInit() {
 		return nil
 	})
 
+	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
 	log.Println("Translation has been parsed.")
 }
 
 func main() {
+	cores := runtime.NumCPU()
+	log.Println("Setting no. of Cores as", cores)
+	runtime.GOMAXPROCS(cores)
+
 	go sysInit()
+
 	registerHandlers()
+
 	gottp.MakeServer(&config.Settings)
 }

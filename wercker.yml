@@ -7,19 +7,6 @@ build:
     # at the right place in the workspace tree
     - setup-go-workspace
 
-    # see http://blog.wercker.com/2013/09/23/import-go-package-from-private-git-repository.html
-    - add-ssh-key:
-        keyname: SC_MESSAGES_KEY
-    - script:
-        name: Clone sc-messages
-        code: >
-          if ["$WERCKER_GIT_BRANCH" == "master"] || ["$WERCKER_GIT_BRANCH" == "staging"];
-          then
-          git clone git@github.com:changer/sc-messages.git -b "$WERCKER_GIT_BRANCH" $GOPATH/src/github.com/changer/sc-messages;
-          else
-          git clone git@github.com:changer/sc-messages.git -b develop $GOPATH/src/github.com/changer/sc-messages;
-          fi;
-
     # Gets the dependencies
     - script:
         name: go get
@@ -39,6 +26,10 @@ build:
             name: move executable
             code: mv $GOPATH/bin/khabar $WERCKER_OUTPUT_DIR
 
+  after-steps:
+    - wantedly/pretty-slack-notify:
+            webhook_url: $SLACK_WEBHOOK_URL
+
 deploy:
     steps:
         # upload khabar file to S3 using build timestamp
@@ -48,3 +39,12 @@ deploy:
             file:       khabar
             url:        s3://$S3_BUCKET/$S3_SUBDIR/khabar_$WERCKER_MAIN_PIPELINE_STARTED.bin
 
+        - koding/s3put@0.0.3:
+            key-id:     $S3_KEY
+            key-secret: $S3_SECRET
+            file:       khabar
+            url:        s3://$S3_BUCKET/$S3_SUBDIR/khabar_latest.bin
+
+    after-steps:
+        - wantedly/pretty-slack-notify:
+            webhook_url: $SLACK_WEBHOOK_URL
