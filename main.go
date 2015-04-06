@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
@@ -24,7 +25,9 @@ func sysInit() {
 	transDir := config.Settings.Khabar.TranslationDirectory
 
 	if len(transDir) == 0 {
-		transDir = os.Getenv("PWD") + "/translations"
+		cwd := os.Getenv("PWD")
+		transDir = cwd + "/translations"
+		config.Settings.Khabar.TranslationDirectory = cwd
 	}
 
 	log.Println("Directory for translation :" + transDir)
@@ -49,6 +52,10 @@ func sysInit() {
 }
 
 func main() {
+	cores := runtime.NumCPU()
+	log.Println("Setting no. of Cores as", cores)
+	runtime.GOMAXPROCS(cores)
+
 	go sysInit()
 
 	registerHandlers()

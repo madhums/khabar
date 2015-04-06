@@ -1,9 +1,15 @@
 package core
 
 import (
+	"bytes"
+	"io/ioutil"
 	"log"
+	"os"
 	"sync"
 
+	"text/template"
+
+	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/gully"
 	"github.com/bulletind/khabar/dbapi/pending"
@@ -14,11 +20,14 @@ import (
 )
 
 const webIdent = "web"
-const DEFAULT_LOCALE = "en-US"
+const DEFAULT_LOCALE = "en_US"
 const DEFAULT_TIMEZONE = "GMT+0.0"
 
-func sendToChannel(pending_item *pending.PendingItem, text string,
-	channelIdent string, context map[string]interface{}) {
+func sendToChannel(
+	pending_item *pending.PendingItem,
+	text, channelIdent string,
+	context map[string]interface{},
+) {
 	handlerFunc, ok := ChannelMap[channelIdent]
 	if !ok {
 		log.Println("No handler for Topic:" + pending_item.Topic + " Channel:" + channelIdent)
@@ -29,32 +38,22 @@ func sendToChannel(pending_item *pending.PendingItem, text string,
 	handlerFunc(pending_item, text, context)
 }
 
-func getText(locale string, ident string,
-	pending_item *pending.PendingItem) (text string) {
+func getText(locale, ident string, pending_item *pending.PendingItem) string {
 	T, _ := i18n.Tfunc(
 		locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+ident,
 		locale+"_"+pending_item.AppName+"_"+ident,
 		locale+"_"+ident,
 	)
 
-	text = T(pending_item.Topic, pending_item.Context)
-
-	if text == "" || text == pending_item.Topic {
-		// If Topic == text, do not send the notification. This can happen
-		// if the translation fails to find a sensible string in the JSON files
-		// OR the translation provided was meaningless. To prevent the users
-		// from being annpyed, abort this routine.
-
-		log.Println(pending_item.Topic + " == text. Abort sending")
+	text := T(pending_item.Topic, pending_item.Context)
+	if text == pending_item.Topic {
 		text = ""
-		return
 	}
 
-	return
+	return text
 }
 
-func send(locale string, channelIdent string,
-	pending_item *pending.PendingItem) {
+func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 
 	if !topics.ChannelAllowed(pending_item.User, pending_item.AppName,
 		pending_item.Organization, pending_item.Topic, channelIdent) {
@@ -75,14 +74,51 @@ func send(locale string, channelIdent string,
 
 	text := getText(locale, channelIdent, pending_item)
 	if text == "" {
+		// If Topic == text, do not send the notification. This can happen
+		// if the translation fails to find a sensible string in the JSON files
+		// OR the translation provided was meaningless. To prevent the users
+		// from being annpyed, abort this routine.
+
+		log.Println("No translation for:" + channelIdent + pending_item.Topic)
 		return
+	}
+
+	if channel.Ident == EMAIL || channel.Ident == PUSH {
+		var buffer bytes.Buffer
+		buffer.WriteString(channelIdent)
+		buffer.WriteString("_subject")
+		subjectIdent := buffer.String()
+
+		subject := getText(locale, subjectIdent, pending_item)
+		if subject != "" {
+			pending_item.Context["subject"] = subject
+		}
+	}
+
+	if channel.Ident == EMAIL {
+		buffer := new(bytes.Buffer)
+
+		transDir := config.Settings.Khabar.TranslationDirectory
+		path := transDir + "/" + locale + "_base_email.tmpl"
+
+		if _, err := os.Stat(path); err == nil {
+			content, err := ioutil.ReadFile(path)
+			if err != nil {
+				log.Println("Cannot Load the base email template")
+			} else {
+				t := template.Must(template.New("email").Parse(string(content)))
+
+				data := struct{ Content string }{text}
+				t.Execute(buffer, &data)
+				text = buffer.String()
+			}
+		}
 	}
 
 	sendToChannel(pending_item, text, channel.Ident, channel.Data)
 }
 
-func SendNotification(
-	pending_item *pending.PendingItem) {
+func SendNotification(pending_item *pending.PendingItem) {
 	userLocale, err := user_locale.Get(pending_item.User)
 	if err != nil {
 		log.Println("Unable to find locale for user :" + err.Error())
@@ -96,16 +132,15 @@ func SendNotification(
 	childwg := new(sync.WaitGroup)
 
 	for channel, _ := range ChannelMap {
+		childwg.Add(1)
+
 		go func(
-			locale string,
-			channelIdent string,
+			locale, channelIdent string,
 			pending_item *pending.PendingItem,
-			wg *sync.WaitGroup,
 		) {
-			wg.Add(1)
-			defer wg.Done()
+			defer childwg.Done()
 			send(locale, channelIdent, pending_item)
-		}(userLocale.Locale, channel, pending_item, childwg)
+		}(userLocale.Locale, channel, pending_item)
 	}
 
 	childwg.Wait()

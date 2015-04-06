@@ -7,8 +7,9 @@ import (
 	"github.com/bulletind/khabar/utils"
 )
 
-func emailHandler(item *pending.PendingItem, text string,
-	settings map[string]interface{}) {
+func emailHandler(
+	item *pending.PendingItem, text string, settings map[string]interface{},
+) {
 	log.Println("Sending email...")
 
 	if item.Context["email"] == nil {
@@ -20,6 +21,8 @@ func emailHandler(item *pending.PendingItem, text string,
 	if !ok {
 		log.Println("Email field is of invalid type")
 		return
+		//} else {
+		//email = "testing@piyushverma.net"
 	}
 
 	var sender string = ""
