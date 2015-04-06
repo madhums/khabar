@@ -98,7 +98,7 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			log.Println("Cannot Load the base email template")
+			log.Println("Cannot Load the base email template:", path)
 		} else {
 			t := template.Must(template.New("email").Parse(string(content)))
 
