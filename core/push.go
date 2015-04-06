@@ -31,8 +31,14 @@ func pushHandler(
 		return
 	}
 
+	subject, ok := settings["subject"].(string)
+	if !ok || subject == "" {
+		subject = item.Topic
+	}
+
 	body := map[string]interface{}{}
-	body["alert"] = text
+	body["alert"] = subject
+	body["messages"] = text
 	body["entity"] = item.Entity
 	body["organization"] = item.Organization
 	body["app_name"] = item.AppName
