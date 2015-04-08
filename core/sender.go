@@ -59,19 +59,23 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		return
 	}
 
-	if channelIdent == WEB {
-		return
-	}
+	var channelData map[string]interface{}
 
-	channel, err := gully.FindOne(
-		pending_item.User,
-		pending_item.AppName, pending_item.Organization,
-		channelIdent,
-	)
+	if channelIdent != WEB {
+		channel, err := gully.FindOne(
+			pending_item.User,
+			pending_item.AppName, pending_item.Organization,
+			channelIdent,
+		)
 
-	if err != nil {
-		log.Println("Unable to find channel : " + channelIdent + err.Error())
-		return
+		if err != nil {
+			log.Println("Unable to find channel : " + channelIdent + err.Error())
+			return
+		}
+
+		channelData = channel.Data
+	} else {
+		channelData = map[string]interface{}{}
 	}
 
 	text := getText(locale, pending_item.Topic, channelIdent, pending_item)
@@ -85,7 +89,7 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		return
 	}
 
-	if channelIdent == EMAIL || channel.Ident == PUSH {
+	if channelIdent == EMAIL || channelIdent == PUSH {
 		subject := getText(locale, pending_item.Topic+"_subject", channelIdent, pending_item)
 
 		if subject != "" {
@@ -111,7 +115,7 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		}
 	}
 
-	sendToChannel(pending_item, text, channel.Ident, channel.Data)
+	sendToChannel(pending_item, text, channelIdent, channelData)
 }
 
 func SendNotification(pending_item *pending.PendingItem) {
