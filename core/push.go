@@ -47,7 +47,7 @@ func pushHandler(
 
 	data := map[string]interface{}{}
 	data["data"] = body
-	data["channels"] = []string{item.User}
+	data["channels"] = []string{"USER_" + item.User}
 
 	log.Println(data)
 
