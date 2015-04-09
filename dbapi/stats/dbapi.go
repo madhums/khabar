@@ -2,6 +2,7 @@ package stats
 
 import (
 	"log"
+	"sync"
 
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/utils"
@@ -87,9 +88,31 @@ func Get(args *RequestArgs) (stats *Stats, err error) {
 
 	stats.LastSeen = last_seen.Timestamp
 
-	stats.TotalCount = db.Conn.Count(db.SentCollection, stats_query)
-	stats.UnreadCount = db.Conn.Count(db.SentCollection, unread_since_query)
-	stats.TotalUnread = db.Conn.Count(db.SentCollection, unread_query)
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	var unread_count, total_count, total_unread int
+
+	go func() {
+		defer wg.Done()
+		total_count = db.Conn.Count(db.SentCollection, stats_query)
+	}()
+
+	go func() {
+		defer wg.Done()
+		unread_count = db.Conn.Count(db.SentCollection, unread_since_query)
+	}()
+
+	go func() {
+		defer wg.Done()
+		total_unread = db.Conn.Count(db.SentCollection, unread_query)
+	}()
+
+	wg.Wait()
+
+	stats.TotalCount = total_count
+	stats.TotalUnread = total_unread
+	stats.UnreadCount = unread_count
 
 	return
 }
