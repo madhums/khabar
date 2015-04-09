@@ -45,12 +45,11 @@ func pushHandler(
 	body["topic"] = item.Topic
 	body["created_on"] = item.CreatedOn
 
-	where := map[string]interface{}{}
-	where["user"] = item.User
-
 	data := map[string]interface{}{}
 	data["data"] = body
-	data["where"] = where
+	data["channels"] = []string{item.User}
+
+	log.Println(data)
 
 	var jsonStr = utils.Encoder(&data)
 
