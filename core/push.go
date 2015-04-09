@@ -38,7 +38,7 @@ func pushHandler(
 
 	body := map[string]interface{}{}
 	body["alert"] = subject
-	body["messages"] = text
+	body["message"] = text
 	body["entity"] = item.Entity
 	body["organization"] = item.Organization
 	body["app_name"] = item.AppName

@@ -45,8 +45,10 @@ func (self *Gully) Post(request *gottp.Request) {
 	}
 
 	gly, err := gully.Get(
-		inputGully.User, inputGully.AppName,
-		inputGully.Organization, inputGully.Ident,
+		inputGully.User,
+		inputGully.AppName,
+		inputGully.Organization,
+		inputGully.Ident,
 	)
 
 	if err != nil {
