@@ -45,7 +45,14 @@ func pushHandler(
 	body["topic"] = item.Topic
 	body["created_on"] = item.CreatedOn
 
-	var jsonStr = utils.Encoder(&body)
+	where := map[string]interface{}{}
+	where["user"] = item.User
+
+	data := map[string]interface{}{}
+	data["data"] = body
+	data["where"] = where
+
+	var jsonStr = utils.Encoder(&data)
 
 	req, err := http.NewRequest("POST", PARSE_URL, bytes.NewBuffer(jsonStr))
 
