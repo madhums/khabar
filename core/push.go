@@ -38,14 +38,20 @@ func pushHandler(
 
 	body := map[string]interface{}{}
 	body["alert"] = subject
-	body["messages"] = text
+	body["message"] = text
 	body["entity"] = item.Entity
 	body["organization"] = item.Organization
 	body["app_name"] = item.AppName
 	body["topic"] = item.Topic
 	body["created_on"] = item.CreatedOn
 
-	var jsonStr = utils.Encoder(&body)
+	data := map[string]interface{}{}
+	data["data"] = body
+	data["channels"] = []string{"USER_" + item.User}
+
+	log.Println(data)
+
+	var jsonStr = utils.Encoder(&data)
 
 	req, err := http.NewRequest("POST", PARSE_URL, bytes.NewBuffer(jsonStr))
 

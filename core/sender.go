@@ -29,7 +29,7 @@ func sendToChannel(
 ) {
 	handlerFunc, ok := ChannelMap[channelIdent]
 	if !ok {
-		log.Println("No handler for Topic:" + pending_item.Topic + " Channel:" + channelIdent)
+		log.Println("No handler for Topic:", pending_item.Topic, "Channel:", channelIdent)
 		return
 	}
 
@@ -55,7 +55,7 @@ func getText(locale, ident, channel string, pending_item *pending.PendingItem) s
 func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 	if !topics.ChannelAllowed(pending_item.User, pending_item.AppName,
 		pending_item.Organization, pending_item.Topic, channelIdent) {
-		log.Println("Channel :" + channelIdent + " " + "is blocked for topic :" + pending_item.Topic)
+		log.Println("Channel", channelIdent, "is blocked for topic", pending_item.Topic)
 		return
 	}
 
@@ -64,12 +64,13 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 	if channelIdent != WEB {
 		channel, err := gully.FindOne(
 			pending_item.User,
-			pending_item.AppName, pending_item.Organization,
+			pending_item.AppName,
+			pending_item.Organization,
 			channelIdent,
 		)
 
 		if err != nil {
-			log.Println("Unable to find channel : " + channelIdent + err.Error())
+			log.Println(channelIdent, err.Error())
 			return
 		}
 
@@ -85,7 +86,7 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		// OR the translation provided was meaningless. To prevent the users
 		// from being annpyed, abort this routine.
 
-		log.Println("No translation for:" + channelIdent + pending_item.Topic)
+		log.Println("No translation for:", channelIdent, pending_item.Topic)
 		return
 	}
 
@@ -121,7 +122,7 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 func SendNotification(pending_item *pending.PendingItem) {
 	userLocale, err := user_locale.Get(pending_item.User)
 	if err != nil {
-		log.Println("Unable to find locale for user :" + err.Error())
+		log.Println("Unable to find locale for user", err.Error())
 		userLocale = new(db.UserLocale)
 
 		//FIXME:: Please do not hardcode this.

@@ -7,7 +7,8 @@ import (
 	"github.com/bulletind/khabar/utils"
 )
 
-const LATENCY = 2 * int64(time.Minute/time.Millisecond)
+//const LATENCY = 1 * int64(time.Second/time.Millisecond)
+const LATENCY = 1 * int64(time.Minute/time.Millisecond)
 
 func Throttled(pending_item *PendingItem) bool {
 	var query utils.M = make(utils.M)

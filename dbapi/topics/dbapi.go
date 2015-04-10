@@ -33,9 +33,13 @@ func Delete(doc *utils.M) error {
 func ChannelAllowed(user, appname, org, topicName, channel string) bool {
 	return db.Conn.Count(db.TopicCollection, utils.M{
 		"$or": []utils.M{
-			utils.M{"org": org},
-			utils.M{"app_name": appname},
-			utils.M{"user": user},
+			utils.M{"user": BLANK, "app_name": appname, "org": org},
+			utils.M{"user": BLANK, "app_name": BLANK, "org": org},
+			utils.M{"user": BLANK, "app_name": appname, "org": org},
+			utils.M{"user": BLANK, "app_name": appname, "org": BLANK},
+			utils.M{"user": user, "app_name": appname, "org": BLANK},
+			utils.M{"user": user, "app_name": appname, "org": org},
+			utils.M{"user": user, "app_name": BLANK, "org": org},
 		},
 		"ident":    topicName,
 		"channels": channel,
