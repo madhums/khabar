@@ -3,7 +3,6 @@ package core
 import (
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/pending"
-	"github.com/bulletind/khabar/dbapi/saved_item"
 	"github.com/bulletind/khabar/dbapi/sent"
 )
 
@@ -24,8 +23,5 @@ func webHandler(item *pending.PendingItem, text string,
 	}
 
 	sent_item.PrepareSave()
-
 	sent.Insert(&sent_item)
-
-	saved_item.Insert(db.SavedWebCollection, &db.SavedItem{Data: sent_item})
 }
