@@ -8,6 +8,9 @@ import (
 
 	"github.com/bulletind/khabar/dbapi/pending"
 	"gopkg.in/simversity/gottp.v2/utils"
+
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/saved_item"
 )
 
 const PARSE_URL = "https://api.parse.com/1/push"
@@ -65,6 +68,8 @@ func pushHandler(
 		panic(err)
 	}
 	defer resp.Body.Close()
+
+	saved_item.Insert("push", &db.SavedItem{Data: data})
 
 	log.Println("Push notification status:", resp.Status)
 }

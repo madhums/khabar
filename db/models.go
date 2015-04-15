@@ -33,6 +33,11 @@ func (self *SentItem) IsValid() bool {
 	return true
 }
 
+type SavedItem struct {
+	BaseModel `bson:",inline"`
+	Data      interface{} `bson:"data"`
+}
+
 type LastSeen struct {
 	BaseModel    `bson:",inline"`
 	User         string `json:"user" bson:"user" required:"true"`
