@@ -85,17 +85,16 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		// if the translation fails to find a sensible string in the JSON files
 		// OR the translation provided was meaningless. To prevent the users
 		// from being annpyed, abort this routine.
-
 		log.Println("No translation for:", channelIdent, pending_item.Topic)
 		return
 	}
 
-	if channelIdent == EMAIL || channelIdent == PUSH {
-		subject := getText(locale, pending_item.Topic+"_subject", channelIdent, pending_item)
+	subject := getText(locale, pending_item.Topic+"_subject", channelIdent, pending_item)
 
-		if subject != "" {
-			pending_item.Context["subject"] = subject
-		}
+	if subject != "" {
+		pending_item.Context["subject"] = subject
+	} else {
+		log.Println("Subject not found.")
 	}
 
 	if channelIdent == EMAIL {
