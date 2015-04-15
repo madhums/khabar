@@ -34,7 +34,7 @@ func pushHandler(
 		return
 	}
 
-	subject, ok := settings["subject"].(string)
+	subject, ok := item.Context["subject"].(string)
 	if !ok || subject == "" {
 		subject = item.Topic
 	}
