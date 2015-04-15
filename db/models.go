@@ -10,6 +10,10 @@ const (
 	TopicCollection      = "topics"
 	GullyCollection      = "gullys"
 	UserLocaleCollection = "user_locales"
+
+	SavedEmailCollection = "saved_email"
+	SavedPushCollection  = "saved_push"
+	SavedWebCollection   = "saved_web"
 )
 
 type SentItem struct {
@@ -31,6 +35,11 @@ func (self *SentItem) IsValid() bool {
 		return false
 	}
 	return true
+}
+
+type SavedItem struct {
+	BaseModel `bson:",inline"`
+	Data      interface{} `bson:"data"`
 }
 
 type LastSeen struct {
