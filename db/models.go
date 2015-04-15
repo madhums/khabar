@@ -10,6 +10,10 @@ const (
 	TopicCollection      = "topics"
 	GullyCollection      = "gullys"
 	UserLocaleCollection = "user_locales"
+
+	SavedEmailCollection = "saved_email"
+	SavedPushCollection  = "saved_push"
+	SavedWebCollection   = "saved_web"
 )
 
 type SentItem struct {

@@ -27,5 +27,5 @@ func webHandler(item *pending.PendingItem, text string,
 
 	sent.Insert(&sent_item)
 
-	saved_item.Insert("web", &db.SavedItem{Data: sent_item})
+	saved_item.Insert(db.SavedWebCollection, &db.SavedItem{Data: sent_item})
 }

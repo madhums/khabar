@@ -57,5 +57,5 @@ func emailHandler(
 
 	mailConn.SendEmail(msg)
 
-	saved_item.Insert("email", &db.SavedItem{Data: msg})
+	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: msg})
 }

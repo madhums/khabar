@@ -69,7 +69,7 @@ func pushHandler(
 	}
 	defer resp.Body.Close()
 
-	saved_item.Insert("push", &db.SavedItem{Data: data})
+	saved_item.Insert(db.SavedPushCollection, &db.SavedItem{Data: data})
 
 	log.Println("Push notification status:", resp.Status)
 }
