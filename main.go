@@ -48,7 +48,7 @@ func sysInit() {
 	})
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
-	log.Println("Translation has been parsed.")
+	log.Println("Translations have been parsed.")
 }
 
 func main() {
