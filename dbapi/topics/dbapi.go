@@ -130,5 +130,9 @@ func Find(user, org, topicName string) (topic *Topic, err error) {
 	}
 
 	return
+}
 
+func DeleteTopic(ident string) {
+	db.Conn.Delete(db.TopicCollection, utils.M{"ident": ident})
+	db.Conn.Delete(db.TopicsAvailable, utils.M{"ident": ident})
 }

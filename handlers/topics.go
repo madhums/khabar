@@ -280,3 +280,20 @@ func (self *Topics) Post(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 }
+
+type Topic struct {
+	gottp.BaseHandler
+}
+
+func (self *Topics) Delete(request *gottp.Request) {
+	var args struct {
+		Ident string `json:"ident" required:"required"`
+	}
+
+	request.ConvertArguments(&args)
+	utils.ValidateAndRaiseError(request, args)
+
+	topics.DeleteTopic(args.Ident)
+	request.Write(true)
+	return
+}
