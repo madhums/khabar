@@ -1,9 +1,8 @@
 package topics
 
 import (
-	"log"
-
 	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/available_topics"
 	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2"
 )
@@ -65,23 +64,8 @@ func Get(user, org, topicName string) (topic *Topic, err error) {
 	return
 }
 
-func getAppTopics(app_name, org string) []string {
-	session := db.Conn.Session.Copy()
-	defer session.Close()
-
-	query := utils.M{"app_name": app_name}
-	topics := []string{}
-
-	err := db.Conn.GetCursor(session, db.TopicsAvailable, query).Distinct("ident", topics)
-	if err != nil {
-		log.Println(err)
-	}
-
-	return topics
-}
-
 func GetAll(user, app_name, org string) (*mgo.Iter, error) {
-	appTopics := getAppTopics(app_name, org)
+	appTopics := available_topics.GetAppTopics(app_name, org)
 
 	var query utils.M = make(utils.M)
 

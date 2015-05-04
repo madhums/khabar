@@ -6,6 +6,7 @@ import (
 
 	"github.com/bulletind/khabar/core"
 	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/available_topics"
 	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2"
@@ -273,10 +274,32 @@ func (self *Topics) Get(request *gottp.Request) {
 }
 
 func (self *Topics) Post(request *gottp.Request) {
-	var args struct {
-		AppName string `json:"app_name"`
-		Ident   string `json:"ident" required:"required"`
+	newTopic := new(db.AvailableTopic)
+
+	request.ConvertArguments(newTopic)
+
+	newTopic.PrepareSave()
+
+	if !utils.ValidateAndRaiseError(request, newTopic) {
+		log.Println("Validation Failed")
+		return
 	}
 
-	request.ConvertArguments(&args)
+	if _, err := available_topics.Get(newTopic.Ident); err == nil {
+		request.Raise(gottp.HttpError{
+			http.StatusConflict,
+			"Topic already exists"})
+		return
+	} else {
+		if err != mgo.ErrNotFound {
+			log.Println(err)
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+		}
+	}
+
+	available_topics.Insert(newTopic)
+
 }

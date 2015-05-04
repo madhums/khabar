@@ -11,11 +11,17 @@ const (
 	GullyCollection      = "gullys"
 	UserLocaleCollection = "user_locales"
 
-	SavedEmailCollection = "saved_email"
-	SavedPushCollection  = "saved_push"
-	SavedWebCollection   = "saved_web"
-	TopicsAvailable      = "topics_available"
+	SavedEmailCollection     = "saved_email"
+	SavedPushCollection      = "saved_push"
+	SavedWebCollection       = "saved_web"
+	AvailableTopicCollection = "topics_available"
 )
+
+type AvailableTopic struct {
+	BaseModel `bson:",inline"`
+	Ident     string `json:"ident" bson:"ident" required:"true"`
+	AppName   string `json:"app_name" bson:"app_name" required:"true"`
+}
 
 type SentItem struct {
 	BaseModel      `bson:",inline"`
