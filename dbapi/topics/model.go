@@ -9,14 +9,12 @@ type Topic struct {
 	db.BaseModel `bson:",inline"`
 	User         string   `json:"user" bson:"user"`
 	Organization string   `json:"org" bson:"org"`
-	AppName      string   `json:"app_name" bson:"app_name"`
 	Channels     []string `json:"channels" bson:"channels" required:"true"`
 	Ident        string   `json:"ident" bson:"ident" required:"true"`
 }
 
 func (self *Topic) IsValid(op_type int) bool {
-	if (len(self.User) == 0) && (len(self.Organization) == 0) &&
-		(len(self.AppName) == 0) {
+	if (len(self.User) == 0) && (len(self.Organization) == 0) {
 		return false
 	}
 

@@ -34,7 +34,7 @@ func (self *Gully) Post(request *gottp.Request) {
 	if !inputGully.IsValid(db.INSERT_OPERATION) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
-			"Atleast one of the user, org and app_name must be present.",
+			"Atleast one of the user or org must be present.",
 		})
 
 		return
@@ -46,7 +46,6 @@ func (self *Gully) Post(request *gottp.Request) {
 
 	gly, err := gully.Get(
 		inputGully.User,
-		inputGully.AppName,
 		inputGully.Organization,
 		inputGully.Ident,
 	)
@@ -88,14 +87,18 @@ func (self *Gully) Delete(request *gottp.Request) {
 	if !gly.IsValid(db.DELETE_OPERATION) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
-			"Atleast one of the user, org and app_name must be present.",
+			"Atleast one of the user or org must be present.",
 		})
 
 		return
 	}
 
-	err := gully.Delete(&utils.M{"app_name": gly.AppName,
-		"org": gly.Organization, "user": gly.User, "ident": gly.Ident})
+	err := gully.Delete(&utils.M{
+		"org":   gly.Organization,
+		"user":  gly.User,
+		"ident": gly.Ident,
+	})
+
 	if err != nil {
 		log.Println(err)
 		request.Raise(gottp.HttpError{
@@ -122,14 +125,12 @@ type Gullys struct {
 func (self *Gullys) Get(request *gottp.Request) {
 	var args struct {
 		Organization string `json:"org"`
-		AppName      string `json:"app_name"`
 		User         string `json:"user"`
 	}
 
 	request.ConvertArguments(&args)
 
-	all, err := gully.GetAll(args.User,
-		args.AppName, args.Organization)
+	all, err := gully.GetAll(args.User, args.Organization)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {

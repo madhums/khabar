@@ -39,8 +39,7 @@ func sendToChannel(
 
 func getText(locale, ident, channel string, pending_item *pending.PendingItem) string {
 	T, _ := i18n.Tfunc(
-		locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+channel,
-		locale+"_"+pending_item.AppName+"_"+channel,
+		locale+"_"+pending_item.Organization+"_"+channel,
 		locale+"_"+channel,
 	)
 
@@ -53,8 +52,10 @@ func getText(locale, ident, channel string, pending_item *pending.PendingItem) s
 }
 
 func send(locale, channelIdent string, pending_item *pending.PendingItem) {
-	if !topics.ChannelAllowed(pending_item.User, pending_item.AppName,
-		pending_item.Organization, pending_item.Topic, channelIdent) {
+	if !topics.ChannelAllowed(
+		pending_item.User, pending_item.Organization, pending_item.Topic,
+		channelIdent,
+	) {
 		log.Println("Channel", channelIdent, "is blocked for topic", pending_item.Topic)
 		return
 	}
@@ -64,7 +65,6 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 	if channelIdent != WEB {
 		channel, err := gully.FindOne(
 			pending_item.User,
-			pending_item.AppName,
 			pending_item.Organization,
 			channelIdent,
 		)

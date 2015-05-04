@@ -35,8 +35,9 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 	request.ConvertArguments(intopic)
 
 	topic, err := topics.Get(
-		intopic.User, intopic.AppName,
-		intopic.Organization, intopic.Ident,
+		intopic.User,
+		intopic.Organization,
+		intopic.Ident,
 	)
 
 	if err != nil && err != mgo.ErrNotFound {
@@ -60,7 +61,7 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 		if !intopic.IsValid(db.INSERT_OPERATION) {
 			request.Raise(gottp.HttpError{
 				http.StatusBadRequest,
-				"Atleast one of the user, org and app_name must be present.",
+				"Atleast one of the user or org must be present.",
 			})
 
 			return
@@ -93,8 +94,9 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 
 	if hasData {
 		err = topics.Update(
-			topic.User, topic.AppName,
-			topic.Organization, topic.Ident,
+			topic.User,
+			topic.Organization,
+			topic.Ident,
 			&utils.M{"channels": topic.Channels},
 		)
 
@@ -146,8 +148,9 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 	request.ConvertArguments(topic)
 
 	topic, err := topics.Get(
-		topic.User, topic.AppName,
-		topic.Organization, topic.Ident,
+		topic.User,
+		topic.Organization,
+		topic.Ident,
 	)
 
 	if err != nil {
@@ -177,10 +180,9 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		err = topics.Delete(
 
 			&utils.M{
-				"app_name": topic.AppName,
-				"org":      topic.Organization,
-				"user":     topic.User,
-				"ident":    topic.Ident,
+				"org":   topic.Organization,
+				"user":  topic.User,
+				"ident": topic.Ident,
 			},
 		)
 
@@ -188,7 +190,7 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 		log.Println("Updating...")
 
 		err = topics.Update(
-			topic.User, topic.AppName, topic.Organization,
+			topic.User, topic.Organization,
 			topic.Ident, &utils.M{"channels": topic.Channels},
 		)
 	}
@@ -246,8 +248,7 @@ func (self *Topics) Get(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	iter, err := topics.GetAll(args.User, args.AppName,
-		args.Organization)
+	iter, err := topics.GetAll(args.User, args.AppName, args.Organization)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -271,44 +272,11 @@ func (self *Topics) Get(request *gottp.Request) {
 	return
 }
 
-/**
-type Topic struct {
-	gottp.BaseHandler
-}
-
-func (self *Topic) Delete(request *gottp.Request) {
-	topic := new(topics.Topic)
-	request.ConvertArguments(topic)
-	if !topic.IsValid(db.DELETE_OPERATION) {
-		request.Raise(gottp.HttpError{
-			http.StatusBadRequest,
-			"Atleast one of the user, org and app_name must be present.",
-		})
-
-		return
+func (self *Topics) Post(request *gottp.Request) {
+	var args struct {
+		AppName string `json:"app_name"`
+		Ident   string `json:"ident" required:"required"`
 	}
 
-	err := topics.Delete(
-
-		&utils.M{
-			"app_name": topic.AppName,
-			"org":      topic.Organization,
-			"user":     topic.User,
-			"ident":    topic.Ident,
-		},
-	)
-
-	if err != nil {
-		request.Raise(gottp.HttpError{
-			http.StatusInternalServerError,
-			"Unable to delete.",
-		})
-
-		return
-	}
-
-	request.Write(utils.R{Data: nil, Message: "NoContent",
-		StatusCode: http.StatusNoContent})
-	return
+	request.ConvertArguments(&args)
 }
-**/

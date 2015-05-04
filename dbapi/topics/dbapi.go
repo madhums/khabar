@@ -1,6 +1,8 @@
 package topics
 
 import (
+	"log"
+
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2"
@@ -8,11 +10,10 @@ import (
 
 const BLANK = ""
 
-func Update(user string, appName string,
-	org string, topicName string, doc *utils.M) error {
+func Update(user, org, topicName string, doc *utils.M) error {
 
 	return db.Conn.Update(db.TopicCollection,
-		utils.M{"app_name": appName,
+		utils.M{
 			"org":   org,
 			"user":  user,
 			"ident": topicName,
@@ -30,34 +31,29 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
-func ChannelAllowed(user, appname, org, topicName, channel string) bool {
+func ChannelAllowed(user, org, topicName, channel string) bool {
 	return db.Conn.Count(db.TopicCollection, utils.M{
 		"$or": []utils.M{
-			utils.M{"user": BLANK, "app_name": appname, "org": org},
-			utils.M{"user": BLANK, "app_name": BLANK, "org": org},
-			utils.M{"user": BLANK, "app_name": appname, "org": org},
-			utils.M{"user": BLANK, "app_name": appname, "org": BLANK},
-			utils.M{"user": user, "app_name": appname, "org": BLANK},
-			utils.M{"user": user, "app_name": appname, "org": org},
-			utils.M{"user": user, "app_name": BLANK, "org": org},
+			utils.M{"user": BLANK, "org": org},
+			utils.M{"user": BLANK, "org": BLANK},
+			utils.M{"user": user, "org": BLANK},
+			utils.M{"user": user, "org": org},
 		},
 		"ident":    topicName,
 		"channels": channel,
 	}) == 0
 }
 
-func Get(user, appName, org,
-	topicName string) (topic *Topic, err error) {
+func Get(user, org, topicName string) (topic *Topic, err error) {
 
 	topic = new(Topic)
 
 	err = db.Conn.GetOne(
 		db.TopicCollection,
 		utils.M{
-			"app_name": appName,
-			"org":      org,
-			"user":     user,
-			"ident":    topicName,
+			"org":   org,
+			"user":  user,
+			"ident": topicName,
 		},
 		topic,
 	)
@@ -69,13 +65,28 @@ func Get(user, appName, org,
 	return
 }
 
-func GetAll(user, appName, org string) (*mgo.Iter, error) {
+func getAppTopics(app_name, org string) []string {
+	session := db.Conn.Session.Copy()
+	defer session.Close()
+
+	query := utils.M{"app_name": app_name}
+	topics := []string{}
+
+	err := db.Conn.GetCursor(session, db.TopicsAvailable, query).Distinct("ident", topics)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return topics
+}
+
+func GetAll(user, app_name, org string) (*mgo.Iter, error) {
+	appTopics := getAppTopics(app_name, org)
+
 	var query utils.M = make(utils.M)
 
+	query["ident"] = utils.M{"$in": appTopics}
 	query["user"] = user
-
-	query["app_name"] = appName
-
 	query["org"] = org
 
 	session := db.Conn.Session.Copy()
@@ -90,49 +101,31 @@ func GetAll(user, appName, org string) (*mgo.Iter, error) {
 	return iter, nil
 }
 
-func findPerUser(user, appName, org,
-	topicName string) (topic *Topic, err error) {
+func findPerUser(user, org, topicName string) (topic *Topic, err error) {
 
-	topic, err = Get(user, appName, org, topicName)
+	topic, err = Get(user, org, topicName)
 	if err != nil {
-		topic, err = Get(user, appName, BLANK, topicName)
+		topic, err = Get(user, BLANK, topicName)
+	}
+
+	return
+}
+
+func findPerOrgnaization(org, topicName string) (topic *Topic, err error) {
+	return Get(BLANK, org, topicName)
+}
+
+func findGlobal(topicName string) (topic *Topic, err error) {
+	return Get(BLANK, BLANK, topicName)
+}
+
+func Find(user, org, topicName string) (topic *Topic, err error) {
+
+	topic, err = findPerUser(user, org, topicName)
+	if err != nil {
+		topic, err = findPerOrgnaization(org, topicName)
 		if err != nil {
-			topic, err = Get(user, BLANK, org, topicName)
-		}
-	}
-
-	return
-}
-
-func findPerOrgnaization(appName, org,
-	topicName string) (topic *Topic, err error) {
-
-	topic, err = Get(BLANK, appName, org, topicName)
-	if err != nil {
-		topic, err = Get(BLANK, BLANK, org, topicName)
-	}
-
-	return
-}
-
-func findGlobal(appName,
-	topicName string) (topic *Topic, err error) {
-	topic, err = Get(BLANK, appName, BLANK, topicName)
-	if err != nil {
-		topic, err = Get(BLANK, BLANK, BLANK, topicName)
-	}
-
-	return
-}
-
-func Find(user, appName, org,
-	topicName string) (topic *Topic, err error) {
-
-	topic, err = findPerUser(user, appName, org, topicName)
-	if err != nil {
-		topic, err = findPerOrgnaization(appName, org, topicName)
-		if err != nil {
-			topic, err = findGlobal(appName, topicName)
+			topic, err = findGlobal(topicName)
 		}
 	}
 
