@@ -1,8 +1,6 @@
 package available_topics
 
 import (
-	"log"
-
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/utils"
@@ -13,28 +11,34 @@ const disabledState = "disabled"
 
 type ChotaTopic map[string]string
 
-func GetAppTopics(app_name, org string) []string {
+func GetAppTopics(app_name, org string) *[]string {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	query := utils.M{"app_name": app_name}
 	topics := []string{}
 
-	err := db.Conn.GetCursor(session, db.AvailableTopicCollection, query).Distinct("ident", &topics)
-	if err != nil {
-		log.Println(err)
+	var topic struct {
+		Ident string `bson:"ident"`
 	}
 
-	return topics
+	iter := db.Conn.GetCursor(
+		session, db.AvailableTopicCollection, query,
+	).Select(utils.M{"ident": 1}).Sort("ident").Iter()
+
+	for iter.Next(&topic) {
+		topics = append(topics, topic.Ident)
+	}
+
+	return &topics
 }
 
-func GetAll(user, app_name, org string, channels []string) (map[string]ChotaTopic, error) {
-	appTopics := GetAppTopics(app_name, org)
+func GetAll(user, org string, appTopics, channels *[]string) (map[string]ChotaTopic, error) {
 	topicMap := map[string]ChotaTopic{}
 
-	for _, ident := range appTopics {
+	for _, ident := range *appTopics {
 		ct := ChotaTopic{"topic": ident}
-		for _, channel := range channels {
+		for _, channel := range *channels {
 			ct[channel] = "true"
 		}
 

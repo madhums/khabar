@@ -30,9 +30,10 @@ func (self *Topics) Get(request *gottp.Request) {
 		return
 	}
 
+	appTopics := available_topics.GetAppTopics(args.AppName, args.Organization)
+
 	if args.Organization == "" {
-		iter := available_topics.GetAppTopics(args.AppName, args.Organization)
-		request.Write(iter)
+		request.Write(appTopics)
 		return
 	}
 
@@ -41,7 +42,7 @@ func (self *Topics) Get(request *gottp.Request) {
 		channels = append(channels, ident)
 	}
 
-	iter, err := available_topics.GetAll(args.User, args.AppName, args.Organization, channels)
+	iter, err := available_topics.GetAll(args.User, args.Organization, appTopics, &channels)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -62,8 +63,8 @@ func (self *Topics) Get(request *gottp.Request) {
 	}
 
 	ret := []available_topics.ChotaTopic{}
-	for _, singleRet := range iter {
-		ret = append(ret, singleRet)
+	for _, topic := range *appTopics {
+		ret = append(ret, iter[topic])
 	}
 
 	request.Write(ret)
