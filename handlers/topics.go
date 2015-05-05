@@ -217,28 +217,6 @@ type Topics struct {
 	gottp.BaseHandler
 }
 
-func TransformData(iter *mgo.Iter) map[string]*[]string {
-
-	topicMap := map[string]*[]string{}
-	topic := new(topics.Topic)
-	for iter.Next(topic) {
-		_, ok := topicMap[topic.Ident]
-		if !ok {
-			topicMap[topic.Ident] = new([]string)
-		}
-
-		for _, channel := range topic.Channels {
-			newChannels := append(*topicMap[topic.Ident], channel)
-			topicMap[topic.Ident] = &newChannels
-		}
-	}
-
-	for _, topicList := range topicMap {
-		utils.RemoveDuplicates(topicList)
-	}
-	return topicMap
-}
-
 func (self *Topics) Get(request *gottp.Request) {
 	var args struct {
 		Organization string `json:"org"`
@@ -248,7 +226,12 @@ func (self *Topics) Get(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	iter, err := topics.GetAll(args.User, args.AppName, args.Organization)
+	channels := []string{}
+	for ident, _ := range core.ChannelMap {
+		channels = append(channels, ident)
+	}
+
+	iter, err := topics.GetAll(args.User, args.AppName, args.Organization, channels)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -268,7 +251,12 @@ func (self *Topics) Get(request *gottp.Request) {
 		return
 	}
 
-	request.Write(TransformData(iter))
+	ret := []topics.ChotaTopic{}
+	for _, singleRet := range iter {
+		ret = append(ret, singleRet)
+	}
+
+	request.Write(ret)
 	return
 }
 

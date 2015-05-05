@@ -5,7 +5,6 @@ import (
 
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/utils"
-	"gopkg.in/mgo.v2"
 )
 
 const BLANK = ""
@@ -72,7 +71,7 @@ func getAppTopics(app_name, org string) []string {
 	query := utils.M{"app_name": app_name}
 	topics := []string{}
 
-	err := db.Conn.GetCursor(session, db.TopicsAvailable, query).Distinct("ident", topics)
+	err := db.Conn.GetCursor(session, db.TopicsAvailable, query).Distinct("ident", &topics)
 	if err != nil {
 		log.Println(err)
 	}
@@ -80,25 +79,53 @@ func getAppTopics(app_name, org string) []string {
 	return topics
 }
 
-func GetAll(user, app_name, org string) (*mgo.Iter, error) {
+type ChotaTopic map[string]string
+
+func GetAll(user, app_name, org string, channels []string) (map[string]ChotaTopic, error) {
 	appTopics := getAppTopics(app_name, org)
+	topicMap := map[string]ChotaTopic{}
 
-	var query utils.M = make(utils.M)
+	for _, ident := range appTopics {
+		ct := ChotaTopic{"topic": ident}
+		for _, channel := range channels {
+			ct[channel] = "true"
+		}
 
-	query["ident"] = utils.M{"$in": appTopics}
-	query["user"] = user
-	query["org"] = org
+		topicMap[ident] = ct
+	}
+
+	disabled := new(Topic)
 
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
-	iter := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
-
-	if iter.Err() != nil {
-		return nil, iter.Err()
+	query := utils.M{
+		"ident": utils.M{"$in": appTopics},
+		"user":  user,
+		"org":   org,
 	}
 
-	return iter, nil
+	userBlacklisted := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
+	for userBlacklisted.Next(disabled) {
+		if _, ok := topicMap[disabled.Ident]; ok {
+			for _, blocked := range disabled.Channels {
+				topicMap[disabled.Ident][blocked] = "false"
+			}
+		}
+	}
+
+	delete(query, "user")
+
+	orgBlacklisted := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
+	for orgBlacklisted.Next(disabled) {
+		if _, ok := topicMap[disabled.Ident]; ok {
+			for _, blocked := range disabled.Channels {
+				topicMap[disabled.Ident][blocked] = "disabled"
+			}
+		}
+	}
+
+	return topicMap, nil
 }
 
 func findPerUser(user, org, topicName string) (topic *Topic, err error) {
