@@ -3,7 +3,9 @@ package core
 import (
 	"log"
 
+	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/pending"
+	"github.com/bulletind/khabar/dbapi/saved_item"
 	"github.com/bulletind/khabar/utils"
 )
 
@@ -46,10 +48,14 @@ func emailHandler(
 			settings["smtp_port"].(string),
 	}
 
-	mailConn.SendEmail(utils.Message{
+	msg := utils.Message{
 		From:    settings["smtp_from"].(string),
 		To:      []string{email},
 		Subject: subject,
 		Body:    text,
-	})
+	}
+
+	mailConn.SendEmail(msg)
+
+	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: msg})
 }

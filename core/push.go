@@ -8,6 +8,9 @@ import (
 
 	"github.com/bulletind/khabar/dbapi/pending"
 	"gopkg.in/simversity/gottp.v2/utils"
+
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/saved_item"
 )
 
 const PARSE_URL = "https://api.parse.com/1/push"
@@ -31,21 +34,27 @@ func pushHandler(
 		return
 	}
 
-	subject, ok := settings["subject"].(string)
+	subject, ok := item.Context["subject"].(string)
 	if !ok || subject == "" {
 		subject = item.Topic
 	}
 
 	body := map[string]interface{}{}
 	body["alert"] = subject
-	body["messages"] = text
+	body["message"] = text
 	body["entity"] = item.Entity
 	body["organization"] = item.Organization
 	body["app_name"] = item.AppName
 	body["topic"] = item.Topic
 	body["created_on"] = item.CreatedOn
 
-	var jsonStr = utils.Encoder(&body)
+	data := map[string]interface{}{}
+	data["data"] = body
+	data["channels"] = []string{"USER_" + item.User}
+
+	log.Println(data)
+
+	var jsonStr = utils.Encoder(&data)
 
 	req, err := http.NewRequest("POST", PARSE_URL, bytes.NewBuffer(jsonStr))
 
@@ -59,6 +68,8 @@ func pushHandler(
 		panic(err)
 	}
 	defer resp.Body.Close()
+
+	saved_item.Insert(db.SavedPushCollection, &db.SavedItem{Data: data})
 
 	log.Println("Push notification status:", resp.Status)
 }

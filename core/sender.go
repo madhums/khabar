@@ -29,7 +29,7 @@ func sendToChannel(
 ) {
 	handlerFunc, ok := ChannelMap[channelIdent]
 	if !ok {
-		log.Println("No handler for Topic:" + pending_item.Topic + " Channel:" + channelIdent)
+		log.Println("No handler for Topic:", pending_item.Topic, "Channel:", channelIdent)
 		return
 	}
 
@@ -53,22 +53,30 @@ func getText(locale, ident, channel string, pending_item *pending.PendingItem) s
 }
 
 func send(locale, channelIdent string, pending_item *pending.PendingItem) {
-
 	if !topics.ChannelAllowed(pending_item.User, pending_item.AppName,
 		pending_item.Organization, pending_item.Topic, channelIdent) {
-		log.Println("Channel :" + channelIdent + " " + "is blocked for topic :" + pending_item.Topic)
+		log.Println("Channel", channelIdent, "is blocked for topic", pending_item.Topic)
 		return
 	}
 
-	channel, err := gully.FindOne(
-		pending_item.User,
-		pending_item.AppName, pending_item.Organization,
-		channelIdent,
-	)
+	var channelData map[string]interface{}
 
-	if err != nil {
-		log.Println("Unable to find channel : " + channelIdent + err.Error())
-		return
+	if channelIdent != WEB {
+		channel, err := gully.FindOne(
+			pending_item.User,
+			pending_item.AppName,
+			pending_item.Organization,
+			channelIdent,
+		)
+
+		if err != nil {
+			log.Println(channelIdent, err.Error())
+			return
+		}
+
+		channelData = channel.Data
+	} else {
+		channelData = map[string]interface{}{}
 	}
 
 	text := getText(locale, pending_item.Topic, channelIdent, pending_item)
@@ -77,17 +85,16 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		// if the translation fails to find a sensible string in the JSON files
 		// OR the translation provided was meaningless. To prevent the users
 		// from being annpyed, abort this routine.
-
-		log.Println("No translation for:" + channelIdent + pending_item.Topic)
+		log.Println("No translation for:", channelIdent, pending_item.Topic)
 		return
 	}
 
-	if channelIdent == EMAIL || channel.Ident == PUSH {
-		subject := getText(locale, pending_item.Topic+"_subject", channelIdent, pending_item)
+	subject := getText(locale, pending_item.Topic+"_subject", channelIdent, pending_item)
 
-		if subject != "" {
-			pending_item.Context["subject"] = subject
-		}
+	if subject != "" {
+		pending_item.Context["subject"] = subject
+	} else {
+		log.Println("Subject not found.")
 	}
 
 	if channelIdent == EMAIL {
@@ -98,7 +105,7 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			log.Println("Cannot Load the base email template")
+			log.Println("Cannot Load the base email template:", path)
 		} else {
 			t := template.Must(template.New("email").Parse(string(content)))
 
@@ -108,13 +115,13 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 		}
 	}
 
-	sendToChannel(pending_item, text, channel.Ident, channel.Data)
+	sendToChannel(pending_item, text, channelIdent, channelData)
 }
 
 func SendNotification(pending_item *pending.PendingItem) {
 	userLocale, err := user_locale.Get(pending_item.User)
 	if err != nil {
-		log.Println("Unable to find locale for user :" + err.Error())
+		log.Println("Unable to find locale for user", err.Error())
 		userLocale = new(db.UserLocale)
 
 		//FIXME:: Please do not hardcode this.

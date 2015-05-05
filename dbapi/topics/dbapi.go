@@ -33,9 +33,13 @@ func Delete(doc *utils.M) error {
 func ChannelAllowed(user, appname, org, topicName, channel string) bool {
 	return db.Conn.Count(db.TopicCollection, utils.M{
 		"$or": []utils.M{
-			utils.M{"org": org},
-			utils.M{"app_name": appname},
-			utils.M{"user": user},
+			utils.M{"user": BLANK, "app_name": appname, "org": org},
+			utils.M{"user": BLANK, "app_name": BLANK, "org": org},
+			utils.M{"user": BLANK, "app_name": appname, "org": org},
+			utils.M{"user": BLANK, "app_name": appname, "org": BLANK},
+			utils.M{"user": user, "app_name": appname, "org": BLANK},
+			utils.M{"user": user, "app_name": appname, "org": org},
+			utils.M{"user": user, "app_name": BLANK, "org": org},
 		},
 		"ident":    topicName,
 		"channels": channel,
@@ -68,17 +72,11 @@ func Get(user, appName, org,
 func GetAll(user, appName, org string) (*mgo.Iter, error) {
 	var query utils.M = make(utils.M)
 
-	if len(user) > 0 {
-		query["user"] = user
-	}
+	query["user"] = user
 
-	if len(appName) > 0 {
-		query["app_name"] = appName
-	}
+	query["app_name"] = appName
 
-	if len(org) > 0 {
-		query["org"] = org
-	}
+	query["org"] = org
 
 	session := db.Conn.Session.Copy()
 	defer session.Close()
