@@ -2,9 +2,7 @@ package topics
 
 import (
 	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/available_topics"
 	"github.com/bulletind/khabar/utils"
-	"gopkg.in/mgo.v2"
 )
 
 const BLANK = ""
@@ -64,27 +62,6 @@ func Get(user, org, topicName string) (topic *Topic, err error) {
 	return
 }
 
-func GetAll(user, app_name, org string) (*mgo.Iter, error) {
-	appTopics := available_topics.GetAppTopics(app_name, org)
-
-	var query utils.M = make(utils.M)
-
-	query["ident"] = utils.M{"$in": appTopics}
-	query["user"] = user
-	query["org"] = org
-
-	session := db.Conn.Session.Copy()
-	defer session.Close()
-
-	iter := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
-
-	if iter.Err() != nil {
-		return nil, iter.Err()
-	}
-
-	return iter, nil
-}
-
 func findPerUser(user, org, topicName string) (topic *Topic, err error) {
 
 	topic, err = Get(user, org, topicName)
@@ -114,4 +91,13 @@ func Find(user, org, topicName string) (topic *Topic, err error) {
 	}
 
 	return
+}
+
+func DeleteTopic(ident string) error {
+	err := db.Conn.Delete(db.TopicCollection, utils.M{"ident": ident})
+	if err != nil {
+		return err
+	}
+	err = db.Conn.Delete(db.AvailableTopicCollection, utils.M{"ident": ident})
+	return err
 }
