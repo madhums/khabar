@@ -8,6 +8,11 @@ import (
 	"github.com/bulletind/khabar/utils"
 )
 
+const falseState = "false"
+const disabledState = "disabled"
+
+type ChotaTopic map[string]string
+
 func GetAppTopics(app_name, org string) []string {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
@@ -22,8 +27,6 @@ func GetAppTopics(app_name, org string) []string {
 
 	return topics
 }
-
-type ChotaTopic map[string]string
 
 func GetAll(user, app_name, org string, channels []string) (map[string]ChotaTopic, error) {
 	appTopics := GetAppTopics(app_name, org)
@@ -49,22 +52,26 @@ func GetAll(user, app_name, org string, channels []string) (map[string]ChotaTopi
 		"org":   org,
 	}
 
-	userBlacklisted := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
-	for userBlacklisted.Next(disabled) {
+	pass1 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
+	for pass1.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked] = "false"
+				topicMap[disabled.Ident][blocked] = falseState
 			}
 		}
 	}
 
-	query["user"] = db.BLANK
+	if user != db.BLANK {
+		//Only execute this if the user was indeed passed.
 
-	orgBlacklisted := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
-	for orgBlacklisted.Next(disabled) {
-		if _, ok := topicMap[disabled.Ident]; ok {
-			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked] = "disabled"
+		query["user"] = db.BLANK
+
+		pass2 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
+		for pass2.Next(disabled) {
+			if _, ok := topicMap[disabled.Ident]; ok {
+				for _, blocked := range disabled.Channels {
+					topicMap[disabled.Ident][blocked] = disabledState
+				}
 			}
 		}
 	}
