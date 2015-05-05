@@ -114,5 +114,4 @@ func Find(user, org, topicName string) (topic *Topic, err error) {
 	}
 
 	return
-
 }
