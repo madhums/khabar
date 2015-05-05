@@ -49,7 +49,6 @@ func GetAll(user, app_name, org string, channels []string) (map[string]ChotaTopi
 	query := utils.M{
 		"ident": utils.M{"$in": appTopics},
 		"user":  user,
-		"org":   org,
 	}
 
 	pass1 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
