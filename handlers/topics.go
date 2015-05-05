@@ -262,7 +262,7 @@ func (self *Topics) Get(request *gottp.Request) {
 
 func (self *Topics) Post(request *gottp.Request) {
 	var args struct {
-		AppName string `json:"app_name"`
+		AppName string `json:"app_name" required:"required"`
 		Ident   string `json:"ident" required:"required"`
 	}
 
