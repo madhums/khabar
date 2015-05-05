@@ -40,7 +40,7 @@ func pushHandler(
 	}
 
 	body := map[string]interface{}{}
-	body["title"] = subject
+	body["alert"] = subject
 	body["message"] = text
 	body["entity"] = item.Entity
 	body["organization"] = item.Organization
