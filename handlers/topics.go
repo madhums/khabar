@@ -220,7 +220,7 @@ type Topics struct {
 
 func (self *Topics) Get(request *gottp.Request) {
 	var args struct {
-		Organization string `json:"org"`
+		Organization string `json:"org" required:"true"`
 		AppName      string `json:"app_name" required:"true"`
 		User         string `json:"user"`
 	}

@@ -1,5 +1,7 @@
 package db
 
+const BLANK = ""
+
 const (
 	DELETE_OPERATION = 1
 	INSERT_OPERATION = 2

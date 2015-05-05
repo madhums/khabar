@@ -6,8 +6,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-const BLANK = ""
-
 //CAUTION: This call does not filter out sensitive information,
 //Since it is required by the application.
 //DO NOT DIRECTLY WRITE THIS OUTPUT TO USER.
@@ -51,7 +49,7 @@ func GetAll(user, org string) (*[]db.Gully, error) {
 	/**if len(user) > 0 {
 		query["user"] = user
 	} **/
-	query["user"] = BLANK
+	query["user"] = db.BLANK
 
 	if len(org) > 0 {
 		query["org"] = org
@@ -79,16 +77,16 @@ func findPerUser(user, org, ident string) (*db.Gully, error) {
 		return gully, err
 	}
 
-	gully, err = Get(user, BLANK, ident)
+	gully, err = Get(user, db.BLANK, ident)
 	return gully, err
 }
 
 func findPerOrgnaization(org, ident string) (*db.Gully, error) {
-	return Get(BLANK, org, ident)
+	return Get(db.BLANK, org, ident)
 }
 
 func findGlobal(ident string) (*db.Gully, error) {
-	return Get(BLANK, BLANK, ident)
+	return Get(db.BLANK, db.BLANK, ident)
 }
 
 func FindOne(user, org, ident string) (gully *db.Gully, err error) {

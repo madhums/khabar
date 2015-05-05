@@ -58,7 +58,7 @@ func GetAll(user, app_name, org string, channels []string) (map[string]ChotaTopi
 		}
 	}
 
-	delete(query, "user")
+	query["user"] = db.BLANK
 
 	orgBlacklisted := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
 	for orgBlacklisted.Next(disabled) {
