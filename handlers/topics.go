@@ -296,6 +296,12 @@ func (self *Topics) Post(request *gottp.Request) {
 
 	available_topics.Insert(newTopic)
 
+	request.Write(utils.R{
+		StatusCode: http.StatusCreated,
+		Data:       newTopic.Id,
+		Message:    "Created",
+	})
+	return
 }
 
 type Topic struct {
@@ -323,6 +329,11 @@ func (self *Topics) Delete(request *gottp.Request) {
 		})
 		return
 	}
-	request.Write(true)
+
+	request.Write(utils.R{
+		Data:       nil,
+		Message:    "true",
+		StatusCode: http.StatusNoContent,
+	})
 	return
 }
