@@ -6,6 +6,7 @@ import (
 
 	"github.com/bulletind/khabar/core"
 
+	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/pending"
 	sentApi "github.com/bulletind/khabar/dbapi/sent"
 	"github.com/bulletind/khabar/utils"
@@ -79,7 +80,7 @@ func (self *Notifications) Put(request *gottp.Request) {
 }
 
 func (self *Notifications) Post(request *gottp.Request) {
-	pending_item := new(pending.PendingItem)
+	pending_item := new(db.PendingItem)
 	request.ConvertArguments(pending_item)
 
 	if request.GetArgument("topic") == nil {
