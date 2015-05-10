@@ -31,4 +31,6 @@ func registerHandlers() {
 	gottp.NewUrl("channels", "^/channels/?$", new(handlers.Gullys))
 
 	gottp.NewUrl("topics", "^/topics/?$", new(handlers.Topics))
+
+	gottp.NewUrl("bounceNotifications", "^/bounce/?$", new(handlers.Bounce))
 }
