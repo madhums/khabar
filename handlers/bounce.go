@@ -20,7 +20,7 @@ type Bounce struct {
 const BounceNotification = "Bounce"
 
 func (self *Bounce) Post(request *gottp.Request) {
-	log.Println(request.GetAguments())
+	log.Println(request.GetArguments())
 
 	var args struct {
 		Type   string `json:"notificationType" required:"true"`
