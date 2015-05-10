@@ -20,8 +20,6 @@ type Bounce struct {
 const BounceNotification = "Bounce"
 
 func (self *Bounce) Post(request *gottp.Request) {
-	log.Println(request.GetArguments())
-
 	var args struct {
 		Type   string `json:"notificationType" required:"true"`
 		Bounce struct {
@@ -34,12 +32,12 @@ func (self *Bounce) Post(request *gottp.Request) {
 	request.ConvertArguments(&args)
 
 	if !utils.ValidateAndRaiseError(request, args) {
-		log.Println("Invalid Request")
+		log.Println("Invalid Request", request.GetArguments())
 		return
 	}
 
 	if args.Type != BounceNotification {
-		log.Println("Invalid Bounce Request")
+		log.Println("Invalid Bounce Request", request.GetArguments())
 
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
