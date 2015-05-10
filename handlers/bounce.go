@@ -36,6 +36,11 @@ func (self *Bounce) Post(request *gottp.Request) {
 	}
 
 	if args.Type != BounceNotification {
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Invalid Bounce Request",
+		})
+
 		return
 	}
 
