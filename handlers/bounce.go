@@ -46,6 +46,7 @@ func (self *Bounce) Post(request *gottp.Request) {
 	request.ConvertArguments(&args)
 
 	if !utils.ValidateAndRaiseError(request, args) {
+		log.Println("Invalid Request", request.GetArguments())
 		return
 	}
 
@@ -63,6 +64,13 @@ func (self *Bounce) Post(request *gottp.Request) {
 	}
 
 	if msg.Type != BounceNotification {
+		log.Println("Invalid Bounce Request", request.GetArguments())
+
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Invalid Bounce Request",
+		})
+
 		return
 	}
 
