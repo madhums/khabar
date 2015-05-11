@@ -51,8 +51,6 @@ func pushHandler(
 	data["data"] = body
 	data["channels"] = []string{"USER_" + item.User}
 
-	log.Println(data)
-
 	var jsonStr = utils.Encoder(&data)
 
 	req, err := http.NewRequest("POST", PARSE_URL, bytes.NewBuffer(jsonStr))
