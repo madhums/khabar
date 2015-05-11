@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/bulletind/khabar/utils"
@@ -40,6 +41,7 @@ func (self *Complaint) Post(request *gottp.Request) {
 	request.ConvertArguments(&args)
 
 	if !utils.ValidateAndRaiseError(request, args) {
+		log.Println("Invalid Request", request.GetArguments())
 		return
 	}
 
@@ -57,6 +59,13 @@ func (self *Complaint) Post(request *gottp.Request) {
 	}
 
 	if msg.Type != ComplaintNotification {
+		log.Println("Invalid Complaint Request", request.GetArguments())
+
+		request.Raise(gottp.HttpError{
+			http.StatusBadRequest,
+			"Invalid Complaint Request",
+		})
+
 		return
 	}
 
