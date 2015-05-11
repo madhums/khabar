@@ -14,13 +14,13 @@ import (
 	gottpUtils "gopkg.in/simversity/gottp.v2/utils"
 )
 
-type Bounce struct {
+type Complaint struct {
 	gottp.BaseHandler
 }
 
-const BounceNotification = "Bounce"
+const ComplaintNotification = "Complaint"
 
-func (self *Bounce) Post(request *gottp.Request) {
+func (self *Complaint) Post(request *gottp.Request) {
 
 	type snsNotice struct {
 		Type      string `json:"Type"`
@@ -32,13 +32,13 @@ func (self *Bounce) Post(request *gottp.Request) {
 		Signature string `json:"Signature" required:"true"`
 	}
 
-	type bounceMessage struct {
-		Type   string `json:"notificationType" required:"true"`
-		Bounce struct {
+	type complaintMessage struct {
+		Type      string `json:"notificationType" required:"true"`
+		Complaint struct {
 			Recipients []struct {
 				Email string `json:"emailAddress" required:"true"`
-			} `json:"bouncedRecipients" required:"true"`
-		} `json:"bounce" required:"true"`
+			} `json:"complainedRecipients" required:"true"`
+		} `json:"complaint" required:"true"`
 	}
 
 	args := new(snsNotice)
@@ -49,7 +49,7 @@ func (self *Bounce) Post(request *gottp.Request) {
 		return
 	}
 
-	msg := bounceMessage{}
+	msg := complaintMessage{}
 	gottpUtils.Decoder([]byte(args.Message), &msg)
 
 	errs := gottpUtils.Validate(&msg)
@@ -62,11 +62,11 @@ func (self *Bounce) Post(request *gottp.Request) {
 		return
 	}
 
-	if msg.Type != BounceNotification {
+	if msg.Type != ComplaintNotification {
 		return
 	}
 
-	for _, entry := range msg.Bounce.Recipients {
+	for _, entry := range msg.Complaint.Recipients {
 		var email = entry.Email
 		notification, err := saved_item.Get("saved_"+core.EMAIL, &utils.M{"details.context.email": email})
 
