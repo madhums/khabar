@@ -1,15 +1,9 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
-	"github.com/bulletind/khabar/core"
-	"github.com/bulletind/khabar/dbapi/available_topics"
-	"github.com/bulletind/khabar/dbapi/saved_item"
-	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/utils"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 	gottpUtils "gopkg.in/simversity/gottp.v2/utils"
 )
@@ -67,52 +61,8 @@ func (self *Complaint) Post(request *gottp.Request) {
 	}
 
 	for _, entry := range msg.Complaint.Recipients {
-		var email = entry.Email
-		notification, err := saved_item.Get("saved_"+core.EMAIL, &utils.M{"details.context.email": email})
-
-		if err != nil {
-			if err == mgo.ErrNotFound {
-				log.Println("Bounced Email not found")
-				continue
-			} else {
-				request.Raise(gottp.HttpError{
-					http.StatusInternalServerError,
-					"Unable to fetch data, Please try again later.",
-				})
-				return
-			}
-		}
-
-		sentItem := notification.Details
-
-		topicList := available_topics.GetAppTopics(sentItem.AppName, sentItem.Organization)
-
-		for _, topic := range *topicList {
-			disabled, err := topics.Get(sentItem.User, sentItem.Organization, topic)
-			if err != nil && err != mgo.ErrNotFound {
-				request.Raise(gottp.HttpError{
-					http.StatusInternalServerError,
-					"Unable to fetch data, Please try again later.",
-				})
-				return
-			}
-
-			if disabled != nil {
-				disabled.Channels = append(disabled.Channels, core.EMAIL)
-				utils.RemoveDuplicates(&disabled.Channels)
-				err := topics.Update(sentItem.User, sentItem.Organization, topic, &utils.M{"channels": disabled.Channels})
-				if err != nil {
-					request.Raise(gottp.HttpError{
-						http.StatusInternalServerError,
-						"Unable to fetch data, Please try again later.",
-					})
-					return
-				}
-			} else {
-				disabled = &topics.Topic{User: sentItem.User, Organization: sentItem.Organization, Ident: topic, Channels: []string{core.EMAIL}}
-				disabled.PrepareSave()
-				topics.Insert(disabled)
-			}
+		if !DisableBounceEmail(entry.Email, request) {
+			break
 		}
 	}
 

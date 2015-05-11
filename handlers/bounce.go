@@ -75,52 +75,8 @@ func (self *Bounce) Post(request *gottp.Request) {
 	}
 
 	for _, entry := range msg.Bounce.Recipients {
-		var email = entry.Email
-		notification, err := saved_item.Get("saved_"+core.EMAIL, &utils.M{"details.context.email": email})
-
-		if err != nil {
-			if err == mgo.ErrNotFound {
-				log.Println("Bounced Email not found")
-				continue
-			} else {
-				request.Raise(gottp.HttpError{
-					http.StatusInternalServerError,
-					"Unable to fetch data, Please try again later.",
-				})
-				return
-			}
-		}
-
-		sentItem := notification.Details
-
-		topicList := available_topics.GetAppTopics(sentItem.AppName, sentItem.Organization)
-
-		for _, topic := range *topicList {
-			disabled, err := topics.Get(sentItem.User, sentItem.Organization, topic)
-			if err != nil && err != mgo.ErrNotFound {
-				request.Raise(gottp.HttpError{
-					http.StatusInternalServerError,
-					"Unable to fetch data, Please try again later.",
-				})
-				return
-			}
-
-			if disabled != nil {
-				disabled.Channels = append(disabled.Channels, core.EMAIL)
-				utils.RemoveDuplicates(&disabled.Channels)
-				err := topics.Update(sentItem.User, sentItem.Organization, topic, &utils.M{"channels": disabled.Channels})
-				if err != nil {
-					request.Raise(gottp.HttpError{
-						http.StatusInternalServerError,
-						"Unable to fetch data, Please try again later.",
-					})
-					return
-				}
-			} else {
-				disabled = &topics.Topic{User: sentItem.User, Organization: sentItem.Organization, Ident: topic, Channels: []string{core.EMAIL}}
-				disabled.PrepareSave()
-				topics.Insert(disabled)
-			}
+		if !DisableBounceEmail(entry.Email, request) {
+			break
 		}
 	}
 
@@ -129,4 +85,57 @@ func (self *Bounce) Post(request *gottp.Request) {
 		Data:       nil,
 	})
 
+}
+
+func DisableBounceEmail(email string, request *gottp.Request) bool {
+	notification, err := saved_item.Get("saved_"+core.EMAIL,
+		&utils.M{"details.context.email": email})
+
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			log.Println("Bounced Email not found")
+			return true
+		} else {
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+			return false
+		}
+	}
+
+	sentItem := notification.Details
+
+	topicList := available_topics.GetAppTopics(sentItem.AppName, sentItem.Organization)
+
+	for _, topic := range *topicList {
+		disabled, err := topics.Get(sentItem.User, sentItem.Organization, topic)
+		if err != nil && err != mgo.ErrNotFound {
+			request.Raise(gottp.HttpError{
+				http.StatusInternalServerError,
+				"Unable to fetch data, Please try again later.",
+			})
+			return false
+		}
+
+		if disabled != nil {
+			disabled.Channels = append(disabled.Channels, core.EMAIL)
+			utils.RemoveDuplicates(&disabled.Channels)
+			err := topics.Update(sentItem.User, sentItem.Organization, topic,
+				&utils.M{"channels": disabled.Channels})
+			if err != nil {
+				request.Raise(gottp.HttpError{
+					http.StatusInternalServerError,
+					"Unable to fetch data, Please try again later.",
+				})
+				return false
+			}
+		} else {
+			disabled = &topics.Topic{User: sentItem.User, Organization: sentItem.Organization,
+				Ident: topic, Channels: []string{core.EMAIL}}
+			disabled.PrepareSave()
+			topics.Insert(disabled)
+		}
+	}
+	return true
 }
