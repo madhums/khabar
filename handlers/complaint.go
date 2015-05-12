@@ -70,9 +70,7 @@ func (self *Complaint) Post(request *gottp.Request) {
 	}
 
 	for _, entry := range msg.Complaint.Recipients {
-		if !DisableBounceEmail(entry.Email, request) {
-			break
-		}
+		DisableBounceEmail(entry.Email, request)
 	}
 
 	request.Write(utils.R{

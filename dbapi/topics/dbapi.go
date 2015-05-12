@@ -39,6 +39,44 @@ func ChannelAllowed(user, org, topicName, channel string) bool {
 	}) == 0
 }
 
+func DisableUserChannel(orgs, topics []string, user, channel string) {
+	session := db.Conn.Session.Copy()
+	defer session.Close()
+
+	utils.RemoveDuplicates(&orgs)
+	utils.RemoveDuplicates(&topics)
+
+	db.Conn.Update(
+		db.TopicCollection, utils.M{"user": user},
+		utils.M{"$addToSet": utils.M{"channels": channel}},
+	)
+
+	disabled := []*Topic{}
+
+	for _, org := range orgs {
+		disabledTopics := []string{}
+		db.Conn.GetCursor(session, db.TopicCollection, utils.M{"user": user, "org": org}).Distinct("ident", &disabledTopics)
+
+		for _, name := range topics {
+			if !db.InArray(name, disabledTopics) {
+				topic := &Topic{
+					User:         user,
+					Organization: org,
+					Ident:        name,
+					Channels:     []string{channel},
+				}
+
+				topic.PrepareSave()
+				disabled = append(disabled, topic)
+			}
+		}
+	}
+
+	if len(disabled) > 0 {
+		db.Conn.Insert(db.TopicCollection, disabled)
+	}
+}
+
 func Get(user, org, topicName string) (topic *Topic, err error) {
 
 	topic = new(Topic)

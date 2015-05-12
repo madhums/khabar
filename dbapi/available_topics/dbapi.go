@@ -11,6 +11,19 @@ const disabledState = "disabled"
 
 type ChotaTopic map[string]string
 
+func GetAllTopics() []string {
+	session := db.Conn.Session.Copy()
+	defer session.Close()
+
+	topics := []string{}
+
+	db.Conn.GetCursor(
+		session, db.AvailableTopicCollection, utils.M{},
+	).Distinct("ident", &topics)
+
+	return topics
+}
+
 func GetAppTopics(app_name, org string) *[]string {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
