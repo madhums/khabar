@@ -51,7 +51,7 @@ func DisableUserChannel(orgs, topics []string, user, channel string) {
 		utils.M{"$addToSet": utils.M{"channels": channel}},
 	)
 
-	disabled := []*Topic{}
+	disabled := []interface{}{}
 
 	for _, org := range orgs {
 		disabledTopics := []string{}
@@ -59,7 +59,7 @@ func DisableUserChannel(orgs, topics []string, user, channel string) {
 
 		for _, name := range topics {
 			if !db.InArray(name, disabledTopics) {
-				topic := &Topic{
+				topic := Topic{
 					User:         user,
 					Organization: org,
 					Ident:        name,
@@ -73,7 +73,7 @@ func DisableUserChannel(orgs, topics []string, user, channel string) {
 	}
 
 	if len(disabled) > 0 {
-		db.Conn.Insert(db.TopicCollection, disabled)
+		db.Conn.InsertMulti(db.TopicCollection, disabled...)
 	}
 }
 

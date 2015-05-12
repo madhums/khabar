@@ -15,26 +15,16 @@ type Complaint struct {
 
 const ComplaintNotification = "Complaint"
 
+type complaintMessage struct {
+	Type      string `json:"notificationType" required:"true"`
+	Complaint struct {
+		Recipients []struct {
+			Email string `json:"emailAddress" required:"true"`
+		} `json:"complainedRecipients" required:"true"`
+	} `json:"complaint" required:"true"`
+}
+
 func (self *Complaint) Post(request *gottp.Request) {
-
-	type snsNotice struct {
-		Type      string `json:"Type"`
-		MessageId string `json:"MessageId" required:"true"`
-		TopicArn  string `json:"TopicArn"`
-		Subject   string `json:"Subject"`
-		Message   string `json:"Message" required:"true"`
-		Timestamp string `json:"Timestamp"`
-		Signature string `json:"Signature" required:"true"`
-	}
-
-	type complaintMessage struct {
-		Type      string `json:"notificationType" required:"true"`
-		Complaint struct {
-			Recipients []struct {
-				Email string `json:"emailAddress" required:"true"`
-			} `json:"complainedRecipients" required:"true"`
-		} `json:"complaint" required:"true"`
-	}
 
 	args := new(snsNotice)
 

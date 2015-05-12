@@ -20,26 +20,26 @@ type Bounce struct {
 
 const BounceNotification = "Bounce"
 
+type snsNotice struct {
+	Type      string `json:"Type"`
+	MessageId string `json:"MessageId" required:"true"`
+	TopicArn  string `json:"TopicArn"`
+	Subject   string `json:"Subject"`
+	Message   string `json:"Message" required:"true"`
+	Timestamp string `json:"Timestamp"`
+	Signature string `json:"Signature" required:"true"`
+}
+
+type bounceMessage struct {
+	Type   string `json:"notificationType" required:"true"`
+	Bounce struct {
+		Recipients []struct {
+			Email string `json:"emailAddress" required:"true"`
+		} `json:"bouncedRecipients" required:"true"`
+	} `json:"bounce" required:"true"`
+}
+
 func (self *Bounce) Post(request *gottp.Request) {
-
-	type snsNotice struct {
-		Type      string `json:"Type"`
-		MessageId string `json:"MessageId" required:"true"`
-		TopicArn  string `json:"TopicArn"`
-		Subject   string `json:"Subject"`
-		Message   string `json:"Message" required:"true"`
-		Timestamp string `json:"Timestamp"`
-		Signature string `json:"Signature" required:"true"`
-	}
-
-	type bounceMessage struct {
-		Type   string `json:"notificationType" required:"true"`
-		Bounce struct {
-			Recipients []struct {
-				Email string `json:"emailAddress" required:"true"`
-			} `json:"bouncedRecipients" required:"true"`
-		} `json:"bounce" required:"true"`
-	}
 
 	args := new(snsNotice)
 
