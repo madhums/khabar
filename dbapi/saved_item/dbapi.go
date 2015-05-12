@@ -29,7 +29,7 @@ func GetSentOrganizations(coll string, email string) (string, []string) {
 	orgs := []string{}
 	userId := ""
 
-	iter := db.Conn.GetCursor(session, coll, utils.M{"details.context.email": email}).Sort("-id").Iter()
+	iter := db.Conn.GetCursor(session, coll, utils.M{"details.context.email": email}).Sort("-_id").Iter()
 
 	var one struct {
 		Details struct {
@@ -38,7 +38,7 @@ func GetSentOrganizations(coll string, email string) (string, []string) {
 		} `bson:"details"`
 	}
 
-	for iter.Next(one) {
+	for iter.Next(&one) {
 		if userId == "" {
 			userId = one.Details.User
 		}

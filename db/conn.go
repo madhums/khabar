@@ -313,6 +313,20 @@ func InArray(key string, arrays ...[]string) bool {
 	return false
 }
 
+func (self *MConn) InsertMulti(table string, arguments ...interface{}) *mgo.BulkResult {
+	session := self.Session.Copy()
+	db := session.DB(self.Dbname)
+	defer session.Close()
+
+	b := db.C(table).Bulk()
+	b.Insert(arguments...)
+	bulkResult, err := b.Run()
+	if err != nil {
+		panic(err)
+	}
+	return bulkResult
+}
+
 func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {
 	//Create a Session Copy and be responsible for Closing it.
 	session := self.Session.Copy()
