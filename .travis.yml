@@ -21,6 +21,7 @@ before_install:
   - cd $HOME/gopath/src/gopkg.in/bulletind/khabar.v1
 
 script:
+  - go test -v ./...
   - go build -v ./...
 
 after_success:
