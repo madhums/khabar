@@ -20,3 +20,8 @@ script:
 
 after_success:
   - artifacts upload $HOME/gopath/bin/khabar
+
+notifications:
+  email:
+    - piyush@piyushverma.net
+    - desaiparth08@gmail.com
