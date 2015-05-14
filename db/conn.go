@@ -9,7 +9,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
 var Conn *MConn

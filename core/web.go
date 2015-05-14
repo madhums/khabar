@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/sent"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/sent"
 )
 
 func webHandler(item *db.PendingItem, text string,

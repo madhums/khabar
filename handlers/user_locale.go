@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/user_locale"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/user_locale"
+	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 )

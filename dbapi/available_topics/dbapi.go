@@ -1,9 +1,9 @@
 package available_topics
 
 import (
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/topics"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/topics"
+	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
 const falseState = "false"

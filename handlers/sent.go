@@ -4,12 +4,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bulletind/khabar/core"
+	"gopkg.in/bulletind/khabar.v1/core"
 
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/pending"
-	sentApi "github.com/bulletind/khabar/dbapi/sent"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/pending"
+	sentApi "gopkg.in/bulletind/khabar.v1/dbapi/sent"
+	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 )

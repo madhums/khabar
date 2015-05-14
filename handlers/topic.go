@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bulletind/khabar/dbapi/topics"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/dbapi/topics"
+	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/simversity/gottp.v2"
 )
 
