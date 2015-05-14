@@ -22,8 +22,8 @@ func registerHandlers() {
 		"^/topics/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$",
 		new(handlers.TopicChannel))
 
-	//gottp.NewUrl("topic", "^/topics/(?P<ident>\\w+)/?$",
-	//	new(handlers.Topic))
+	gottp.NewUrl("topic", "^/topics/(?P<ident>\\w+)/?$",
+		new(handlers.Topic))
 
 	gottp.NewUrl("user_locale", "^/locales/(?P<user>\\w+)/?$",
 		new(handlers.UserLocale))
@@ -31,4 +31,8 @@ func registerHandlers() {
 	gottp.NewUrl("channels", "^/channels/?$", new(handlers.Gullys))
 
 	gottp.NewUrl("topics", "^/topics/?$", new(handlers.Topics))
+
+	gottp.NewUrl("bounceNotifications", "^/bounce/?$", new(handlers.Bounce))
+
+	gottp.NewUrl("complaintNotifications", "^/complaint/?$", new(handlers.Complaint))
 }

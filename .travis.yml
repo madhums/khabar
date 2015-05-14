@@ -18,5 +18,5 @@ before_script:
 script:
   - go build -v ./...
 
-#after_success:
-#  - artifacts upload $HOME/gopath/bin/khabar
+after_success:
+  - artifacts upload $HOME/gopath/bin/khabar

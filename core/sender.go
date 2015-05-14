@@ -11,7 +11,6 @@ import (
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/gully"
-	"github.com/bulletind/khabar/dbapi/pending"
 	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/dbapi/user_locale"
 	"github.com/nicksnyder/go-i18n/i18n"
@@ -23,7 +22,7 @@ const DEFAULT_LOCALE = "en_US"
 const DEFAULT_TIMEZONE = "GMT+0.0"
 
 func sendToChannel(
-	pending_item *pending.PendingItem,
+	pending_item *db.PendingItem,
 	text, channelIdent string,
 	context map[string]interface{},
 ) {
@@ -37,10 +36,9 @@ func sendToChannel(
 	handlerFunc(pending_item, text, context)
 }
 
-func getText(locale, ident, channel string, pending_item *pending.PendingItem) string {
+func getText(locale, ident, channel string, pending_item *db.PendingItem) string {
 	T, _ := i18n.Tfunc(
-		locale+"_"+pending_item.AppName+"_"+pending_item.Organization+"_"+channel,
-		locale+"_"+pending_item.AppName+"_"+channel,
+		locale+"_"+pending_item.Organization+"_"+channel,
 		locale+"_"+channel,
 	)
 
@@ -52,9 +50,11 @@ func getText(locale, ident, channel string, pending_item *pending.PendingItem) s
 	return text
 }
 
-func send(locale, channelIdent string, pending_item *pending.PendingItem) {
-	if !topics.ChannelAllowed(pending_item.User, pending_item.AppName,
-		pending_item.Organization, pending_item.Topic, channelIdent) {
+func send(locale, channelIdent string, pending_item *db.PendingItem) {
+	if !topics.ChannelAllowed(
+		pending_item.User, pending_item.Organization, pending_item.Topic,
+		channelIdent,
+	) {
 		log.Println("Channel", channelIdent, "is blocked for topic", pending_item.Topic)
 		return
 	}
@@ -64,7 +64,6 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 	if channelIdent != WEB {
 		channel, err := gully.FindOne(
 			pending_item.User,
-			pending_item.AppName,
 			pending_item.Organization,
 			channelIdent,
 		)
@@ -118,7 +117,7 @@ func send(locale, channelIdent string, pending_item *pending.PendingItem) {
 	sendToChannel(pending_item, text, channelIdent, channelData)
 }
 
-func SendNotification(pending_item *pending.PendingItem) {
+func SendNotification(pending_item *db.PendingItem) {
 	userLocale, err := user_locale.Get(pending_item.User)
 	if err != nil {
 		log.Println("Unable to find locale for user", err.Error())
@@ -136,7 +135,7 @@ func SendNotification(pending_item *pending.PendingItem) {
 
 		go func(
 			locale, channelIdent string,
-			pending_item *pending.PendingItem,
+			pending_item *db.PendingItem,
 		) {
 			defer childwg.Done()
 			send(locale, channelIdent, pending_item)
