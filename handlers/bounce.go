@@ -18,6 +18,12 @@ type MandrillBounce struct {
 	gottp.BaseHandler
 }
 
+const (
+	HARD_BOUNCE = "hard_bounce"
+	SOFT_BOUNCE = "soft_bounce"
+	SPAM        = "spam"
+)
+
 func (self *MandrillBounce) Post(request *gottp.Request) {
 	type mandrillEvent struct {
 		Events []struct {
