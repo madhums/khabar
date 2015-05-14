@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/bulletind/khabar/config"
-	"github.com/bulletind/khabar/db"
+	"gopkg.in/bulletind/khabar.v1/config"
+	"gopkg.in/bulletind/khabar.v1/db"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gottp.v2"
 )

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bulletind/khabar/handlers"
+	"gopkg.in/bulletind/khabar.v1/handlers"
 	"gopkg.in/simversity/gottp.v2"
 )
 

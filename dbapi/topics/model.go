@@ -1,8 +1,8 @@
 package topics
 
 import (
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
 type Topic struct {

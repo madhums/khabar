@@ -1,6 +1,6 @@
 package core
 
-import "github.com/bulletind/khabar/db"
+import "gopkg.in/bulletind/khabar.v1/db"
 
 const (
 	EMAIL = "email"

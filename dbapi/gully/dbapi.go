@@ -1,8 +1,8 @@
 package gully
 
 import (
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2/bson"
 )
 

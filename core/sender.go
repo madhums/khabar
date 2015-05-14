@@ -8,11 +8,11 @@ import (
 
 	"text/template"
 
-	"github.com/bulletind/khabar/config"
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/gully"
-	"github.com/bulletind/khabar/dbapi/topics"
-	"github.com/bulletind/khabar/dbapi/user_locale"
+	"gopkg.in/bulletind/khabar.v1/config"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/gully"
+	"gopkg.in/bulletind/khabar.v1/dbapi/topics"
+	"gopkg.in/bulletind/khabar.v1/dbapi/user_locale"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gotracer.v1"
 )
