@@ -14,7 +14,51 @@ import (
 	gottpUtils "gopkg.in/simversity/gottp.v2/utils"
 )
 
-type Bounce struct {
+type MandrillBounce struct {
+	gottp.BaseHandler
+}
+
+const (
+	HARD_BOUNCE = "hard_bounce"
+	SOFT_BOUNCE = "soft_bounce"
+	SPAM        = "spam"
+)
+
+func (self *MandrillBounce) Post(request *gottp.Request) {
+	type mandrillEvent struct {
+		Events []struct {
+			Type    string `json:"type" required:"true"`
+			Message struct {
+				Email string `json:"email" required:"true"`
+			} `json:"msg" required:"true"`
+		} `json:"mandrill_events" required:"true"`
+	}
+
+	var eventTypes = map[string]bool{HARD_BOUNCE: true, SOFT_BOUNCE: true, SPAM: true}
+
+	args := new(mandrillEvent)
+
+	request.ConvertArguments(&args)
+
+	if !utils.ValidateAndRaiseError(request, args) {
+		log.Println("Invalid Request", request.GetArguments())
+		return
+	}
+
+	for _, event := range args.Events {
+		if !eventTypes[event.Type] {
+			continue
+		}
+		DisableBounceEmail(event.Message.Email, request)
+	}
+
+	request.Write(utils.R{
+		StatusCode: http.StatusOK,
+		Data:       nil,
+	})
+}
+
+type SnsBounce struct {
 	gottp.BaseHandler
 }
 
@@ -39,7 +83,7 @@ type bounceMessage struct {
 	} `json:"bounce" required:"true"`
 }
 
-func (self *Bounce) Post(request *gottp.Request) {
+func (self *SnsBounce) Post(request *gottp.Request) {
 
 	args := new(snsNotice)
 

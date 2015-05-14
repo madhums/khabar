@@ -9,7 +9,7 @@ import (
 	gottpUtils "gopkg.in/simversity/gottp.v2/utils"
 )
 
-type Complaint struct {
+type SnsComplaint struct {
 	gottp.BaseHandler
 }
 
@@ -24,7 +24,7 @@ type complaintMessage struct {
 	} `json:"complaint" required:"true"`
 }
 
-func (self *Complaint) Post(request *gottp.Request) {
+func (self *SnsComplaint) Post(request *gottp.Request) {
 
 	args := new(snsNotice)
 
