@@ -34,7 +34,7 @@ func (self *MandrillBounce) Post(request *gottp.Request) {
 		} `json:"mandrill_events" required:"true"`
 	}
 
-	var eventTypes = map[string]bool{"hard_bounce": true, "soft_bounce": true, "spam": true}
+	var eventTypes = map[string]bool{HARD_BOUNCE: true, SOFT_BOUNCE: true, SPAM: true}
 
 	args := new(mandrillEvent)
 
