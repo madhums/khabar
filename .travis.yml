@@ -25,3 +25,5 @@ notifications:
   email:
     - piyush@piyushverma.net
     - desaiparth08@gmail.com
+
+  slack: safetychanger:iBdUKrm6abL7BQNtoIpihFA3
