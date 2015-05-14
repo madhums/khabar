@@ -15,10 +15,12 @@ env:
 before_script:
   - curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
 
-script:
+before_install:
   - mkdir -p $HOME/gopath/src/gopkg.in
   - mv $HOME/gopath/src/github.com/bulletind/khabar $HOME/gopath/src/gopkg.in/bulletind/khabar.v1
   - cd $HOME/gopath/src/gopkg.in/bulletind/khabar.v1
+
+script:
   - go build -v ./...
 
 after_success:
