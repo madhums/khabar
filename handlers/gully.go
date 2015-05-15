@@ -22,6 +22,8 @@ func (self *Gully) Post(request *gottp.Request) {
 	request.ConvertArguments(inputGully)
 	inputGully.PrepareSave()
 
+	log.Println("Input :", inputGully)
+
 	if !core.IsChannelAvailable(inputGully.Ident) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
@@ -72,6 +74,8 @@ func (self *Gully) Post(request *gottp.Request) {
 	}
 
 	gully.Insert(inputGully)
+
+	log.Println("Saving :", inputGully)
 
 	request.Write(utils.R{
 		StatusCode: http.StatusCreated,
