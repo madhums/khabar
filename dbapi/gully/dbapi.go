@@ -9,16 +9,17 @@ import (
 //CAUTION: This call does not filter out sensitive information,
 //Since it is required by the application.
 //DO NOT DIRECTLY WRITE THIS OUTPUT TO USER.
-func Get(user, org, ident string) (*db.Gully, error) {
+func Get(user, appName, org, ident string) (*db.Gully, error) {
 	var gully = new(db.Gully)
 	var err error
 
 	err = db.Conn.GetOne(
 		db.GullyCollection,
 		utils.M{
-			"org":   org,
-			"user":  user,
-			"ident": ident,
+			"app_name": appName,
+			"org":      org,
+			"user":     user,
+			"ident":    ident,
 		},
 		gully,
 	)
@@ -38,7 +39,7 @@ func Insert(gully *db.Gully) string {
 	return db.Conn.Insert(db.GullyCollection, gully)
 }
 
-func GetAll(user, org string) (*[]db.Gully, error) {
+func GetAll(user, appName, org string) (*[]db.Gully, error) {
 	var query utils.M = make(utils.M)
 
 	var result []db.Gully
@@ -50,6 +51,10 @@ func GetAll(user, org string) (*[]db.Gully, error) {
 		query["user"] = user
 	} **/
 	query["user"] = db.BLANK
+
+	if len(appName) > 0 {
+		query["app_name"] = appName
+	}
 
 	if len(org) > 0 {
 		query["org"] = org
@@ -68,34 +73,57 @@ func GetAll(user, org string) (*[]db.Gully, error) {
 	return &result, nil
 }
 
-func findPerUser(user, org, ident string) (*db.Gully, error) {
+func findPerUser(user, appName, org, ident string) (*db.Gully, error) {
 	var gully *db.Gully
 	var err error
 
-	gully, err = Get(user, org, ident)
+	gully, err = Get(user, appName, org, ident)
 	if err == nil {
 		return gully, err
 	}
 
-	gully, err = Get(user, db.BLANK, ident)
+	gully, err = Get(user, db.BLANK, org, ident)
+	if err == nil {
+		return gully, err
+	}
+
+	gully, err = Get(user, appName, db.BLANK, ident)
 	return gully, err
 }
 
-func findPerOrgnaization(org, ident string) (*db.Gully, error) {
-	return Get(db.BLANK, org, ident)
+func findPerOrgnaization(appName, org, ident string) (*db.Gully, error) {
+	var gully *db.Gully
+	var err error
+
+	gully, err = Get(db.BLANK, appName, org, ident)
+	if err == nil {
+		return gully, err
+	}
+
+	gully, err = Get(db.BLANK, db.BLANK, org, ident)
+	return gully, err
 }
 
-func findGlobal(ident string) (*db.Gully, error) {
-	return Get(db.BLANK, db.BLANK, ident)
+func findGlobal(appName, ident string) (*db.Gully, error) {
+	var gully *db.Gully
+	var err error
+
+	gully, err = Get(db.BLANK, appName, db.BLANK, ident)
+	if err == nil {
+		return gully, err
+	}
+
+	gully, err = Get(db.BLANK, db.BLANK, db.BLANK, ident)
+	return gully, err
 }
 
-func FindOne(user, org, ident string) (gully *db.Gully, err error) {
+func FindOne(user, appName, org, ident string) (gully *db.Gully, err error) {
 
-	gully, err = findPerUser(user, org, ident)
+	gully, err = findPerUser(user, appName, org, ident)
 	if err != nil {
-		gully, err = findPerOrgnaization(org, ident)
+		gully, err = findPerOrgnaization(appName, org, ident)
 		if err != nil {
-			gully, err = findGlobal(ident)
+			gully, err = findGlobal(appName, ident)
 		}
 	}
 
