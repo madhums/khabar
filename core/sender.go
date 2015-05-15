@@ -63,6 +63,7 @@ func send(locale, channelIdent string, pending_item *db.PendingItem) {
 	if channelIdent != WEB {
 		channel, err := gully.FindOne(
 			pending_item.User,
+			pending_item.AppName,
 			pending_item.Organization,
 			channelIdent,
 		)
