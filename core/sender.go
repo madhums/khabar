@@ -14,7 +14,6 @@ import (
 	"gopkg.in/bulletind/khabar.v1/dbapi/gully"
 	"gopkg.in/bulletind/khabar.v1/dbapi/topics"
 	"gopkg.in/bulletind/khabar.v1/dbapi/user_locale"
-	"gopkg.in/simversity/gotracer.v1"
 )
 
 const webIdent = "web"
@@ -32,7 +31,7 @@ func sendToChannel(
 		return
 	}
 
-	defer gotracer.Tracer{Dummy: true}.Notify()
+	defer config.Tracer.Notify()
 	handlerFunc(pending_item, text, context)
 }
 
