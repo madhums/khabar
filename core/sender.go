@@ -8,12 +8,12 @@ import (
 
 	"text/template"
 
+	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/bulletind/khabar.v1/config"
 	"gopkg.in/bulletind/khabar.v1/db"
 	"gopkg.in/bulletind/khabar.v1/dbapi/gully"
 	"gopkg.in/bulletind/khabar.v1/dbapi/topics"
 	"gopkg.in/bulletind/khabar.v1/dbapi/user_locale"
-	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gotracer.v1"
 )
 
@@ -64,6 +64,7 @@ func send(locale, channelIdent string, pending_item *db.PendingItem) {
 	if channelIdent != WEB {
 		channel, err := gully.FindOne(
 			pending_item.User,
+			pending_item.AppName,
 			pending_item.Organization,
 			channelIdent,
 		)
