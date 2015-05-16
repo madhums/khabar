@@ -119,3 +119,12 @@ func (self *UserLocale) IsValid() bool {
 	}
 	return true
 }
+
+type Topic struct {
+	BaseModel `bson:",inline"`
+
+	User         string   `json:"user" bson:"user"`
+	Organization string   `json:"org" bson:"org"`
+	Channels     []string `json:"channels" bson:"channels" required:"true"`
+	Ident        string   `json:"ident" bson:"ident" required:"true"`
+}

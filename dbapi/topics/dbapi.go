@@ -1,6 +1,8 @@
 package topics
 
 import (
+	"errors"
+
 	"gopkg.in/bulletind/khabar.v1/db"
 	"gopkg.in/bulletind/khabar.v1/utils"
 )
@@ -18,7 +20,7 @@ func Update(user, org, topicName string, doc *utils.M) error {
 		})
 }
 
-func Insert(topic *Topic) string {
+func Insert(topic *db.Topic) string {
 	return db.Conn.Insert(db.TopicCollection, topic)
 }
 
@@ -59,7 +61,7 @@ func DisableUserChannel(orgs, topics []string, user, channel string) {
 
 		for _, name := range topics {
 			if !db.InArray(name, disabledTopics) {
-				topic := Topic{
+				topic := db.Topic{
 					User:         user,
 					Organization: org,
 					Ident:        name,
@@ -77,9 +79,9 @@ func DisableUserChannel(orgs, topics []string, user, channel string) {
 	}
 }
 
-func Get(user, org, topicName string) (topic *Topic, err error) {
+func Get(user, org, topicName string) (topic *db.Topic, err error) {
 
-	topic = new(Topic)
+	topic = new(db.Topic)
 
 	err = db.Conn.GetOne(
 		db.TopicCollection,
@@ -98,7 +100,7 @@ func Get(user, org, topicName string) (topic *Topic, err error) {
 	return
 }
 
-func findPerUser(user, org, topicName string) (topic *Topic, err error) {
+func findPerUser(user, org, topicName string) (topic *db.Topic, err error) {
 
 	topic, err = Get(user, org, topicName)
 	if err != nil {
@@ -108,15 +110,15 @@ func findPerUser(user, org, topicName string) (topic *Topic, err error) {
 	return
 }
 
-func findPerOrgnaization(org, topicName string) (topic *Topic, err error) {
+func findPerOrgnaization(org, topicName string) (topic *db.Topic, err error) {
 	return Get(db.BLANK, org, topicName)
 }
 
-func findGlobal(topicName string) (topic *Topic, err error) {
+func findGlobal(topicName string) (topic *db.Topic, err error) {
 	return Get(db.BLANK, db.BLANK, topicName)
 }
 
-func Find(user, org, topicName string) (topic *Topic, err error) {
+func Find(user, org, topicName string) (topic *db.Topic, err error) {
 
 	topic, err = findPerUser(user, org, topicName)
 	if err != nil {
@@ -135,5 +137,43 @@ func DeleteTopic(ident string) error {
 		return err
 	}
 	err = db.Conn.Delete(db.AvailableTopicCollection, utils.M{"ident": ident})
+	return err
+}
+
+func AddChannel(ident, channel, user, organization string) error {
+	if organization == db.BLANK && user == db.BLANK {
+		return errors.New("Atleast one of the user or org must be present.")
+	}
+
+	query := utils.M{
+		"org":   organization,
+		"user":  user,
+		"ident": ident,
+	}
+
+	spec := utils.M{"$pull": utils.M{"channels": channel}}
+
+	result := utils.M{}
+
+	_, err := db.Conn.FindAndUpdate(db.TopicCollection, query, spec, &result)
+	return err
+}
+
+func RemoveChannel(ident, channel, user, organization string) error {
+	if organization == db.BLANK && user == db.BLANK {
+		return errors.New("Atleast one of the user or org must be present.")
+	}
+
+	query := utils.M{
+		"org":   organization,
+		"user":  user,
+		"ident": ident,
+	}
+
+	spec := utils.M{"$addToSet": utils.M{"channels": channel}}
+
+	result := utils.M{}
+
+	_, err := db.Conn.FindAndUpdate(db.TopicCollection, query, spec, &result)
 	return err
 }
