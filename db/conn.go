@@ -104,8 +104,9 @@ func (self *MConn) DropIndices(table string) error {
 	return nil
 }
 
-func (self *MConn) findAndApply(table string, query utils.M,
-	change mgo.Change, result interface{}) error {
+func (self *MConn) findAndApply(
+	table string, query utils.M, change mgo.Change, result interface{},
+) (*mgo.ChangeInfo, error) {
 	//Create a Session Copy and be responsible for Closing it.
 	session := self.Session.Copy()
 	db := session.DB(self.Dbname)
@@ -114,15 +115,16 @@ func (self *MConn) findAndApply(table string, query utils.M,
 	change.ReturnNew = true
 
 	coll := db.C(table)
-	_, err := coll.Find(query).Apply(change, result)
+	info, err := coll.Find(query).Apply(change, result)
 	if err != nil {
 		log.Println("Error Applying Changes", table, err)
 	}
-	return err
+	return info, err
 }
 
-func (self *MConn) FindAndUpsert(table string, query utils.M,
-	doc utils.M, result interface{}) error {
+func (self *MConn) FindAndUpsert(
+	table string, query utils.M, doc utils.M, result interface{},
+) (*mgo.ChangeInfo, error) {
 	change := mgo.Change{
 		Update: doc,
 		Upsert: true,
@@ -130,11 +132,12 @@ func (self *MConn) FindAndUpsert(table string, query utils.M,
 	return self.findAndApply(table, query, change, result)
 }
 
-func (self *MConn) FindAndUpdate(table string, query utils.M,
-	doc utils.M, result interface{}) error {
+func (self *MConn) FindAndUpdate(
+	table string, query utils.M, doc utils.M, result interface{},
+) (*mgo.ChangeInfo, error) {
 	change := mgo.Change{
 		Update: doc,
-		Upsert: false,
+		Upsert: true,
 	}
 	return self.findAndApply(table, query, change, result)
 }
