@@ -42,7 +42,14 @@ func (self *Topics) Get(request *gottp.Request) {
 		channels = append(channels, ident)
 	}
 
-	iter, err := available_topics.GetAll(args.User, args.Organization, appTopics, &channels)
+	var iter map[string]available_topics.ChotaTopic
+	var err error
+
+	if args.User == "" {
+		iter, err = available_topics.GetOrgTopics(args.Organization, appTopics, &channels)
+	} else {
+		iter, err = available_topics.GetUserTopics(args.User, args.Organization, appTopics, &channels)
+	}
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
