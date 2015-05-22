@@ -3,14 +3,13 @@ package core
 import (
 	"log"
 
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/pending"
-	"github.com/bulletind/khabar/dbapi/saved_item"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/saved_item"
+	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
 func emailHandler(
-	item *pending.PendingItem, text string, settings map[string]interface{},
+	item *db.PendingItem, text string, settings map[string]interface{},
 ) {
 	log.Println("Sending email...")
 
@@ -57,5 +56,5 @@ func emailHandler(
 
 	mailConn.SendEmail(msg)
 
-	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: msg})
+	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: msg, Details: *item})
 }

@@ -1,18 +1,16 @@
 package topics
 
 import (
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/utils"
-	"gopkg.in/mgo.v2"
+	"errors"
+
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
-const BLANK = ""
-
-func Update(user string, appName string,
-	org string, topicName string, doc *utils.M) error {
+func Update(user, org, topicName string, doc *utils.M) error {
 
 	return db.Conn.Update(db.TopicCollection,
-		utils.M{"app_name": appName,
+		utils.M{
 			"org":   org,
 			"user":  user,
 			"ident": topicName,
@@ -22,7 +20,7 @@ func Update(user string, appName string,
 		})
 }
 
-func Insert(topic *Topic) string {
+func Insert(topic *db.Topic) string {
 	return db.Conn.Insert(db.TopicCollection, topic)
 }
 
@@ -30,34 +28,67 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
-func ChannelAllowed(user, appname, org, topicName, channel string) bool {
+func ChannelAllowed(user, org, topicName, channel string) bool {
 	return db.Conn.Count(db.TopicCollection, utils.M{
 		"$or": []utils.M{
-			utils.M{"user": BLANK, "app_name": appname, "org": org},
-			utils.M{"user": BLANK, "app_name": BLANK, "org": org},
-			utils.M{"user": BLANK, "app_name": appname, "org": org},
-			utils.M{"user": BLANK, "app_name": appname, "org": BLANK},
-			utils.M{"user": user, "app_name": appname, "org": BLANK},
-			utils.M{"user": user, "app_name": appname, "org": org},
-			utils.M{"user": user, "app_name": BLANK, "org": org},
+			utils.M{"user": db.BLANK, "org": org},
+			utils.M{"user": db.BLANK, "org": db.BLANK},
+			utils.M{"user": user, "org": db.BLANK},
+			utils.M{"user": user, "org": org},
 		},
 		"ident":    topicName,
 		"channels": channel,
 	}) == 0
 }
 
-func Get(user, appName, org,
-	topicName string) (topic *Topic, err error) {
+func DisableUserChannel(orgs, topics []string, user, channel string) {
+	session := db.Conn.Session.Copy()
+	defer session.Close()
 
-	topic = new(Topic)
+	utils.RemoveDuplicates(&orgs)
+	utils.RemoveDuplicates(&topics)
+
+	db.Conn.Update(
+		db.TopicCollection, utils.M{"user": user},
+		utils.M{"$addToSet": utils.M{"channels": channel}},
+	)
+
+	disabled := []interface{}{}
+
+	for _, org := range orgs {
+		disabledTopics := []string{}
+		db.Conn.GetCursor(session, db.TopicCollection, utils.M{"user": user, "org": org}).Distinct("ident", &disabledTopics)
+
+		for _, name := range topics {
+			if !db.InArray(name, disabledTopics) {
+				topic := db.Topic{
+					User:         user,
+					Organization: org,
+					Ident:        name,
+					Channels:     []string{channel},
+				}
+
+				topic.PrepareSave()
+				disabled = append(disabled, topic)
+			}
+		}
+	}
+
+	if len(disabled) > 0 {
+		db.Conn.InsertMulti(db.TopicCollection, disabled...)
+	}
+}
+
+func Get(user, org, topicName string) (topic *db.Topic, err error) {
+
+	topic = new(db.Topic)
 
 	err = db.Conn.GetOne(
 		db.TopicCollection,
 		utils.M{
-			"app_name": appName,
-			"org":      org,
-			"user":     user,
-			"ident":    topicName,
+			"org":   org,
+			"user":  user,
+			"ident": topicName,
 		},
 		topic,
 	)
@@ -69,73 +100,80 @@ func Get(user, appName, org,
 	return
 }
 
-func GetAll(user, appName, org string) (*mgo.Iter, error) {
-	var query utils.M = make(utils.M)
+func findPerUser(user, org, topicName string) (topic *db.Topic, err error) {
 
-	query["user"] = user
-
-	query["app_name"] = appName
-
-	query["org"] = org
-
-	session := db.Conn.Session.Copy()
-	defer session.Close()
-
-	iter := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
-
-	if iter.Err() != nil {
-		return nil, iter.Err()
+	topic, err = Get(user, org, topicName)
+	if err != nil {
+		topic, err = Get(user, db.BLANK, topicName)
 	}
 
-	return iter, nil
+	return
 }
 
-func findPerUser(user, appName, org,
-	topicName string) (topic *Topic, err error) {
+func findPerOrgnaization(org, topicName string) (topic *db.Topic, err error) {
+	return Get(db.BLANK, org, topicName)
+}
 
-	topic, err = Get(user, appName, org, topicName)
+func findGlobal(topicName string) (topic *db.Topic, err error) {
+	return Get(db.BLANK, db.BLANK, topicName)
+}
+
+func Find(user, org, topicName string) (topic *db.Topic, err error) {
+
+	topic, err = findPerUser(user, org, topicName)
 	if err != nil {
-		topic, err = Get(user, appName, BLANK, topicName)
+		topic, err = findPerOrgnaization(org, topicName)
 		if err != nil {
-			topic, err = Get(user, BLANK, org, topicName)
+			topic, err = findGlobal(topicName)
 		}
 	}
 
 	return
 }
 
-func findPerOrgnaization(appName, org,
-	topicName string) (topic *Topic, err error) {
-
-	topic, err = Get(BLANK, appName, org, topicName)
+func DeleteTopic(ident string) error {
+	err := db.Conn.Delete(db.TopicCollection, utils.M{"ident": ident})
 	if err != nil {
-		topic, err = Get(BLANK, BLANK, org, topicName)
+		return err
 	}
-
-	return
+	err = db.Conn.Delete(db.AvailableTopicCollection, utils.M{"ident": ident})
+	return err
 }
 
-func findGlobal(appName,
-	topicName string) (topic *Topic, err error) {
-	topic, err = Get(BLANK, appName, BLANK, topicName)
-	if err != nil {
-		topic, err = Get(BLANK, BLANK, BLANK, topicName)
+func AddChannel(ident, channel, user, organization string) error {
+	if organization == db.BLANK && user == db.BLANK {
+		return errors.New("Atleast one of the user or org must be present.")
 	}
 
-	return
+	query := utils.M{
+		"org":   organization,
+		"user":  user,
+		"ident": ident,
+	}
+
+	spec := utils.M{"$pull": utils.M{"channels": channel}}
+
+	result := utils.M{}
+
+	_, err := db.Conn.FindAndUpdate(db.TopicCollection, query, spec, &result)
+	return err
 }
 
-func Find(user, appName, org,
-	topicName string) (topic *Topic, err error) {
-
-	topic, err = findPerUser(user, appName, org, topicName)
-	if err != nil {
-		topic, err = findPerOrgnaization(appName, org, topicName)
-		if err != nil {
-			topic, err = findGlobal(appName, topicName)
-		}
+func RemoveChannel(ident, channel, user, organization string) error {
+	if organization == db.BLANK && user == db.BLANK {
+		return errors.New("Atleast one of the user or org must be present.")
 	}
 
-	return
+	query := utils.M{
+		"org":   organization,
+		"user":  user,
+		"ident": ident,
+	}
 
+	spec := utils.M{"$addToSet": utils.M{"channels": channel}}
+
+	result := utils.M{}
+
+	_, err := db.Conn.FindAndUpdate(db.TopicCollection, query, spec, &result)
+	return err
 }

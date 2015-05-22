@@ -6,18 +6,24 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/bulletind/khabar/config"
-	"github.com/bulletind/khabar/db"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"gopkg.in/bulletind/khabar.v1/config"
+	"gopkg.in/bulletind/khabar.v1/db"
 	"gopkg.in/simversity/gottp.v2"
 )
 
 func sysInit() {
 	<-(gottp.SysInitChan) //Buffered Channel to receive the server upstart boolean
 
-	db.Conn = db.GetConn(config.Settings.Khabar.DBName,
-		config.Settings.Khabar.DBAddress, config.Settings.Khabar.DBUsername,
-		config.Settings.Khabar.DBPassword)
+	config.InitTracer()
+	log.Println("Initialized GoTracer")
+
+	db.Conn = db.GetConn(
+		config.Settings.Khabar.DBName,
+		config.Settings.Khabar.DBAddress,
+		config.Settings.Khabar.DBUsername,
+		config.Settings.Khabar.DBPassword,
+	)
 
 	log.Println("Database Connected :" + config.Settings.Khabar.DBName + " " +
 		"at address:" + config.Settings.Khabar.DBAddress)

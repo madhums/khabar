@@ -3,14 +3,14 @@ package pending
 import (
 	"time"
 
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
 //const LATENCY = 1 * int64(time.Second/time.Millisecond)
 const LATENCY = 1 * int64(time.Minute/time.Millisecond)
 
-func Throttled(pending_item *PendingItem) bool {
+func Throttled(pending_item *db.PendingItem) bool {
 	var query utils.M = make(utils.M)
 
 	query["org"] = pending_item.Organization

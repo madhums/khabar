@@ -1,8 +1,6 @@
 package core
 
-import (
-	"github.com/bulletind/khabar/dbapi/pending"
-)
+import "gopkg.in/bulletind/khabar.v1/db"
 
 const (
 	EMAIL = "email"
@@ -11,7 +9,7 @@ const (
 	PUSH  = "push"
 )
 
-var ChannelMap = map[string]func(*pending.PendingItem, string,
+var ChannelMap = map[string]func(*db.PendingItem, string,
 	map[string]interface{}){
 	EMAIL: emailHandler,
 	WEB:   webHandler,

@@ -4,11 +4,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bulletind/khabar/core"
+	"gopkg.in/bulletind/khabar.v1/core"
 
-	"github.com/bulletind/khabar/dbapi/pending"
-	sentApi "github.com/bulletind/khabar/dbapi/sent"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/pending"
+	sentApi "gopkg.in/bulletind/khabar.v1/dbapi/sent"
+	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 )
@@ -79,7 +80,7 @@ func (self *Notifications) Put(request *gottp.Request) {
 }
 
 func (self *Notifications) Post(request *gottp.Request) {
-	pending_item := new(pending.PendingItem)
+	pending_item := new(db.PendingItem)
 	request.ConvertArguments(pending_item)
 
 	if request.GetArgument("topic") == nil {

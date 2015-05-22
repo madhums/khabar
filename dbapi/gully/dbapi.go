@@ -1,12 +1,10 @@
 package gully
 
 import (
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2/bson"
 )
-
-const BLANK = ""
 
 //CAUTION: This call does not filter out sensitive information,
 //Since it is required by the application.
@@ -52,7 +50,7 @@ func GetAll(user, appName, org string) (*[]db.Gully, error) {
 	/**if len(user) > 0 {
 		query["user"] = user
 	} **/
-	query["user"] = BLANK
+	query["user"] = db.BLANK
 
 	if len(appName) > 0 {
 		query["app_name"] = appName
@@ -84,12 +82,12 @@ func findPerUser(user, appName, org, ident string) (*db.Gully, error) {
 		return gully, err
 	}
 
-	gully, err = Get(user, BLANK, org, ident)
+	gully, err = Get(user, db.BLANK, org, ident)
 	if err == nil {
 		return gully, err
 	}
 
-	gully, err = Get(user, appName, BLANK, ident)
+	gully, err = Get(user, appName, db.BLANK, ident)
 	return gully, err
 }
 
@@ -97,12 +95,12 @@ func findPerOrgnaization(appName, org, ident string) (*db.Gully, error) {
 	var gully *db.Gully
 	var err error
 
-	gully, err = Get(BLANK, appName, org, ident)
+	gully, err = Get(db.BLANK, appName, org, ident)
 	if err == nil {
 		return gully, err
 	}
 
-	gully, err = Get(BLANK, BLANK, org, ident)
+	gully, err = Get(db.BLANK, db.BLANK, org, ident)
 	return gully, err
 }
 
@@ -110,12 +108,12 @@ func findGlobal(appName, ident string) (*db.Gully, error) {
 	var gully *db.Gully
 	var err error
 
-	gully, err = Get(BLANK, appName, BLANK, ident)
+	gully, err = Get(db.BLANK, appName, db.BLANK, ident)
 	if err == nil {
 		return gully, err
 	}
 
-	gully, err = Get(BLANK, BLANK, BLANK, ident)
+	gully, err = Get(db.BLANK, db.BLANK, db.BLANK, ident)
 	return gully, err
 }
 

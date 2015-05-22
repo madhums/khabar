@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bulletind/khabar/handlers"
+	"gopkg.in/bulletind/khabar.v1/handlers"
 	"gopkg.in/simversity/gottp.v2"
 )
 
@@ -22,8 +22,8 @@ func registerHandlers() {
 		"^/topics/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$",
 		new(handlers.TopicChannel))
 
-	//gottp.NewUrl("topic", "^/topics/(?P<ident>\\w+)/?$",
-	//	new(handlers.Topic))
+	gottp.NewUrl("topic", "^/topics/(?P<ident>\\w+)/?$",
+		new(handlers.Topic))
 
 	gottp.NewUrl("user_locale", "^/locales/(?P<user>\\w+)/?$",
 		new(handlers.UserLocale))
@@ -31,4 +31,10 @@ func registerHandlers() {
 	gottp.NewUrl("channels", "^/channels/?$", new(handlers.Gullys))
 
 	gottp.NewUrl("topics", "^/topics/?$", new(handlers.Topics))
+
+	gottp.NewUrl("snsBounce", "^/sns/bounce/?$", new(handlers.SnsBounce))
+
+	gottp.NewUrl("snsComplain", "^/sns/complaint/?$", new(handlers.SnsComplaint))
+
+	gottp.NewUrl("mandrillBounce", "^/mandrill/bounce/?$", new(handlers.MandrillBounce))
 }

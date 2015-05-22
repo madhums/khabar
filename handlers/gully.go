@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bulletind/khabar/core"
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/gully"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/core"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/gully"
+	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v2"
 )
@@ -21,6 +21,8 @@ func (self *Gully) Post(request *gottp.Request) {
 	inputGully := new(db.Gully)
 	request.ConvertArguments(inputGully)
 	inputGully.PrepareSave()
+
+	log.Println("Input :", inputGully)
 
 	if !core.IsChannelAvailable(inputGully.Ident) {
 		request.Raise(gottp.HttpError{
@@ -73,6 +75,8 @@ func (self *Gully) Post(request *gottp.Request) {
 
 	gully.Insert(inputGully)
 
+	log.Println("Saving :", inputGully)
+
 	request.Write(utils.R{
 		StatusCode: http.StatusCreated,
 		Data:       inputGully.Id,
@@ -94,8 +98,12 @@ func (self *Gully) Delete(request *gottp.Request) {
 		return
 	}
 
-	err := gully.Delete(&utils.M{"app_name": gly.AppName,
-		"org": gly.Organization, "user": gly.User, "ident": gly.Ident})
+	err := gully.Delete(&utils.M{
+		"app_name": gly.AppName,
+		"org":      gly.Organization,
+		"user":     gly.User,
+		"ident":    gly.Ident})
+
 	if err != nil {
 		log.Println(err)
 		request.Raise(gottp.HttpError{

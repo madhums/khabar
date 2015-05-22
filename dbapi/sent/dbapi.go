@@ -1,8 +1,8 @@
 package sent
 
 import (
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/utils"
+	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/simversity/gottp.v2"
 )
@@ -15,8 +15,7 @@ func Update(id bson.ObjectId, doc *utils.M) error {
 	})
 }
 
-func MarkRead(user string,
-	appName string, org string) error {
+func MarkRead(user, appName, org string) error {
 	var query utils.M = make(utils.M)
 
 	query["user"] = user
@@ -34,8 +33,7 @@ func MarkRead(user string,
 	return db.Conn.Update(db.SentCollection, query, doc)
 }
 
-func GetAll(paginator *gottp.Paginator,
-	user string, appName string, org string) (*[]db.SentItem, error) {
+func GetAll(paginator *gottp.Paginator, user, appName, org string) (*[]db.SentItem, error) {
 	var query utils.M = make(utils.M)
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
