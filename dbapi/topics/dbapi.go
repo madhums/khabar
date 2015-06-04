@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/defaults"
 	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
@@ -26,6 +27,21 @@ func Insert(topic *db.Topic) string {
 
 func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.TopicCollection, *doc)
+}
+
+func Initialize(user, org string) {
+	disabled := defaults.GetAllDisabled(user, org)
+
+	preferences := []interface{}{}
+
+	for _, entry := range disabled {
+		preference := db.Topic{
+			User:         user,
+			Organization: org,
+			Ident:        entry.Topic,
+		}
+	}
+
 }
 
 func ChannelAllowed(user, org, topicName, channel string) bool {
