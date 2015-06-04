@@ -13,46 +13,43 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.DefaultsCollection, *doc)
 }
 
-func GetAll(user, org string) []db.Defaults {
+func GetAll(org string) []db.Defaults {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	result := []db.Defaults{}
 
 	db.Conn.Get(session, db.DefaultsCollection, utils.M{
-		"user": user,
-		"org":  org,
-	}).All(result)
+		"org": org,
+	}).All(&result)
 
 	return result
 }
 
-func GetAllEnabled(user, org string) []db.Defaults {
+func GetAllEnabled(org string) []db.Defaults {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	result := []db.Defaults{}
 
 	db.Conn.Get(session, db.DefaultsCollection, utils.M{
-		"user":    user,
 		"org":     org,
-		"enabled": true,
-	}).All(result)
+		"enabled": "true",
+	}).All(&result)
 
 	return result
 }
 
-func GetAllDisabled(user, org string) []db.Defaults {
+func GetAllDisabled(org string) []db.Defaults {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	result := []db.Defaults{}
 
 	db.Conn.Get(session, db.DefaultsCollection, utils.M{
-		"user":    user,
 		"org":     org,
-		"enabled": false,
-	}).All(result)
+		"enabled": "false",
+	}).All(&result)
 
 	return result
 }

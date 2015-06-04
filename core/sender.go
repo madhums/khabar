@@ -12,6 +12,7 @@ import (
 	"gopkg.in/bulletind/khabar.v1/config"
 	"gopkg.in/bulletind/khabar.v1/db"
 	"gopkg.in/bulletind/khabar.v1/dbapi/gully"
+	"gopkg.in/bulletind/khabar.v1/dbapi/processed"
 	"gopkg.in/bulletind/khabar.v1/dbapi/topics"
 	"gopkg.in/bulletind/khabar.v1/dbapi/user_locale"
 )
@@ -117,6 +118,18 @@ func send(locale, channelIdent string, pending_item *db.PendingItem) {
 	sendToChannel(pending_item, text, channelIdent, channelData)
 }
 
+func ProcessDefaults(user, org string) {
+	if !processed.IsProcessed(db.BLANK, org) {
+		topics.Initialize(db.BLANK, org)
+		processed.MarkAsProcessed(db.BLANK, org)
+	}
+
+	if !processed.IsProcessed(user, org) {
+		topics.Initialize(user, org)
+		processed.MarkAsProcessed(user, org)
+	}
+}
+
 func SendNotification(pending_item *db.PendingItem) {
 	userLocale, err := user_locale.Get(pending_item.User)
 	if err != nil {
@@ -127,6 +140,8 @@ func SendNotification(pending_item *db.PendingItem) {
 		userLocale.Locale = DEFAULT_LOCALE
 		userLocale.TimeZone = DEFAULT_TIMEZONE
 	}
+
+	ProcessDefaults(pending_item.User, pending_item.Organization)
 
 	childwg := new(sync.WaitGroup)
 

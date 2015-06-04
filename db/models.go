@@ -33,15 +33,16 @@ type Defaults struct {
 	BaseModel    `bson:",inline"`
 	Organization string   `json:"org" bson:"org" required:"true"`
 	Topic        string   `json:"ident" bson:"ident" required:"true"`
-	Enabled      bool     `json:"enabled" bson:"enabled"`
 	Channels     []string `json:"channels" bson:"channels" required:"true"`
+	Enabled      bool     `json:"enabled" bson:"enabled"`
 }
 
 type Locks struct {
 	BaseModel    `bson:",inline"`
-	Organization string `json:"org" bson:"org" required:"true"`
-	Topic        string `json:"ident" bson:"ident" required:"true"`
-	Enabled      bool   `json:"enabled" bson:"enabled"`
+	Organization string   `json:"org" bson:"org" required:"true"`
+	Topic        string   `json:"ident" bson:"ident" required:"true"`
+	Channels     []string `json:"channels" bson:"channels" required:"true"`
+	Enabled      bool     `json:"enabled" bson:"enabled"`
 }
 
 type AvailableTopic struct {

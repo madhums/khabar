@@ -9,7 +9,7 @@ func IsProcessed(user, org string) bool {
 	return db.Conn.Count(db.ProcessedCollection, utils.M{
 		"user": user,
 		"org":  org,
-	}) == 0
+	}) != 0
 }
 
 func MarkAsProcessed(user, org string) (error, bool) {

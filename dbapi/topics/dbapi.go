@@ -29,8 +29,13 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
-func Initialize(user, org string) {
-	disabled := defaults.GetAllDisabled(user, org)
+func Initialize(user, org string) error {
+	orgArg := org
+	if user == db.BLANK {
+		orgArg = db.BLANK
+	}
+
+	disabled := defaults.GetAllDisabled(orgArg)
 
 	preferences := []interface{}{}
 
@@ -39,14 +44,25 @@ func Initialize(user, org string) {
 			User:         user,
 			Organization: org,
 			Ident:        entry.Topic,
+			Channels:     entry.Channels,
 		}
+
+		preference.PrepareSave()
+		preferences = append(preferences, preference)
 	}
+
+	if len(preferences) > 0 {
+		err, _ := db.Conn.InsertMulti(db.TopicCollection, preferences...)
+		return err
+	}
+
+	return nil
 
 }
 
 func ChannelAllowed(user, org, topicName, channel string) bool {
 	// TODO: Populate default values here.
-	return db.Conn.Count(db.TopicCollection, utils.M{
+	def := db.Conn.Count(db.TopicCollection, utils.M{
 		"$or": []utils.M{
 			utils.M{"user": db.BLANK, "org": org},
 			utils.M{"user": db.BLANK, "org": db.BLANK},
@@ -56,6 +72,18 @@ func ChannelAllowed(user, org, topicName, channel string) bool {
 		"ident":    topicName,
 		"channels": channel,
 	}) == 0
+
+	lockEntry := new(db.Locks)
+
+	err := db.Conn.GetOne(db.LocksCollection,
+		utils.M{"org": org, "topic": topicName, "channels": channel},
+		lockEntry)
+
+	if err != nil {
+		return def
+	}
+
+	return lockEntry.Enabled
 }
 
 func DisableUserChannel(orgs, topics []string, user, channel string) {

@@ -2,11 +2,13 @@ package available_topics
 
 import (
 	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/locks"
 	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
 const falseState = "false"
 const disabledState = "disabled"
+const lockedTrue = "lockedTrue"
 
 type ChotaTopic map[string]string
 
@@ -46,6 +48,8 @@ func GetAppTopics(app_name, org string) *[]string {
 }
 
 func GetOrgTopics(org string, appTopics, channels *[]string) (map[string]ChotaTopic, error) {
+	// Add defaults for org level
+
 	topicMap := map[string]ChotaTopic{}
 
 	for _, ident := range *appTopics {
@@ -93,7 +97,20 @@ func GetOrgTopics(org string, appTopics, channels *[]string) (map[string]ChotaTo
 	return topicMap, nil
 }
 
+func ApplyLockes(org string, appTopics *[]string, topicMap map[string]ChotaTopic) {
+	enabled := locks.GetAllEnabled(org)
+	for _, pref := range enabled {
+		if _, ok := topicMap[pref.Topic]; ok {
+			for _, blocked := range pref.Channels {
+				topicMap[pref.Topic][blocked] = lockedTrue
+			}
+		}
+	}
+}
+
 func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]ChotaTopic, error) {
+	// Add defaults for user level
+
 	topicMap := map[string]ChotaTopic{}
 
 	for _, ident := range *appTopics {
@@ -149,6 +166,8 @@ func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]
 			}
 		}
 	}
+
+	ApplyLockes(org, appTopics, topicMap)
 
 	return topicMap, nil
 }
