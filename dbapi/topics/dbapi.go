@@ -45,6 +45,7 @@ func Initialize(user, org string) {
 }
 
 func ChannelAllowed(user, org, topicName, channel string) bool {
+	// TODO: Populate default values here.
 	return db.Conn.Count(db.TopicCollection, utils.M{
 		"$or": []utils.M{
 			utils.M{"user": db.BLANK, "org": org},

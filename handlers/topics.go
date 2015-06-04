@@ -9,7 +9,7 @@ import (
 	"gopkg.in/bulletind/khabar.v1/dbapi/available_topics"
 	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/simversity/gottp.v2"
+	"gopkg.in/simversity/gottp.v3"
 )
 
 type Topics struct {

@@ -4,7 +4,7 @@ import (
 	"gopkg.in/bulletind/khabar.v1/db"
 	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2/bson"
-	"gopkg.in/simversity/gottp.v2"
+	"gopkg.in/simversity/gottp.v3"
 )
 
 func Update(id bson.ObjectId, doc *utils.M) error {

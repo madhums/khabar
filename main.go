@@ -9,7 +9,7 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/bulletind/khabar.v1/config"
 	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/simversity/gottp.v2"
+	"gopkg.in/simversity/gottp.v3"
 )
 
 func sysInit() {

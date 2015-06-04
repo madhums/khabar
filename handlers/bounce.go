@@ -10,8 +10,8 @@ import (
 	"gopkg.in/bulletind/khabar.v1/dbapi/saved_item"
 	"gopkg.in/bulletind/khabar.v1/dbapi/topics"
 	"gopkg.in/bulletind/khabar.v1/utils"
-	"gopkg.in/simversity/gottp.v2"
-	gottpUtils "gopkg.in/simversity/gottp.v2/utils"
+	"gopkg.in/simversity/gottp.v3"
+	gottpUtils "gopkg.in/simversity/gottp.v3/utils"
 )
 
 type MandrillBounce struct {

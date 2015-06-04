@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"gopkg.in/bulletind/khabar.v1/utils"
-	"gopkg.in/simversity/gottp.v2"
-	gottpUtils "gopkg.in/simversity/gottp.v2/utils"
+	"gopkg.in/simversity/gottp.v3"
+	gottpUtils "gopkg.in/simversity/gottp.v3/utils"
 )
 
 type SnsComplaint struct {

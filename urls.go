@@ -2,7 +2,7 @@ package main
 
 import (
 	"gopkg.in/bulletind/khabar.v1/handlers"
-	"gopkg.in/simversity/gottp.v2"
+	"gopkg.in/simversity/gottp.v3"
 )
 
 func registerHandlers() {

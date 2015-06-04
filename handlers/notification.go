@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"gopkg.in/mgo.v2/bson"
-	"gopkg.in/simversity/gottp.v2"
+	"gopkg.in/simversity/gottp.v3"
 
 	"gopkg.in/bulletind/khabar.v1/db"
 	sentApi "gopkg.in/bulletind/khabar.v1/dbapi/sent"

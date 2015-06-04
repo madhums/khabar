@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"gopkg.in/simversity/gottp.v2/utils"
+	"gopkg.in/simversity/gottp.v3/utils"
 
 	"gopkg.in/bulletind/khabar.v1/db"
 	"gopkg.in/bulletind/khabar.v1/dbapi/saved_item"
