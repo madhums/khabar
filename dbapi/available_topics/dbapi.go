@@ -103,9 +103,11 @@ func ApplyLockes(org string, appTopics *[]string, topicMap map[string]ChotaTopic
 	for _, pref := range enabled {
 		if _, ok := topicMap[pref.Topic]; ok {
 			for _, blocked := range pref.Channels {
+
 				if topicMap[pref.Topic][blocked] == disabledState {
 					continue
 				}
+
 				if pref.Enabled {
 					topicMap[pref.Topic][blocked] = lockedTrue
 				} else {
