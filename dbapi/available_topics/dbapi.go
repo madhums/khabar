@@ -9,6 +9,7 @@ import (
 const falseState = "false"
 const disabledState = "disabled"
 const lockedTrue = "lockedTrue"
+const lockedFalse = "lockedFalse"
 
 type ChotaTopic map[string]string
 
@@ -98,11 +99,18 @@ func GetOrgTopics(org string, appTopics, channels *[]string) (map[string]ChotaTo
 }
 
 func ApplyLockes(org string, appTopics *[]string, topicMap map[string]ChotaTopic) {
-	enabled := locks.GetAllEnabled(org)
+	enabled := locks.GetAll(org)
 	for _, pref := range enabled {
 		if _, ok := topicMap[pref.Topic]; ok {
 			for _, blocked := range pref.Channels {
-				topicMap[pref.Topic][blocked] = lockedTrue
+				if topicMap[pref.Topic][blocked] == disabledState {
+					continue
+				}
+				if pref.Enabled {
+					topicMap[pref.Topic][blocked] = lockedTrue
+				} else {
+					topicMap[pref.Topic][blocked] = lockedFalse
+				}
 			}
 		}
 	}
