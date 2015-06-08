@@ -62,12 +62,19 @@ func Initialize(user, org string) error {
 
 func ChannelAllowed(user, org, topicName, channel string) bool {
 	// TODO: Populate default values here.
-	def := db.Conn.Count(db.TopicCollection, utils.M{
+	defUser := db.Conn.Count(db.TopicCollection, utils.M{
+		"$or": []utils.M{
+			utils.M{"user": user, "org": db.BLANK},
+			utils.M{"user": user, "org": org},
+		},
+		"ident":    topicName,
+		"channels": channel,
+	}) == 0
+
+	defOrg := db.Conn.Count(db.TopicCollection, utils.M{
 		"$or": []utils.M{
 			utils.M{"user": db.BLANK, "org": org},
 			utils.M{"user": db.BLANK, "org": db.BLANK},
-			utils.M{"user": user, "org": db.BLANK},
-			utils.M{"user": user, "org": org},
 		},
 		"ident":    topicName,
 		"channels": channel,
@@ -80,10 +87,10 @@ func ChannelAllowed(user, org, topicName, channel string) bool {
 		lockEntry)
 
 	if err != nil {
-		return def
+		return defOrg && defUser
+	} else {
+		return defOrg && lockEntry.Enabled
 	}
-
-	return lockEntry.Enabled
 }
 
 func DisableUserChannel(orgs, topics []string, user, channel string) {
