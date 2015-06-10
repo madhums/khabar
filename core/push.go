@@ -14,6 +14,8 @@ import (
 
 const PARSE_URL = "https://api.parse.com/1/push"
 
+const PUSH_SOUND = "default"
+
 func pushHandler(
 	item *db.PendingItem,
 	text string,
@@ -46,6 +48,7 @@ func pushHandler(
 	body["app_name"] = item.AppName
 	body["topic"] = item.Topic
 	body["created_on"] = item.CreatedOn
+	body["sound"] = PUSH_SOUND
 
 	data := map[string]interface{}{}
 	data["data"] = body
