@@ -26,6 +26,14 @@ func GetAll(org string) []db.Locks {
 	return result
 }
 
+func IsLocked(org string, topic, channel string) bool {
+	return db.Conn.Count(db.LocksCollection, utils.M{
+		"org":      org,
+		"topic":    topic,
+		"channels": channel,
+	}) != 0
+}
+
 func GetAllEnabled(org string) []db.Locks {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
