@@ -32,6 +32,12 @@ func registerHandlers() {
 
 	gottp.NewUrl("topics", "^/topics/?$", new(handlers.Topics))
 
+	gottp.NewUrl("defaultTopics", "^/topics/defaults/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$",
+		new(handlers.Defaults))
+
+	gottp.NewUrl("lockedTopics", "^/topics/locked/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$",
+		new(handlers.Locks))
+
 	gottp.NewUrl("snsBounce", "^/sns/bounce/?$", new(handlers.SnsBounce))
 
 	gottp.NewUrl("snsComplain", "^/sns/complaint/?$", new(handlers.SnsComplaint))
