@@ -6,12 +6,16 @@ import (
 	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
+const trueState = "true"
 const falseState = "false"
 const disabledState = "disabled"
-const lockedTrue = "lockedTrue"
-const lockedFalse = "lockedFalse"
 
-type ChotaTopic map[string]string
+type TopicDetail struct {
+	Locked bool   `json:"locked"`
+	Value  string `json:"value"`
+}
+
+type ChotaTopic map[string]*TopicDetail
 
 func GetAllTopics() []string {
 	session := db.Conn.Session.Copy()
@@ -54,9 +58,9 @@ func GetOrgTopics(org string, appTopics, channels *[]string) (map[string]ChotaTo
 	topicMap := map[string]ChotaTopic{}
 
 	for _, ident := range *appTopics {
-		ct := ChotaTopic{"topic": ident}
+		ct := ChotaTopic{}
 		for _, channel := range *channels {
-			ct[channel] = "true"
+			ct[channel] = &TopicDetail{Locked: false, Value: trueState}
 		}
 
 		topicMap[ident] = ct
@@ -77,7 +81,7 @@ func GetOrgTopics(org string, appTopics, channels *[]string) (map[string]ChotaTo
 	for pass1.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked] = falseState
+				topicMap[disabled.Ident][blocked].Value = falseState
 			}
 		}
 	}
@@ -90,7 +94,7 @@ func GetOrgTopics(org string, appTopics, channels *[]string) (map[string]ChotaTo
 	for pass3.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked] = disabledState
+				topicMap[disabled.Ident][blocked].Value = disabledState
 			}
 		}
 	}
@@ -104,14 +108,16 @@ func ApplyLockes(org string, appTopics *[]string, topicMap map[string]ChotaTopic
 		if _, ok := topicMap[pref.Topic]; ok {
 			for _, blocked := range pref.Channels {
 
-				if topicMap[pref.Topic][blocked] == disabledState {
+				if topicMap[pref.Topic][blocked].Value == disabledState {
 					continue
 				}
 
+				topicMap[pref.Topic][blocked].Locked = true
+
 				if pref.Enabled {
-					topicMap[pref.Topic][blocked] = lockedTrue
+					topicMap[pref.Topic][blocked].Value = trueState
 				} else {
-					topicMap[pref.Topic][blocked] = lockedFalse
+					topicMap[pref.Topic][blocked].Value = falseState
 				}
 			}
 		}
@@ -124,9 +130,9 @@ func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]
 	topicMap := map[string]ChotaTopic{}
 
 	for _, ident := range *appTopics {
-		ct := ChotaTopic{"topic": ident}
+		ct := ChotaTopic{}
 		for _, channel := range *channels {
-			ct[channel] = "true"
+			ct[channel] = &TopicDetail{Locked: false, Value: trueState}
 		}
 
 		topicMap[ident] = ct
@@ -147,7 +153,7 @@ func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]
 	for pass1.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked] = falseState
+				topicMap[disabled.Ident][blocked].Value = falseState
 			}
 		}
 	}
@@ -159,7 +165,7 @@ func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]
 	for pass2.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked] = disabledState
+				topicMap[disabled.Ident][blocked].Value = disabledState
 			}
 		}
 	}
@@ -172,7 +178,7 @@ func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]
 	for pass3.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked] = disabledState
+				topicMap[disabled.Ident][blocked].Value = disabledState
 			}
 		}
 	}
