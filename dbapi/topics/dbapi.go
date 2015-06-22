@@ -1,8 +1,6 @@
 package topics
 
 import (
-	"errors"
-
 	"gopkg.in/bulletind/khabar.v1/db"
 	"gopkg.in/bulletind/khabar.v1/dbapi/defaults"
 	"gopkg.in/bulletind/khabar.v1/utils"
@@ -193,10 +191,6 @@ func DeleteTopic(ident string) error {
 }
 
 func AddChannel(ident, channel, user, organization string) error {
-	if organization == db.BLANK && user == db.BLANK {
-		return errors.New("Atleast one of the user or org must be present.")
-	}
-
 	query := utils.M{
 		"org":   organization,
 		"user":  user,
@@ -212,10 +206,6 @@ func AddChannel(ident, channel, user, organization string) error {
 }
 
 func RemoveChannel(ident, channel, user, organization string) error {
-	if organization == db.BLANK && user == db.BLANK {
-		return errors.New("Atleast one of the user or org must be present.")
-	}
-
 	query := utils.M{
 		"org":   organization,
 		"user":  user,
