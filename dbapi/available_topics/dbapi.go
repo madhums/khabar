@@ -94,7 +94,7 @@ func GetOrgTopics(org string, appTopics, channels *[]string) (map[string]ChotaTo
 	for pass3.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked].Value = disabledState
+				delete(topicMap[disabled.Ident], blocked)
 			}
 		}
 	}
@@ -178,7 +178,7 @@ func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]
 	for pass3.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked].Value = disabledState
+				delete(topicMap[disabled.Ident], blocked)
 			}
 		}
 	}
