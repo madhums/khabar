@@ -108,6 +108,10 @@ func ApplyLockes(org string, appTopics *[]string, topicMap map[string]ChotaTopic
 		if _, ok := topicMap[pref.Topic]; ok {
 			for _, blocked := range pref.Channels {
 
+				if _, ok := topicMap[pref.Topic][blocked]; !ok {
+					continue
+				}
+
 				if topicMap[pref.Topic][blocked].Value == disabledState {
 					continue
 				}
