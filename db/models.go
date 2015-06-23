@@ -31,7 +31,7 @@ type Processed struct {
 
 type Defaults struct {
 	BaseModel    `bson:",inline"`
-	Organization string   `json:"org" bson:"org" required:"true"`
+	Organization string   `json:"org" bson:"org"`
 	Topic        string   `json:"ident" bson:"ident" required:"true"`
 	Channels     []string `json:"channels" bson:"channels" required:"true"`
 	Enabled      bool     `json:"enabled" bson:"enabled"`
