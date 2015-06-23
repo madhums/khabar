@@ -48,11 +48,7 @@ func pushHandler(
 	body["app_name"] = item.AppName
 	body["topic"] = item.Topic
 	body["created_on"] = item.CreatedOn
-<<<<<<< HEAD
-	body["sound"] = "default"
-=======
 	body["sound"] = PUSH_SOUND
->>>>>>> 8d74c563395f926c80b280bff11133e0e04f525f
 
 	data := map[string]interface{}{}
 	data["data"] = body
