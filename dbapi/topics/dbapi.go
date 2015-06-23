@@ -81,7 +81,7 @@ func ChannelAllowed(user, org, topicName, channel string) bool {
 	lockEntry := new(db.Locks)
 
 	err := db.Conn.GetOne(db.LocksCollection,
-		utils.M{"org": org, "topic": topicName, "channels": channel},
+		utils.M{"org": org, "ident": topicName, "channels": channel},
 		lockEntry)
 
 	if err != nil {
