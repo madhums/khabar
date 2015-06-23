@@ -1,7 +1,7 @@
 package config
 
 import (
-	"gopkg.in/simversity/gottp.v2/conf"
+	"gopkg.in/simversity/gottp.v3/conf"
 )
 
 type config struct {

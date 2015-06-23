@@ -8,8 +8,8 @@ import (
 	statsApi "gopkg.in/bulletind/khabar.v1/dbapi/stats"
 	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/simversity/gottp.v2"
-	gottp_utils "gopkg.in/simversity/gottp.v2/utils"
+	"gopkg.in/simversity/gottp.v3"
+	gottp_utils "gopkg.in/simversity/gottp.v3/utils"
 )
 
 func ConcatenateErrors(errs *[]error) string {

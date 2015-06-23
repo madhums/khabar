@@ -1,9 +1,8 @@
 package topics
 
 import (
-	"errors"
-
 	"gopkg.in/bulletind/khabar.v1/db"
+	"gopkg.in/bulletind/khabar.v1/dbapi/defaults"
 	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
@@ -28,17 +27,68 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
+func Initialize(user, org string) error {
+	orgArg := org
+	if user == db.BLANK {
+		orgArg = db.BLANK
+	}
+
+	disabled := defaults.GetAllDisabled(orgArg)
+
+	preferences := []interface{}{}
+
+	for _, entry := range disabled {
+		preference := db.Topic{
+			User:         user,
+			Organization: org,
+			Ident:        entry.Topic,
+			Channels:     entry.Channels,
+		}
+
+		preference.PrepareSave()
+		preferences = append(preferences, preference)
+	}
+
+	if len(preferences) > 0 {
+		err, _ := db.Conn.InsertMulti(db.TopicCollection, preferences...)
+		return err
+	}
+
+	return nil
+
+}
+
 func ChannelAllowed(user, org, topicName, channel string) bool {
-	return db.Conn.Count(db.TopicCollection, utils.M{
+	// TODO: Populate default values here.
+	defUser := db.Conn.Count(db.TopicCollection, utils.M{
 		"$or": []utils.M{
-			utils.M{"user": db.BLANK, "org": org},
-			utils.M{"user": db.BLANK, "org": db.BLANK},
 			utils.M{"user": user, "org": db.BLANK},
 			utils.M{"user": user, "org": org},
 		},
 		"ident":    topicName,
 		"channels": channel,
 	}) == 0
+
+	defOrg := db.Conn.Count(db.TopicCollection, utils.M{
+		"$or": []utils.M{
+			utils.M{"user": db.BLANK, "org": org},
+			utils.M{"user": db.BLANK, "org": db.BLANK},
+		},
+		"ident":    topicName,
+		"channels": channel,
+	}) == 0
+
+	lockEntry := new(db.Locks)
+
+	err := db.Conn.GetOne(db.LocksCollection,
+		utils.M{"org": org, "ident": topicName, "channels": channel},
+		lockEntry)
+
+	if err != nil {
+		return defOrg && defUser
+	} else {
+		return defOrg && lockEntry.Enabled
+	}
 }
 
 func DisableUserChannel(orgs, topics []string, user, channel string) {
@@ -141,10 +191,6 @@ func DeleteTopic(ident string) error {
 }
 
 func AddChannel(ident, channel, user, organization string) error {
-	if organization == db.BLANK && user == db.BLANK {
-		return errors.New("Atleast one of the user or org must be present.")
-	}
-
 	query := utils.M{
 		"org":   organization,
 		"user":  user,
@@ -160,10 +206,6 @@ func AddChannel(ident, channel, user, organization string) error {
 }
 
 func RemoveChannel(ident, channel, user, organization string) error {
-	if organization == db.BLANK && user == db.BLANK {
-		return errors.New("Atleast one of the user or org must be present.")
-	}
-
 	query := utils.M{
 		"org":   organization,
 		"user":  user,

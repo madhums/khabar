@@ -2,7 +2,7 @@ package utils
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"gopkg.in/simversity/gottp.v2/utils"
+	"gopkg.in/simversity/gottp.v3/utils"
 )
 
 type M bson.M

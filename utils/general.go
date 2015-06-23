@@ -3,8 +3,8 @@ package utils
 import (
 	"net/http"
 
-	"gopkg.in/simversity/gottp.v2"
-	"gopkg.in/simversity/gottp.v2/utils"
+	"gopkg.in/simversity/gottp.v3"
+	"gopkg.in/simversity/gottp.v3/utils"
 )
 
 func ConcatenateErrors(errs *[]error) string {

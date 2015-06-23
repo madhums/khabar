@@ -316,7 +316,7 @@ func InArray(key string, arrays ...[]string) bool {
 	return false
 }
 
-func (self *MConn) InsertMulti(table string, arguments ...interface{}) *mgo.BulkResult {
+func (self *MConn) InsertMulti(table string, arguments ...interface{}) (error, *mgo.BulkResult) {
 	session := self.Session.Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
@@ -325,9 +325,9 @@ func (self *MConn) InsertMulti(table string, arguments ...interface{}) *mgo.Bulk
 	b.Insert(arguments...)
 	bulkResult, err := b.Run()
 	if err != nil {
-		panic(err)
+		return err, bulkResult
 	}
-	return bulkResult
+	return nil, bulkResult
 }
 
 func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {

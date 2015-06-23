@@ -9,7 +9,7 @@ import (
 	"gopkg.in/bulletind/khabar.v1/dbapi/gully"
 	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/simversity/gottp.v2"
+	"gopkg.in/simversity/gottp.v3"
 )
 
 type Gully struct {

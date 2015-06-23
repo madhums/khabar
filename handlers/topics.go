@@ -9,7 +9,7 @@ import (
 	"gopkg.in/bulletind/khabar.v1/dbapi/available_topics"
 	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/simversity/gottp.v2"
+	"gopkg.in/simversity/gottp.v3"
 )
 
 type Topics struct {
@@ -69,12 +69,7 @@ func (self *Topics) Get(request *gottp.Request) {
 		return
 	}
 
-	ret := []available_topics.ChotaTopic{}
-	for _, topic := range *appTopics {
-		ret = append(ret, iter[topic])
-	}
-
-	request.Write(ret)
+	request.Write(iter)
 	return
 }
 

@@ -11,7 +11,7 @@ import (
 	sentApi "gopkg.in/bulletind/khabar.v1/dbapi/sent"
 	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/simversity/gottp.v2"
+	"gopkg.in/simversity/gottp.v3"
 )
 
 type Notifications struct {
