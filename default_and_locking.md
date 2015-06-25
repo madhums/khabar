@@ -106,8 +106,8 @@
 
 ```json
 {
-      "org": `org_id`,
-      "enabled": true (Optional)
+      "org": <org_id>,
+      "enabled": true
 }
 ```
 
@@ -123,8 +123,8 @@
 
 ```json
 {
-      "org": `org_id`,
-      "enabled": true (Optional)
+      "org": <org_id>,
+      "enabled": true
 }
 ```
 
@@ -140,8 +140,8 @@
 
 ```json
 {
-      "org": `org_id`,
-      "enabled": true (Optional)
+      "org": <org_id>,
+      "enabled": true
 }
 ```
 
@@ -157,8 +157,8 @@
 
 ```json
 {
-      "org": `org_id`,
-      "enabled": true (Optional)
+      "org": <org_id>,
+      "enabled": true
 }
 ```
 
