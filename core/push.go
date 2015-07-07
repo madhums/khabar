@@ -49,6 +49,7 @@ func pushHandler(
 	body["topic"] = item.Topic
 	body["created_on"] = item.CreatedOn
 	body["sound"] = PUSH_SOUND
+	body["badge"] = "Increment"
 
 	data := map[string]interface{}{}
 	data["data"] = body
