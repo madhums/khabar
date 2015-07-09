@@ -47,10 +47,21 @@ func (self *Locks) Post(request *gottp.Request) {
 		return
 	}
 
-	if locks.IsLocked(lock.Organization, lock.Topic, channelIdent, !lock.Enabled) {
-		request.Raise(gottp.HttpError{http.StatusConflict,
-			"Already Set to Opposite. Please delete it and retry."})
-		return
+	err, oppositeLock := locks.Get(lock.Organization, lock.Topic, !lock.Enabled)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			request.Raise(gottp.HttpError{http.StatusInternalServerError,
+				"Unable to complete db operation."})
+			return
+		}
+	} else {
+		if len(oppositeLock.Channels) == 1 {
+			locks.Delete(&utils.M{"_id": oppositeLock.Id})
+		} else {
+			locks.RemoveChannel(oppositeLock.Topic, channelIdent,
+				oppositeLock.Organization, oppositeLock.Enabled)
+		}
 	}
 
 	err, existingObj := locks.Get(lock.Organization, lock.Topic, lock.Enabled)
@@ -109,12 +120,21 @@ func (self *Locks) Delete(request *gottp.Request) {
 		return
 	}
 
-	err := locks.RemoveChannel(lock.Topic, channelIdent, lock.Organization, lock.Enabled)
+	err, dbLock := locks.Get(lock.Organization, lock.Topic, lock.Enabled)
 
 	if err != nil {
-		request.Raise(gottp.HttpError{http.StatusInternalServerError,
-			"Unable to complete db operation."})
-		return
+		if err != mgo.ErrNotFound {
+			request.Raise(gottp.HttpError{http.StatusInternalServerError,
+				"Unable to complete db operation."})
+			return
+		}
+	} else {
+		if len(dbLock.Channels) == 1 {
+			locks.Delete(&utils.M{"_id": dbLock.Id})
+		} else {
+			locks.RemoveChannel(dbLock.Topic, channelIdent,
+				dbLock.Organization, dbLock.Enabled)
+		}
 	}
 
 	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil,

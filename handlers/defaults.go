@@ -47,10 +47,21 @@ func (self *Defaults) Post(request *gottp.Request) {
 		return
 	}
 
-	if defaults.IsDefaultExists(defaultPref.Organization, defaultPref.Topic, channelIdent, !defaultPref.Enabled) {
-		request.Raise(gottp.HttpError{http.StatusConflict,
-			"Already Set to Opposite. Delete it and retry."})
-		return
+	err, oppositeDefault := defaults.Get(defaultPref.Organization, defaultPref.Topic, !defaultPref.Enabled)
+
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			request.Raise(gottp.HttpError{http.StatusInternalServerError,
+				"Unable to complete db operation."})
+			return
+		}
+	} else {
+		if len(oppositeDefault.Channels) == 1 {
+			defaults.Delete(&utils.M{"_id": oppositeDefault.Id})
+		} else {
+			defaults.RemoveChannel(oppositeDefault.Topic, channelIdent,
+				oppositeDefault.Organization, oppositeDefault.Enabled)
+		}
 	}
 
 	err, existingObj := defaults.Get(defaultPref.Organization, defaultPref.Topic, defaultPref.Enabled)
@@ -109,12 +120,21 @@ func (self *Defaults) Delete(request *gottp.Request) {
 		return
 	}
 
-	err := defaults.RemoveChannel(defaultPref.Topic, channelIdent, defaultPref.Organization, defaultPref.Enabled)
+	err, dbDefault := defaults.Get(defaultPref.Organization, defaultPref.Topic, defaultPref.Enabled)
 
 	if err != nil {
-		request.Raise(gottp.HttpError{http.StatusInternalServerError,
-			"Unable to complete db operation."})
-		return
+		if err != mgo.ErrNotFound {
+			request.Raise(gottp.HttpError{http.StatusInternalServerError,
+				"Unable to complete db operation."})
+			return
+		}
+	} else {
+		if len(dbDefault.Channels) == 1 {
+			defaults.Delete(&utils.M{"_id": dbDefault.Id})
+		} else {
+			defaults.RemoveChannel(dbDefault.Topic, channelIdent,
+				dbDefault.Organization, dbDefault.Enabled)
+		}
 	}
 
 	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil,
