@@ -75,6 +75,7 @@ func (self *Topics) Get(request *gottp.Request) {
 
 func (self *Topics) Post(request *gottp.Request) {
 	newTopic := new(db.AvailableTopic)
+	newTopic.Channels = []string{"email", "web", "push"}
 
 	request.ConvertArguments(newTopic)
 

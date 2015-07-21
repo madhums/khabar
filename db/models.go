@@ -47,8 +47,9 @@ type Locks struct {
 
 type AvailableTopic struct {
 	BaseModel `bson:",inline"`
-	Ident     string `json:"ident" bson:"ident" required:"true"`
-	AppName   string `json:"app_name" bson:"app_name" required:"true"`
+	Ident     string   `json:"ident" bson:"ident" required:"true"`
+	AppName   string   `json:"app_name" bson:"app_name" required:"true"`
+	Channels  []string `json:"channels" bson:"channels" required:"true"`
 }
 
 type SentItem struct {
