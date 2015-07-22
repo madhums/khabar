@@ -197,7 +197,7 @@ func AddChannel(ident, channel, user, organization string) error {
 		"ident": ident,
 	}
 
-	spec := utils.M{"$pull": utils.M{"channels": channel}}
+	spec := utils.M{"$addToSet": utils.M{"channels": channel}}
 
 	result := utils.M{}
 
@@ -212,7 +212,7 @@ func RemoveChannel(ident, channel, user, organization string) error {
 		"ident": ident,
 	}
 
-	spec := utils.M{"$addToSet": utils.M{"channels": channel}}
+	spec := utils.M{"$pull": utils.M{"channels": channel}}
 
 	result := utils.M{}
 

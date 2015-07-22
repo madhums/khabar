@@ -1,6 +1,9 @@
 package available_topics
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"gopkg.in/bulletind/khabar.v1/db"
 	"gopkg.in/bulletind/khabar.v1/dbapi/locks"
 	"gopkg.in/bulletind/khabar.v1/utils"
@@ -30,40 +33,40 @@ func GetAllTopics() []string {
 	return topics
 }
 
-func GetAppTopics(app_name, org string) *[]string {
+func GetAppTopics(app_name, org string) *[]db.AvailableTopic {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	query := utils.M{"app_name": app_name}
-	topics := []string{}
-
-	var topic struct {
-		Ident string `bson:"ident"`
-	}
+	var topics []db.AvailableTopic
 
 	iter := db.Conn.GetCursor(
 		session, db.AvailableTopicCollection, query,
-	).Select(utils.M{"ident": 1}).Sort("ident").Iter()
+	).Select(utils.M{"ident": 1, "channels": 1}).Sort("ident").Iter()
 
-	for iter.Next(&topic) {
-		topics = append(topics, topic.Ident)
+	fmt.Println("====================")
+	o, err := json.Marshal(topics)
+	if err != nil {
+		fmt.Println("Error marshaling JSON")
 	}
+	fmt.Println(string(o))
+	fmt.Println("=================")
 
 	return &topics
 }
 
-func GetOrgTopics(org string, appTopics, channels *[]string) (map[string]ChotaTopic, error) {
+func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 	// Add defaults for org level
 
 	topicMap := map[string]ChotaTopic{}
 
-	for _, ident := range *appTopics {
+	for _, availableTopic := range *appTopics {
 		ct := ChotaTopic{}
-		for _, channel := range *channels {
+		for _, channel := range availableTopic.Channels {
 			ct[channel] = &TopicDetail{Locked: false, Value: trueState}
 		}
 
-		topicMap[ident] = ct
+		topicMap[availableTopic.Ident] = ct
 	}
 
 	disabled := new(db.Topic)
@@ -102,7 +105,7 @@ func GetOrgTopics(org string, appTopics, channels *[]string) (map[string]ChotaTo
 	return topicMap, nil
 }
 
-func ApplyLockes(org string, appTopics *[]string, topicMap map[string]ChotaTopic) {
+func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
 	enabled := locks.GetAll(org)
 	for _, pref := range enabled {
 		if _, ok := topicMap[pref.Topic]; ok {
@@ -128,18 +131,18 @@ func ApplyLockes(org string, appTopics *[]string, topicMap map[string]ChotaTopic
 	}
 }
 
-func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]ChotaTopic, error) {
+func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 	// Add defaults for user level
 
 	topicMap := map[string]ChotaTopic{}
 
-	for _, ident := range *appTopics {
+	for _, availableTopic := range *appTopics {
 		ct := ChotaTopic{}
-		for _, channel := range *channels {
-			ct[channel] = &TopicDetail{Locked: false, Value: trueState}
+		for _, channel := range availableTopic.Channels {
+			ct[channel] = &TopicDetail{Locked: false, Value: falseState}
 		}
 
-		topicMap[ident] = ct
+		topicMap[availableTopic.Ident] = ct
 	}
 
 	disabled := new(db.Topic)
@@ -157,7 +160,7 @@ func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]
 	for pass1.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
-				topicMap[disabled.Ident][blocked].Value = falseState
+				topicMap[disabled.Ident][blocked].Value = trueState
 			}
 		}
 	}
@@ -187,7 +190,7 @@ func GetUserTopics(user, org string, appTopics, channels *[]string) (map[string]
 		}
 	}
 
-	ApplyLockes(org, appTopics, topicMap)
+	ApplyLocks(org, topicMap)
 
 	return topicMap, nil
 }

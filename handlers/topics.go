@@ -46,7 +46,7 @@ func (self *Topics) Get(request *gottp.Request) {
 	var err error
 
 	if args.User == "" {
-		iter, err = available_topics.GetOrgTopics(args.Organization, appTopics, &channels)
+		// iter, err = available_topics.GetOrgTopics(args.Organization, appTopics, &channels)
 	} else {
 		iter, err = available_topics.GetUserTopics(args.User, args.Organization, appTopics, &channels)
 	}

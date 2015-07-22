@@ -1,15 +1,32 @@
-# khabar
-=======
-Notifications engine
+## khabar
 
-### API
+Notifications engine.
+
+## Usage
+
+In Development:
+
+Use [gin](http://github.com/codegangsta/gin) to automatically compile files
+
+```
+$ DEBUG=* go get && go install && gin -p 8911 -i
+```
+
+## Installation
+
+```
+$ go get github.com/bulletind/khabar
+$ khabar
+```
+
+## API
 
 1. Adding a new channel to notification setting
 
   **Method**: `POST`
-   
+
   **EndPoint**: `/topic/<notification_ident>/channel/<channel_ident>`
-  
+
   **Request body** :
   ```js
   {
@@ -18,11 +35,11 @@ Notifications engine
       user:"",
       ident:""
   }
-  ``` 
+  ```
   **Response Code**: `200`
 
   **Response Body**:
-  If new entity is being created 
+  If new entity is being created
   ```js
   {
       "body": "[ID of entity created]",
@@ -39,15 +56,15 @@ Notifications engine
       "status": 204
   }
   ```
-  
+
 2. Removing a channel from notification setting
 
   **Method**: `DELETE`
 
   **EndPoint**: `/topic/<notification_ident>/channel/<channel_ident>`
-  
+
   **Request body** :
-  
+
   ```js
   {
       org:"",
@@ -55,7 +72,7 @@ Notifications engine
       user:"",
       ident:""
   }
-  ``` 
+  ```
   **Response Code**: `200`
 
   **Response Body**:
@@ -70,11 +87,11 @@ Notifications engine
 3. Removing  notification setting
 
   **Method** : `DELETE`
- 
+
   **EndPoint**: `/topic/<notification_ident>`
- 
+
   **Request Body**:
- 
+
   ```js
   {
       org:"",
@@ -97,15 +114,15 @@ Notifications engine
 4. Get all notification settings
 
  **Method** : `GET`
- 
+
  **EndPoint**: `/topics`
- 
+
  **Request Filteting**: `app_name` `org` `user`
 
  **Response Code**: `200`
- 
+
  **Response Body**:
- 
+
 ```js
  [
         {
@@ -127,15 +144,15 @@ Notifications engine
 5. Get all channels
 
  **Method** : `GET`
- 
+
  **EndPoint**: `/channels`
- 
+
  **Request Filteting**: `app_name` `org` `user`
 
  **Response Code**: `200`
- 
+
  **Response Body**:
- 
+
 ```js
  [
         {
@@ -154,7 +171,7 @@ Notifications engine
 
 6. Get all notifications
 
-  This will be polled periodically 
+  This will be polled periodically
 
   **Method**: `GET`
 
@@ -165,7 +182,7 @@ Notifications engine
   **Response Code**: `200`
 
   **Response Body**:
-  
+
   ```js
   [
     {
@@ -186,9 +203,9 @@ Notifications engine
 7. Mark a single notification as read
 
   **Method**: `PUT`
-  
+
   **Endpoint**: `/notification/:_id`
-  
+
   **Response code**: `200`
 
   **Response Body**:
@@ -203,9 +220,9 @@ Notifications engine
 8. Mark all unread notifications as read
 
   **Method**: `PUT`
-  
+
   **Endpoint**: `/notifications`
-  
+
   **Response code**: `200`
 
   **Response Body**:
@@ -216,7 +233,7 @@ Notifications engine
       "status": 204
   }
   ```
-  
+
 `destination_uri` is  the link to relevant entity. (i.e action, incident)
 `text` is the notification text
 `topic` is the topic of notification (i.e incident_title_changed)
