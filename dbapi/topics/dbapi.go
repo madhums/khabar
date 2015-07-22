@@ -34,10 +34,22 @@ func Delete(doc *utils.M) error {
  */
 
 func InsertOrUpdateTopic(org, ident string, channel string) error {
-	found, err := findPerOrgnaization(org, ident)
+
+	found := new(db.Topic)
+
+	err := db.Conn.GetOne(
+		db.TopicCollection,
+		utils.M{
+			"org":      org,
+			"user":     "",
+			"ident":    ident,
+			"channels": channel,
+		},
+		found,
+	)
 
 	// If it doesn't exist, insert and return
-	if found == nil {
+	if err != nil {
 		topic := new(db.Topic)
 		topic.PrepareSave()
 		topic.ToggleValue() // default `value` is false, so toggle it
