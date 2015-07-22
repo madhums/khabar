@@ -8,7 +8,6 @@ It means
 
 [google it](https://www.google.com/search?q=define+khabar)
 
-
 ## Table of contents
 
 - [Concept and idea](#concept-and-idea)
@@ -33,16 +32,11 @@ It means
 
 ## Concept and idea
 
-
 **Channels**
-
 
 **Ident** or **topic**
 
-
 ## How does it work?
-
-
 
 ## Development
 
@@ -89,7 +83,6 @@ $ khabar
         ident: ""
     }
     ```
-
 
   2. ##### Remove a channel
 
