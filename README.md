@@ -233,3 +233,5 @@ It literally means "message" or "news" in hindi language.
 - Break the library into multiple pieces like types, api and only keep the business logic in this repo
 - Spin up a nice demo
 - Add the admin for managing topics etc
+- Ability to be able to take mongodb url from environment variable
+- Ability for the server to be able to listen on a specified port (for example via command line)
