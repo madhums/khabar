@@ -27,6 +27,36 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
+/**
+ * Insert a topic in `topics` collection if it doesn't exist
+ * Or Update the topic
+ * Used only in the org level mostly to set default
+ */
+
+func InsertOrUpdateTopic(org, ident string, channel string) error {
+	found, err := findPerOrgnaization(org, ident)
+
+	// If it doesn't exist, insert and return
+	if found == nil {
+		topic := new(db.Topic)
+		topic.PrepareSave()
+		topic.ToggleValue() // default `value` is false, so toggle it
+		topic.Ident = ident
+		topic.Organization = org
+		topic.Channels = []string{channel}
+		Insert(topic)
+		return nil
+	}
+
+	// Update Value attribute (toggle it)
+	doc := utils.M{
+		"value": !found.Value,
+	}
+	err = Update("", org, ident, &doc)
+
+	return err
+}
+
 func Initialize(user, org string) error {
 	orgArg := org
 	if user == db.BLANK {

@@ -153,5 +153,10 @@ type Topic struct {
 	User         string   `json:"user" bson:"user"`
 	Organization string   `json:"org" bson:"org"`
 	Channels     []string `json:"channels" bson:"channels" required:"true"`
+	Value        bool     `json:"value" bson:"value"`
 	Ident        string   `json:"ident" bson:"ident" required:"true"`
+}
+
+func (topic *Topic) ToggleValue() {
+	topic.Value = !topic.Value
 }
