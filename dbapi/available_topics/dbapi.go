@@ -139,9 +139,8 @@ func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
 
 func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 
-	// This is a bit clumsy, make it better later
-	// TODO: Explain the usage
-	topicmap2 := map[string]string{}
+	// We are trying to remember what the original user setting was for ident x channel
+	userSetting := map[string]string{}
 
 	var availableTopics []string
 	topicMap := map[string]ChotaTopic{}
@@ -177,7 +176,9 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
 
-				topicmap2[topic.Ident] = channel
+				userSetting[topic.Ident] = channel
+
+				// These is what the user has set
 				topicMap[topic.Ident][channel].Value = trueState
 			}
 		}
@@ -195,11 +196,12 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 				// But before doing that, we must make sure the user hasn't ever set
 				// this field.
 
-				topicMap[topic.Ident][channel].Value = disabledState
 				topicMap[topic.Ident][channel].Default = topic.Value
 
-				for _, value := range topicmap2 {
+				for _, value := range userSetting {
 					if value == channel {
+						// Override the user setting with what the organization has set
+						// (topic.Value is the default for ident x channel)
 						topicMap[topic.Ident][channel].Value = topic.Value
 					}
 				}
@@ -215,6 +217,7 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 	pass3 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
 	for pass3.Next(topic) {
 
+		// Override it with the global setting
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
 				delete(topicMap[topic.Ident], channel)
@@ -222,6 +225,7 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 		}
 	}
 
+	// After all the overrides apply locks
 	ApplyLocks(org, topicMap)
 
 	return topicMap, nil
