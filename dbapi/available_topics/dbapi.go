@@ -1,6 +1,10 @@
 package available_topics
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
+
 	"gopkg.in/bulletind/khabar.v1/db"
 	"gopkg.in/bulletind/khabar.v1/dbapi/locks"
 	"gopkg.in/bulletind/khabar.v1/utils"
@@ -134,8 +138,9 @@ func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
 
 func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 
-	// Step 1
-	// Add defaults for user level
+	// This is a bit clumsy, make it better later
+	// TODO: Explain the usage
+	topicmap2 := map[string]string{}
 
 	var availableTopics []string
 	topicMap := map[string]ChotaTopic{}
@@ -158,6 +163,8 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 		availableTopics = append(availableTopics, topic.Ident)
 	}
 
+	// Step 1
+	// Add defaults for user level
 	query := utils.M{
 		"ident": utils.M{"$in": availableTopics},
 		"user":  user,
@@ -168,6 +175,16 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 	for pass1.Next(topic) {
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
+
+				fmt.Println("")
+				o, err := json.MarshalIndent(topic, "", "  ")
+				if err != nil {
+					fmt.Println("Error marshaling JSON")
+				}
+				log.Println(string(o))
+				fmt.Println("")
+
+				topicmap2[topic.Ident] = channel
 				topicMap[topic.Ident][channel].Value = trueState
 			}
 		}
@@ -184,10 +201,37 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 				// This should be overridden by `topic.Value`.
 				// But before doing that, we must make sure the user hasn't ever set
 				// this field.
+
 				topicMap[topic.Ident][channel].Value = disabledState
+
+				for _, value := range topicmap2 {
+					if value == channel {
+						log.Println(topic.Ident, channel)
+						topicMap[topic.Ident][channel].Value = topic.Value
+					}
+				}
+
+				/*if topicmap2[topic.Ident] == channel {
+					log.Println(topic.Ident, channel)
+					topicMap[topic.Ident][channel].Value = disabledState
+				} else if channel != "" {
+					log.Println(topic.Ident, channel, topicmap2[topic.Ident])
+					topicMap[topic.Ident][channel].Value = topic.Value
+				} else {
+					log.Println(topic.Ident, channel)
+					topicMap[topic.Ident][channel].Value = disabledState
+				}*/
 			}
 		}
 	}
+
+	fmt.Println("")
+	o, err := json.MarshalIndent(topicMap, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshaling JSON")
+	}
+	fmt.Println(string(o))
+	fmt.Println("")
 
 	// Step 3
 	// Find Globally topic Topics
