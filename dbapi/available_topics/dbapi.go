@@ -44,6 +44,9 @@ func GetAppTopics(app_name, org string) *[]db.AvailableTopic {
 		session, db.AvailableTopicCollection, query,
 	).Select(utils.M{"ident": 1, "channels": 1}).Sort("ident").Iter()
 
+	err := iter.All(&topics)
+	// TODO: handle this error
+
 	fmt.Println("====================")
 	o, err := json.Marshal(topics)
 	if err != nil {
