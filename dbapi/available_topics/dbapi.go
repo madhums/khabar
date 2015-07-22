@@ -1,7 +1,6 @@
 package available_topics
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"gopkg.in/bulletind/khabar.v1/db"
@@ -33,7 +32,7 @@ func GetAllTopics() []string {
 	return topics
 }
 
-func GetAppTopics(app_name, org string) *[]db.AvailableTopic {
+func GetAppTopics(app_name, org string) (*[]db.AvailableTopic, error) {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
@@ -47,15 +46,7 @@ func GetAppTopics(app_name, org string) *[]db.AvailableTopic {
 	err := iter.All(&topics)
 	// TODO: handle this error
 
-	fmt.Println("====================")
-	o, err := json.Marshal(topics)
-	if err != nil {
-		fmt.Println("Error marshaling JSON")
-	}
-	fmt.Println(string(o))
-	fmt.Println("=================")
-
-	return &topics
+	return &topics, err
 }
 
 func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
@@ -135,8 +126,10 @@ func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
 }
 
 func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
+
 	// Add defaults for user level
 
+	var availableTopics []string
 	topicMap := map[string]ChotaTopic{}
 
 	for _, availableTopic := range *appTopics {
@@ -153,8 +146,12 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
+	for _, topic := range *appTopics {
+		availableTopics = append(availableTopics, topic.Ident)
+	}
+
 	query := utils.M{
-		"ident": utils.M{"$in": appTopics},
+		"ident": utils.M{"$in": availableTopics},
 		"user":  user,
 		"org":   org,
 	}
@@ -163,10 +160,19 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 	for pass1.Next(disabled) {
 		if _, ok := topicMap[disabled.Ident]; ok {
 			for _, blocked := range disabled.Channels {
+				fmt.Println("topicMap[disabled.Ident][blocked] : topicMap ", disabled.Ident, blocked)
 				topicMap[disabled.Ident][blocked].Value = trueState
 			}
 		}
 	}
+
+	// fmt.Println("")
+	// o, err := json.Marshal(topicMap)
+	// if err != nil {
+	// 	fmt.Println("Error marshaling JSON")
+	// }
+	// fmt.Println(string(o))
+	// fmt.Println("")
 
 	//Find all Topics that have been blocked by the Organization
 	query["user"] = db.BLANK

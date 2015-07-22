@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 
 	"gopkg.in/simversity/gottp.v3"
@@ -76,11 +74,4 @@ func RemoveDuplicates(arr *[]string) {
 		}
 	}
 	*arr = (*arr)[:j]
-}
-
-func Json(data map[string]interface{}) {
-	res, _ := json.Marshal(data)
-	log.Println("")
-	log.Println(string(res))
-	log.Println("")
 }
