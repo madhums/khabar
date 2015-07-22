@@ -61,10 +61,21 @@ func InsertOrUpdateTopic(org, ident string, channel string) error {
 	}
 
 	// Update Value attribute (toggle it)
-	doc := utils.M{
-		"value": !found.Value,
-	}
-	err = Update("", org, ident, &doc)
+
+	err = db.Conn.Update(
+		db.TopicCollection,
+		utils.M{
+			"org":      org,
+			"user":     "",
+			"ident":    ident,
+			"channels": channel,
+		},
+		utils.M{
+			"$set": utils.M{
+				"value": !found.Value,
+			},
+		},
+	)
 
 	return err
 }
