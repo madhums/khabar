@@ -1,12 +1,12 @@
-## Khabar
+## Khabar [![Build Status](https://travis-ci.org/bulletind/khabar.svg?branch=develop)](https://travis-ci.org/bulletind/khabar)
 
 Notifications engine.
 
 It means
 
-> the latest information; news.
+> *the latest information; news.*
 
-> -- [google](https://www.google.com/search?q=define+khabar)
+[google it](https://www.google.com/search?q=define+khabar)
 
 
 ## Table of contents
@@ -16,15 +16,15 @@ It means
 - [Development](#development)
 - [Usage](#usage)
 - [API](#api)
-  - [Channels](#channels)
+  - **[Channels](#channels)**
     1. [Add a new channel](#add-a-new-channel)
     2. [Remove a channel](#remove-a-channel)
     3. [Get all channels](#get-all-channels)
-  - [Topics](#topics)
+  - **[Topics](#topics)**
     1. [Add a new topic](#add-a-new-topic)
     2. [Remove a topic](#remove-a-topic)
     3. [Get all topics](#get-all-topics)
-  - [Notifications](#notifications)
+  - **[Notifications](#notifications)**
     1. [Get all notifications](#get-all-notifications)
     2. [Mark a single notification as read](#mark-a-single-notification-as-read)
     3. [Mark all unread notifications as read](#mark-all-unread-notifications-as-read)
@@ -276,8 +276,10 @@ $ khabar
 
 ## Todo and future plans
 
-- Break the library into multiple pieces like types, api and only keep the business logic in this repo
-- Spin up a nice demo
-- Add the admin for managing topics etc
-- Ability to use `MONGODB_URL` from environment variable
-- Ability to listen on a specified port (`--port` from command line?) or via `PORT` environment variable
+- Verify if the api's listed above are correct and update them.
+- Break the library into multiple pieces like types, api and only keep the business logic in this repo.
+- Spin up a nice demo.
+- Add the admin for managing topics etc.
+- Ability to use `MONGODB_URL` from environment variable.
+- Ability to listen on a specified port (`--port` from command line?) or via `PORT` environment variable.
+- Deployment and hosting.
