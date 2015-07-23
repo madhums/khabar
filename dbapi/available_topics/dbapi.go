@@ -135,12 +135,10 @@ func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
 
 }
 
-// TODO: There's quite some repetetive code, break it down
-
 func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 
 	// We are trying to remember what the original user setting was for ident x channel
-	userSetting := map[string]string{}
+	userSetting := make(map[string][]string)
 
 	var availableTopics []string
 	topicMap := map[string]ChotaTopic{}
@@ -164,7 +162,7 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 	}
 
 	// Step 1
-	// Add defaults for user level
+	// Add user preferences
 	query := utils.M{
 		"ident": utils.M{"$in": availableTopics},
 		"user":  user,
@@ -176,7 +174,7 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
 
-				userSetting[topic.Ident] = channel
+				userSetting[topic.Ident] = topic.Channels
 
 				// These is what the user has set
 				topicMap[topic.Ident][channel].Value = trueState
@@ -192,25 +190,14 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 	for pass2.Next(topic) {
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
-				// This should be overridden by `topic.Value`.
-				// But before doing that, we must make sure the user hasn't ever set
-				// this field.
-
+				// Set the default
 				topicMap[topic.Ident][channel].Default = topic.Value
-
-				for _, value := range userSetting {
-					if value == channel {
-						// Override the user setting with what the organization has set
-						// (topic.Value is the default for ident x channel)
-						topicMap[topic.Ident][channel].Value = topic.Value
-					}
-				}
 			}
 		}
 	}
 
 	// Step 3
-	// Find Globally topic Topics
+	// Remove globablly disabled topic/channels
 	query["user"] = db.BLANK
 	query["org"] = db.BLANK
 
@@ -227,6 +214,18 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 
 	// After all the overrides apply locks
 	ApplyLocks(org, topicMap)
+
+	// After the locks have been applied, make sure that the defaults are
+	// applied properly
+
+	for idnt, values := range topicMap {
+		for ch, _ := range values {
+
+			if topicMap[idnt][ch].Default && topicMap[idnt][ch].Locked {
+				topicMap[idnt][ch].Value = true
+			}
+		}
+	}
 
 	return topicMap, nil
 }
