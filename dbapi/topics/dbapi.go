@@ -27,6 +27,59 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.TopicCollection, *doc)
 }
 
+/**
+ * Insert a topic in `topics` collection if it doesn't exist
+ * Or Update the topic
+ * Used only in the org level mostly to set default
+ */
+
+func InsertOrUpdateTopic(org, ident string, channel string) error {
+
+	found := new(db.Topic)
+
+	err := db.Conn.GetOne(
+		db.TopicCollection,
+		utils.M{
+			"org":      org,
+			"user":     "",
+			"ident":    ident,
+			"channels": channel,
+		},
+		found,
+	)
+
+	// If it doesn't exist, insert and return
+	if err != nil {
+		topic := new(db.Topic)
+		topic.PrepareSave()
+		topic.ToggleValue() // default `value` is false, so toggle it
+		topic.Ident = ident
+		topic.Organization = org
+		topic.Channels = []string{channel}
+		Insert(topic)
+		return nil
+	}
+
+	// Update Value attribute (toggle it)
+
+	err = db.Conn.Update(
+		db.TopicCollection,
+		utils.M{
+			"org":      org,
+			"user":     "",
+			"ident":    ident,
+			"channels": channel,
+		},
+		utils.M{
+			"$set": utils.M{
+				"value": !found.Value,
+			},
+		},
+	)
+
+	return err
+}
+
 func Initialize(user, org string) error {
 	orgArg := org
 	if user == db.BLANK {
@@ -197,7 +250,7 @@ func AddChannel(ident, channel, user, organization string) error {
 		"ident": ident,
 	}
 
-	spec := utils.M{"$pull": utils.M{"channels": channel}}
+	spec := utils.M{"$addToSet": utils.M{"channels": channel}}
 
 	result := utils.M{}
 
@@ -212,7 +265,7 @@ func RemoveChannel(ident, channel, user, organization string) error {
 		"ident": ident,
 	}
 
-	spec := utils.M{"$addToSet": utils.M{"channels": channel}}
+	spec := utils.M{"$pull": utils.M{"channels": channel}}
 
 	result := utils.M{}
 

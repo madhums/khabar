@@ -22,6 +22,8 @@ func (self *Topics) Get(request *gottp.Request) {
 		Organization string `json:"org"`
 		User         string `json:"user"`
 	}
+	var iter map[string]available_topics.ChotaTopic
+	var err error
 
 	request.ConvertArguments(&args)
 
@@ -30,7 +32,7 @@ func (self *Topics) Get(request *gottp.Request) {
 		return
 	}
 
-	appTopics := available_topics.GetAppTopics(args.AppName, args.Organization)
+	appTopics, err := available_topics.GetAppTopics(args.AppName, args.Organization)
 
 	if args.Organization == "" {
 		request.Write(appTopics)
@@ -41,9 +43,6 @@ func (self *Topics) Get(request *gottp.Request) {
 	for ident, _ := range core.ChannelMap {
 		channels = append(channels, ident)
 	}
-
-	var iter map[string]available_topics.ChotaTopic
-	var err error
 
 	if args.User == "" {
 		iter, err = available_topics.GetOrgTopics(args.Organization, appTopics, &channels)
@@ -75,6 +74,7 @@ func (self *Topics) Get(request *gottp.Request) {
 
 func (self *Topics) Post(request *gottp.Request) {
 	newTopic := new(db.AvailableTopic)
+	newTopic.Channels = []string{"email", "web", "push"}
 
 	request.ConvertArguments(newTopic)
 

@@ -5,8 +5,7 @@ import (
 	"net/http"
 
 	"gopkg.in/bulletind/khabar.v1/core"
-	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/dbapi/defaults"
+	"gopkg.in/bulletind/khabar.v1/dbapi/topics"
 	"gopkg.in/bulletind/khabar.v1/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v3"
@@ -17,10 +16,11 @@ type Defaults struct {
 }
 
 func (self *Defaults) Post(request *gottp.Request) {
-	channelIdent := request.GetArgument("channel").(string)
-	topicIdent := request.GetArgument("ident").(string)
+	channel := request.GetArgument("channel").(string)
+	ident := request.GetArgument("ident").(string)
+	org := request.GetArgument("org").(string)
 
-	if !core.IsChannelAvailable(channelIdent) {
+	if !core.IsChannelAvailable(channel) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
 			"Channel is not supported",
@@ -29,56 +29,7 @@ func (self *Defaults) Post(request *gottp.Request) {
 		return
 	}
 
-	defaultPref := new(db.Defaults)
-	defaultPref.PrepareSave()
-
-	defaultPref.Channels = []string{channelIdent}
-
-	request.ConvertArguments(defaultPref)
-	defaultPref.Topic = topicIdent
-
-	if !utils.ValidateAndRaiseError(request, defaultPref) {
-		return
-	}
-
-	if defaults.IsDefaultExists(defaultPref.Organization, defaultPref.Topic, channelIdent, defaultPref.Enabled) {
-		request.Raise(gottp.HttpError{http.StatusConflict,
-			"Already Exists."})
-		return
-	}
-
-	err, oppositeDefault := defaults.Get(defaultPref.Organization, defaultPref.Topic, !defaultPref.Enabled)
-
-	if err != nil {
-		if err != mgo.ErrNotFound {
-			request.Raise(gottp.HttpError{http.StatusInternalServerError,
-				"Unable to complete db operation."})
-			return
-		}
-	} else {
-		if len(oppositeDefault.Channels) == 1 {
-			defaults.Delete(&utils.M{"_id": oppositeDefault.Id})
-		} else {
-			defaults.RemoveChannel(oppositeDefault.Topic, channelIdent,
-				oppositeDefault.Organization, oppositeDefault.Enabled)
-		}
-	}
-
-	err, existingObj := defaults.Get(defaultPref.Organization, defaultPref.Topic, defaultPref.Enabled)
-
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			defaults.Insert(defaultPref)
-			request.Write(utils.R{StatusCode: http.StatusCreated, Data: nil,
-				Message: "Created"})
-			return
-		}
-		request.Raise(gottp.HttpError{http.StatusInternalServerError,
-			"Unable to complete db operation."})
-		return
-	}
-
-	err = defaults.AddChannel(existingObj.Topic, channelIdent, existingObj.Organization, existingObj.Enabled)
+	err := topics.InsertOrUpdateTopic(org, ident, channel)
 
 	if err != nil {
 		log.Println(err)
@@ -98,10 +49,11 @@ func (self *Defaults) Post(request *gottp.Request) {
 }
 
 func (self *Defaults) Delete(request *gottp.Request) {
-	channelIdent := request.GetArgument("channel").(string)
-	topicIdent := request.GetArgument("ident").(string)
+	channel := request.GetArgument("channel").(string)
+	ident := request.GetArgument("ident").(string)
+	org := request.GetArgument("org").(string)
 
-	if !core.IsChannelAvailable(channelIdent) {
+	if !core.IsChannelAvailable(channel) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
 			"Channel is not supported",
@@ -110,30 +62,13 @@ func (self *Defaults) Delete(request *gottp.Request) {
 		return
 	}
 
-	defaultPref := new(db.Defaults)
-	request.ConvertArguments(defaultPref)
-	defaultPref.Topic = topicIdent
-
-	if !defaults.IsDefaultExists(defaultPref.Organization, defaultPref.Topic, channelIdent, defaultPref.Enabled) {
-		request.Raise(gottp.HttpError{http.StatusNotFound,
-			"Does not Exists."})
-		return
-	}
-
-	err, dbDefault := defaults.Get(defaultPref.Organization, defaultPref.Topic, defaultPref.Enabled)
+	err := topics.InsertOrUpdateTopic(org, ident, channel)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			request.Raise(gottp.HttpError{http.StatusInternalServerError,
 				"Unable to complete db operation."})
 			return
-		}
-	} else {
-		if len(dbDefault.Channels) == 1 {
-			defaults.Delete(&utils.M{"_id": dbDefault.Id})
-		} else {
-			defaults.RemoveChannel(dbDefault.Topic, channelIdent,
-				dbDefault.Organization, dbDefault.Enabled)
 		}
 	}
 
