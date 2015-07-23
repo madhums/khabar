@@ -118,21 +118,10 @@ func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
 					continue
 				}
 
-				// if topicMap[pref.Topic][channel].Value == disabledState {
-				// 	continue
-				// }
-
 				topicMap[pref.Topic][channel].Locked = true
-
-				// if pref.Enabled {
-				// 	topicMap[pref.Topic][channel].Value = trueState
-				// } else {
-				// 	topicMap[pref.Topic][channel].Value = falseState
-				// }
 			}
 		}
 	}
-
 }
 
 func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
