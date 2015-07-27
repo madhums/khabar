@@ -33,18 +33,22 @@ func Delete(doc *utils.M) error {
  * Used only in the org level mostly to set default
  */
 
-func InsertOrUpdateTopic(org, ident string, channel string) error {
+func InsertOrUpdateTopic(org, ident string, channelName string) error {
 
 	found := new(db.Topic)
+	query := utils.M{
+		"org":           org,
+		"user":          "",
+		"ident":         ident,
+		"channels.name": channelName,
+	}
+	channels := []db.Channel{
+		db.Channel{Name: channelName, Default: true},
+	}
 
 	err := db.Conn.GetOne(
 		db.TopicCollection,
-		utils.M{
-			"org":      org,
-			"user":     "",
-			"ident":    ident,
-			"channels": channel,
-		},
+		query,
 		found,
 	)
 
@@ -52,27 +56,22 @@ func InsertOrUpdateTopic(org, ident string, channel string) error {
 	if err != nil {
 		topic := new(db.Topic)
 		topic.PrepareSave()
-		topic.ToggleValue() // default `value` is false, so toggle it
+		// topic.ToggleValue() // default `value` is false, so toggle it
 		topic.Ident = ident
 		topic.Organization = org
-		topic.Channels = []string{channel}
+		topic.Channels = channels
 		Insert(topic)
 		return nil
 	}
 
-	// Update Value attribute (toggle it)
+	// Update Default attribute (toggle it)
 
 	err = db.Conn.Update(
 		db.TopicCollection,
-		utils.M{
-			"org":      org,
-			"user":     "",
-			"ident":    ident,
-			"channels": channel,
-		},
+		query,
 		utils.M{
 			"$set": utils.M{
-				"value": !found.Value,
+				"channels.default": !found.Channels[0].Default,
 			},
 		},
 	)

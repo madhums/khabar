@@ -127,7 +127,6 @@ func (self *Gully) IsValid(op_type int) bool {
 		if len(self.Data) == 0 {
 			return false
 		}
-
 	}
 
 	return true
@@ -147,16 +146,17 @@ func (self *UserLocale) IsValid() bool {
 	return true
 }
 
-type Topic struct {
-	BaseModel `bson:",inline"`
-
-	User         string   `json:"user" bson:"user"`
-	Organization string   `json:"org" bson:"org"`
-	Channels     []string `json:"channels" bson:"channels" required:"true"`
-	Value        bool     `json:"value" bson:"value"`
-	Ident        string   `json:"ident" bson:"ident" required:"true"`
+type Channel struct {
+	Name    string `json:"name" bson:"name"`
+	Enabled bool   `json:"enabled" bson:"enabled"`
+	Default bool   `json:"default" bson:"default"`
+	Locked  bool   `json:"locked" bson:"locked"`
 }
 
-func (topic *Topic) ToggleValue() {
-	topic.Value = !topic.Value
+type Topic struct {
+	BaseModel    `bson:",inline"`
+	User         string    `json:"user" bson:"user"`
+	Organization string    `json:"org" bson:"org"`
+	Channels     []Channel `json:"channels" bson:"channels" required:"true"`
+	Ident        string    `json:"ident" bson:"ident" required:"true"`
 }
