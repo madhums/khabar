@@ -1,8 +1,8 @@
 package saved_item
 
 import (
-	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
 func Insert(coll string, savedItem *db.SavedItem) string {

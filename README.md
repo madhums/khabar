@@ -57,7 +57,7 @@ $ cd $GOPATH/src/github.com/bulletind
 $ git clone https://github.com/bulletind/khabar.git
 $ git checkout develop # now you are in develop branch of khabar
 $ mkdir -p $GOPATH/src/gopkg.in/bulletind
-$ ln -s $GOPATH/src/github.com/bulletind/khabar $GOPATH/src/gopkg.in/bulletind/khabar.v1
+$ ln -s $GOPATH/src/github.com/bulletind/khabar $GOPATH/src/github.com/bulletind/khabar
 ```
 
 ```sh

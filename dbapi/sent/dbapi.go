@@ -1,8 +1,8 @@
 package sent
 
 import (
-	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/simversity/gottp.v3"
 )

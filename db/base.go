@@ -1,7 +1,7 @@
 package db
 
 import (
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2/bson"
 )
 

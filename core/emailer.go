@@ -3,9 +3,9 @@ package core
 import (
 	"log"
 
-	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/dbapi/saved_item"
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/saved_item"
+	"github.com/bulletind/khabar/utils"
 )
 
 func emailHandler(
