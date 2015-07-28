@@ -5,13 +5,13 @@ import (
 	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
-func Update(user, org, topicName string, doc *utils.M) error {
+func Update(user, org, ident string, doc *utils.M) error {
 
 	return db.Conn.Update(db.TopicCollection,
 		utils.M{
 			"org":   org,
 			"user":  user,
-			"ident": topicName,
+			"ident": ident,
 		},
 		utils.M{
 			"$set": *doc,
@@ -29,20 +29,26 @@ func Delete(doc *utils.M) error {
 /**
  * Insert a topic in `topics` collection if it doesn't exist
  * Or Update the topic
- * Used only in the org level mostly to set default
+ * Used only in the org level mostly to set default and locked
+ *
+ * - 	This is not a very effecient way of doing it but we are doing it at
+ * 		the cost of the data structure we want
+ * - 	One of the limitations is that mongo is not yet capable of
+ * 		upserting to array of documents. For this to happen in a simple way the data
+ * 		structure has to change OR we use multiple collections
  */
 
-func InsertOrUpdateTopic(org, ident string, channelName string) error {
+func InsertOrUpdateTopic(org, ident, channelName, attr string) error {
 
+	var channels []db.Channel
+	var channel db.Channel
+	var doc utils.M
+	var spec utils.M
 	found := new(db.Topic)
 	query := utils.M{
-		"org":           org,
-		"user":          "",
-		"ident":         ident,
-		"channels.name": channelName,
-	}
-	channels := []db.Channel{
-		db.Channel{Name: channelName, Default: true},
+		"org":   org,
+		"user":  "",
+		"ident": ident,
 	}
 
 	err := db.Conn.GetOne(
@@ -51,11 +57,21 @@ func InsertOrUpdateTopic(org, ident string, channelName string) error {
 		found,
 	)
 
+	channel.Name = channelName
+
+	if attr == "Default" {
+		channel.Default = true
+	} else {
+		channel.Locked = true
+	}
+
+	channels = append(channels, channel)
+
 	// If it doesn't exist, insert and return
+
 	if err != nil {
 		topic := new(db.Topic)
 		topic.PrepareSave()
-		// topic.ToggleValue() // default `value` is false, so toggle it
 		topic.Ident = ident
 		topic.Organization = org
 		topic.Channels = channels
@@ -63,19 +79,65 @@ func InsertOrUpdateTopic(org, ident string, channelName string) error {
 		return nil
 	}
 
-	// Update Default attribute (toggle it)
+	// If it does exist, find the document in the array and modify it
+	// Do one of the two depending on whether its present or not
+	// Step 1. if its not present, add to channels array
+	// Step 2. if its present, toggle the value
 
-	err = db.Conn.Update(
+	query["channels.name"] = channelName
+	err = db.Conn.GetOne(
 		db.TopicCollection,
 		query,
-		utils.M{
-			"$set": utils.M{
-				"channels.$.default": !found.Channels[0].Default,
-			},
-		},
+		found,
 	)
 
-	return err
+	// Step 1. Add to set and return
+
+	if err != nil {
+		doc = utils.M{
+			"$addToSet": utils.M{
+				"channels": channel,
+			},
+		}
+		delete(query, "channels.name")
+		return AddOrgChannel(query, doc)
+	}
+
+	// Step 2. Else toggle value
+
+	if attr == "Default" {
+		spec = utils.M{
+			"channels.$.default": !GetDefaultOrLocked(found.Channels, channelName, "Default"),
+		}
+	} else {
+		spec = utils.M{
+			"channels.$.locked": !GetDefaultOrLocked(found.Channels, channelName, "Locked"),
+		}
+	}
+
+	doc = utils.M{
+		"$set": spec,
+	}
+
+	return AddOrgChannel(query, doc)
+}
+
+func AddOrgChannel(query, doc utils.M) error {
+	return db.Conn.Update(db.TopicCollection, query, doc)
+}
+
+func GetDefaultOrLocked(channels []db.Channel, channelName, attr string) bool {
+	var val bool
+	for _, channel := range channels {
+		if channel.Name == channelName {
+			if attr == "Default" {
+				val = channel.Default
+			} else {
+				val = channel.Locked
+			}
+		}
+	}
+	return val
 }
 
 func Initialize(user, org string) error {

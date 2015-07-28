@@ -14,14 +14,18 @@ func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.LocksCollection, *doc)
 }
 
-func GetAll(org string) []db.Locks {
+func GetAll(org string) []db.Topic {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
-	result := []db.Locks{}
+	result := []db.Topic{}
 
-	db.Conn.Get(session, db.LocksCollection, utils.M{
-		"org": org,
+	db.Conn.Get(session, db.TopicCollection, utils.M{
+		"$or": utils.M{
+			"org":             org,
+			"user":            "",
+			"channels.locked": true,
+		},
 	}).All(&result)
 
 	return result

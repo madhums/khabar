@@ -1,3 +1,12 @@
+/**
+ * What does this migration do?
+ *
+ * - Removes app_name from topics collection if it exists
+ * - Modifies `channels` property in `topics` collection from array of strings
+ *   to array of objects
+ * - Removes previously added `value` property to `topics` collection
+ */
+
 package defaults
 
 import (
