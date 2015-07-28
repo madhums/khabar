@@ -43,8 +43,6 @@ It means
 
 ## Development
 
-Clone the repo
-
 ```sh
 $ go get github.com/codegangsta/gin
 ```
@@ -52,6 +50,15 @@ $ go get github.com/codegangsta/gin
 [gin](http://github.com/codegangsta/gin) is used to to automatically compile files while you are developing
 
 Then run
+
+```
+$ mkdir -p $GOPATH/src/github.com/bulletind
+$ cd $GOPATH/src/github.com/bulletind
+$ git clone https://github.com/bulletind/khabar.git
+$ git checkout develop # now you are in develop branch of khabar
+$ mkdir -p $GOPATH/src/gopkg.in/bulletind
+$ ln -s $GOPATH/src/github.com/bulletind/khabar $GOPATH/src/gopkg.in/bulletind/khabar.v1
+```
 
 ```sh
 $ DEBUG=* go get && go install && gin -p 8911 -i
