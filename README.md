@@ -1,4 +1,7 @@
-## Khabar [![Build Status](https://travis-ci.org/bulletind/khabar.svg?branch=develop)](https://travis-ci.org/bulletind/khabar)
+[![Build Status](https://travis-ci.org/bulletind/khabar.svg?branch=develop)](https://travis-ci.org/bulletind/khabar)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bulletind/khabar?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
+## Khabar
 
 Notifications engine.
 
