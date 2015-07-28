@@ -2,7 +2,6 @@ package topics
 
 import (
 	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/dbapi/defaults"
 	"gopkg.in/bulletind/khabar.v1/utils"
 )
 
@@ -71,7 +70,7 @@ func InsertOrUpdateTopic(org, ident string, channelName string) error {
 		query,
 		utils.M{
 			"$set": utils.M{
-				"channels.default": !found.Channels[0].Default,
+				"channels.$.default": !found.Channels[0].Default,
 			},
 		},
 	)
@@ -80,21 +79,19 @@ func InsertOrUpdateTopic(org, ident string, channelName string) error {
 }
 
 func Initialize(user, org string) error {
-	orgArg := org
 	if user == db.BLANK {
-		orgArg = db.BLANK
+		org = db.BLANK
 	}
 
-	disabled := defaults.GetAllDisabled(orgArg)
-
+	disabled := GetAllDisabled(org)
 	preferences := []interface{}{}
 
-	for _, entry := range disabled {
+	for _, topic := range disabled {
 		preference := db.Topic{
 			User:         user,
 			Organization: org,
-			Ident:        entry.Topic,
-			Channels:     entry.Channels,
+			Ident:        topic.Ident,
+			Channels:     topic.Channels,
 		}
 
 		preference.PrepareSave()
@@ -107,7 +104,21 @@ func Initialize(user, org string) error {
 	}
 
 	return nil
+}
 
+func GetAllDisabled(org string) []db.Topic {
+	session := db.Conn.Session.Copy()
+	defer session.Close()
+
+	result := []db.Topic{}
+
+	db.Conn.Get(session, db.TopicCollection, utils.M{
+		"org":              org,
+		"user":             db.BLANK,
+		"channels.default": false,
+	}).All(&result)
+
+	return result
 }
 
 func ChannelAllowed(user, org, topicName, channel string) bool {
@@ -143,7 +154,7 @@ func ChannelAllowed(user, org, topicName, channel string) bool {
 	}
 }
 
-func DisableUserChannel(orgs, topics []string, user, channel string) {
+func DisableUserChannel(orgs, topics []string, user, channelName string) {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
@@ -152,7 +163,7 @@ func DisableUserChannel(orgs, topics []string, user, channel string) {
 
 	db.Conn.Update(
 		db.TopicCollection, utils.M{"user": user},
-		utils.M{"$addToSet": utils.M{"channels": channel}},
+		utils.M{"$addToSet": utils.M{"channels": channelName}},
 	)
 
 	disabled := []interface{}{}
@@ -167,7 +178,9 @@ func DisableUserChannel(orgs, topics []string, user, channel string) {
 					User:         user,
 					Organization: org,
 					Ident:        name,
-					Channels:     []string{channel},
+					Channels: []db.Channel{
+						db.Channel{Name: channelName, Enabled: false},
+					},
 				}
 
 				topic.PrepareSave()
@@ -242,14 +255,18 @@ func DeleteTopic(ident string) error {
 	return err
 }
 
-func AddChannel(ident, channel, user, organization string) error {
+func AddChannel(ident, channelName, user, organization string) error {
 	query := utils.M{
 		"org":   organization,
 		"user":  user,
 		"ident": ident,
 	}
 
-	spec := utils.M{"$addToSet": utils.M{"channels": channel}}
+	spec := utils.M{
+		"$addToSet": utils.M{
+			"channels": db.Channel{Name: channelName, Enabled: true},
+		},
+	}
 
 	result := utils.M{}
 
@@ -257,17 +274,25 @@ func AddChannel(ident, channel, user, organization string) error {
 	return err
 }
 
-func RemoveChannel(ident, channel, user, organization string) error {
+func RemoveChannel(ident, channelName, user, organization string) error {
 	query := utils.M{
-		"org":   organization,
-		"user":  user,
-		"ident": ident,
+		"org":           organization,
+		"user":          user,
+		"ident":         ident,
+		"channels.name": channelName,
 	}
 
-	spec := utils.M{"$pull": utils.M{"channels": channel}}
+	err := db.Conn.Update(
+		db.TopicCollection,
+		query,
+		utils.M{
+			"$pull": utils.M{
+				"channels": utils.M{
+					"name": channelName,
+				},
+			},
+		},
+	)
 
-	result := utils.M{}
-
-	_, err := db.Conn.FindAndUpdate(db.TopicCollection, query, spec, &result)
 	return err
 }
