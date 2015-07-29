@@ -47,9 +47,9 @@ type Locks struct {
 
 type AvailableTopic struct {
 	BaseModel `bson:",inline"`
-	Ident     string   `json:"ident" bson:"ident" required:"true"`
-	AppName   string   `json:"app_name" bson:"app_name" required:"true"`
-	Channels  []string `json:"channels" bson:"channels" required:"true"`
+	Ident     string   `json:"ident" bson:"ident" required:"true" form:"ident" binding:"required"`
+	AppName   string   `json:"app_name" bson:"app_name" required:"true" form:"app_name" binding:"required"`
+	Channels  []string `json:"channels" bson:"channels" required:"true" form:"channels" binding:"required"`
 }
 
 type SentItem struct {
@@ -158,5 +158,5 @@ type Topic struct {
 	User         string    `json:"user" bson:"user"`
 	Organization string    `json:"org" bson:"org"`
 	Channels     []Channel `json:"channels" bson:"channels" required:"true"`
-	Ident        string    `json:"ident" bson:"ident" required:"true"`
+	Ident        string    `json:"ident" bson:"ident" required:"true" form:"ident" binding:"required"`
 }
