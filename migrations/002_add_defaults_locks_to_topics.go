@@ -25,6 +25,8 @@ import (
 	"log"
 	"os"
 
+	models "github.com/bulletind/khabar/db"
+
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -33,6 +35,14 @@ const (
 	availableCollection = "topics_available"
 	topicsCollection    = "topics"
 )
+
+type Topic struct {
+	models.BaseModel `bson:",inline"`
+	User             string   `json:"user" bson:"user"`
+	Organization     string   `json:"org" bson:"org"`
+	Channels         []string `json:"channels" bson:"channels" required:"true"`
+	Ident            string   `json:"ident" bson:"ident" required:"true"`
+}
 
 /**
  * Main
@@ -117,7 +127,53 @@ func RemoveValue(db *mgo.Database) (err error) {
  */
 
 func ModifyChannels(db *mgo.Database) (err error) {
+	Topics := db.C(topicsCollection)
+	notNull := bson.M{"$ne": ""}
+	query := bson.M{
+		"user": notNull,
+		"org":  notNull,
+	}
+	var topics []Topic
 
+	// Modify user setting
+
+	err = Topics.Find(query).All(&topics)
+	handle_errors(err)
+
+	for _, topic := range topics {
+		channels := make([]models.Channel, 0)
+
+		for _, name := range topic.Channels {
+			channel := new(models.Channel)
+			channel.Name = name
+			channel.Enabled = true
+			channels = append(channels, *channel)
+		}
+
+		Topics.Update(bson.M{"_id": topic.Id}, bson.M{
+			"$set": bson.M{
+				"channels": channels,
+			},
+		})
+	}
+
+	// fmt.Println("Updated", change.Updated, "documents in `", topicsCollection, "` collection")
+
+	// Modify org setting
+
+	query["user"] = ""
+	change, err := Topics.UpdateAll(
+		query,
+		bson.M{
+			"$set": map[string][]models.Channel{
+				"channels": make([]models.Channel, 0),
+			},
+		},
+	)
+	handle_errors(err)
+	fmt.Println("Updated", change.Updated, "documents in `", topicsCollection, "` collection")
+
+	return
 }
 
 /**
