@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/utils"
 	"gopkg.in/simversity/gottp.v3"
 	gottpUtils "gopkg.in/simversity/gottp.v3/utils"
 )

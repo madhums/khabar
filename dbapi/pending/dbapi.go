@@ -3,8 +3,8 @@ package pending
 import (
 	"time"
 
-	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
 //const LATENCY = 1 * int64(time.Second/time.Millisecond)

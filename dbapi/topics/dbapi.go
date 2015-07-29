@@ -1,18 +1,17 @@
 package topics
 
 import (
-	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/dbapi/defaults"
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
-func Update(user, org, topicName string, doc *utils.M) error {
+func Update(user, org, ident string, doc *utils.M) error {
 
 	return db.Conn.Update(db.TopicCollection,
 		utils.M{
 			"org":   org,
 			"user":  user,
-			"ident": topicName,
+			"ident": ident,
 		},
 		utils.M{
 			"$set": *doc,
@@ -30,72 +29,131 @@ func Delete(doc *utils.M) error {
 /**
  * Insert a topic in `topics` collection if it doesn't exist
  * Or Update the topic
- * Used only in the org level mostly to set default
+ * Used only in the org level mostly to set default and locked
+ *
+ * - 	This is not a very effecient way of doing it but we are doing it at
+ * 		the cost of the data structure we want
+ * - 	One of the limitations is that mongo is not yet capable of
+ * 		upserting to array of documents. For this to happen in a simple way the data
+ * 		structure has to change OR we use multiple collections
  */
 
-func InsertOrUpdateTopic(org, ident string, channel string) error {
+func InsertOrUpdateTopic(org, ident, channelName, attr string) error {
 
+	var channels []db.Channel
+	var channel db.Channel
+	var doc utils.M
+	var spec utils.M
 	found := new(db.Topic)
+	query := utils.M{
+		"org":   org,
+		"user":  "",
+		"ident": ident,
+	}
 
 	err := db.Conn.GetOne(
 		db.TopicCollection,
-		utils.M{
-			"org":      org,
-			"user":     "",
-			"ident":    ident,
-			"channels": channel,
-		},
+		query,
 		found,
 	)
 
+	channel.Name = channelName
+
+	if attr == "Default" {
+		channel.Default = true
+	} else {
+		channel.Locked = true
+	}
+
+	channels = append(channels, channel)
+
 	// If it doesn't exist, insert and return
+
 	if err != nil {
 		topic := new(db.Topic)
 		topic.PrepareSave()
-		topic.ToggleValue() // default `value` is false, so toggle it
 		topic.Ident = ident
 		topic.Organization = org
-		topic.Channels = []string{channel}
+		topic.Channels = channels
 		Insert(topic)
 		return nil
 	}
 
-	// Update Value attribute (toggle it)
+	// If it does exist, find the document in the array and modify it
+	// Do one of the two depending on whether its present or not
+	// Step 1. if its not present, add to channels array
+	// Step 2. if its present, toggle the value
 
-	err = db.Conn.Update(
+	query["channels.name"] = channelName
+	err = db.Conn.GetOne(
 		db.TopicCollection,
-		utils.M{
-			"org":      org,
-			"user":     "",
-			"ident":    ident,
-			"channels": channel,
-		},
-		utils.M{
-			"$set": utils.M{
-				"value": !found.Value,
-			},
-		},
+		query,
+		found,
 	)
 
-	return err
+	// Step 1. Add to set and return
+
+	if err != nil {
+		doc = utils.M{
+			"$addToSet": utils.M{
+				"channels": channel,
+			},
+		}
+		delete(query, "channels.name")
+		return AddOrgChannel(query, doc)
+	}
+
+	// Step 2. Else toggle value
+
+	if attr == "Default" {
+		spec = utils.M{
+			"channels.$.default": !GetDefaultOrLocked(found.Channels, channelName, "Default"),
+		}
+	} else {
+		spec = utils.M{
+			"channels.$.locked": !GetDefaultOrLocked(found.Channels, channelName, "Locked"),
+		}
+	}
+
+	doc = utils.M{
+		"$set": spec,
+	}
+
+	return AddOrgChannel(query, doc)
+}
+
+func AddOrgChannel(query, doc utils.M) error {
+	return db.Conn.Update(db.TopicCollection, query, doc)
+}
+
+func GetDefaultOrLocked(channels []db.Channel, channelName, attr string) bool {
+	var val bool
+	for _, channel := range channels {
+		if channel.Name == channelName {
+			if attr == "Default" {
+				val = channel.Default
+			} else {
+				val = channel.Locked
+			}
+		}
+	}
+	return val
 }
 
 func Initialize(user, org string) error {
-	orgArg := org
 	if user == db.BLANK {
-		orgArg = db.BLANK
+		org = db.BLANK
 	}
 
-	disabled := defaults.GetAllDisabled(orgArg)
-
+	disabled := GetAllDisabled(org)
 	preferences := []interface{}{}
 
-	for _, entry := range disabled {
+	for _, topic := range disabled {
 		preference := db.Topic{
 			User:         user,
 			Organization: org,
-			Ident:        entry.Topic,
-			Channels:     entry.Channels,
+			Ident:        topic.Ident,
+			Channels:     topic.Channels,
 		}
 
 		preference.PrepareSave()
@@ -108,7 +166,21 @@ func Initialize(user, org string) error {
 	}
 
 	return nil
+}
 
+func GetAllDisabled(org string) []db.Topic {
+	session := db.Conn.Session.Copy()
+	defer session.Close()
+
+	result := []db.Topic{}
+
+	db.Conn.Get(session, db.TopicCollection, utils.M{
+		"org":              org,
+		"user":             db.BLANK,
+		"channels.default": false,
+	}).All(&result)
+
+	return result
 }
 
 func ChannelAllowed(user, org, topicName, channel string) bool {
@@ -144,7 +216,7 @@ func ChannelAllowed(user, org, topicName, channel string) bool {
 	}
 }
 
-func DisableUserChannel(orgs, topics []string, user, channel string) {
+func DisableUserChannel(orgs, topics []string, user, channelName string) {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
@@ -153,7 +225,7 @@ func DisableUserChannel(orgs, topics []string, user, channel string) {
 
 	db.Conn.Update(
 		db.TopicCollection, utils.M{"user": user},
-		utils.M{"$addToSet": utils.M{"channels": channel}},
+		utils.M{"$addToSet": utils.M{"channels": channelName}},
 	)
 
 	disabled := []interface{}{}
@@ -168,7 +240,9 @@ func DisableUserChannel(orgs, topics []string, user, channel string) {
 					User:         user,
 					Organization: org,
 					Ident:        name,
-					Channels:     []string{channel},
+					Channels: []db.Channel{
+						db.Channel{Name: channelName, Enabled: false},
+					},
 				}
 
 				topic.PrepareSave()
@@ -243,14 +317,18 @@ func DeleteTopic(ident string) error {
 	return err
 }
 
-func AddChannel(ident, channel, user, organization string) error {
+func AddChannel(ident, channelName, user, organization string) error {
 	query := utils.M{
 		"org":   organization,
 		"user":  user,
 		"ident": ident,
 	}
 
-	spec := utils.M{"$addToSet": utils.M{"channels": channel}}
+	spec := utils.M{
+		"$addToSet": utils.M{
+			"channels": db.Channel{Name: channelName, Enabled: true},
+		},
+	}
 
 	result := utils.M{}
 
@@ -258,17 +336,25 @@ func AddChannel(ident, channel, user, organization string) error {
 	return err
 }
 
-func RemoveChannel(ident, channel, user, organization string) error {
+func RemoveChannel(ident, channelName, user, organization string) error {
 	query := utils.M{
-		"org":   organization,
-		"user":  user,
-		"ident": ident,
+		"org":           organization,
+		"user":          user,
+		"ident":         ident,
+		"channels.name": channelName,
 	}
 
-	spec := utils.M{"$pull": utils.M{"channels": channel}}
+	err := db.Conn.Update(
+		db.TopicCollection,
+		query,
+		utils.M{
+			"$pull": utils.M{
+				"channels": utils.M{
+					"name": channelName,
+				},
+			},
+		},
+	)
 
-	result := utils.M{}
-
-	_, err := db.Conn.FindAndUpdate(db.TopicCollection, query, spec, &result)
 	return err
 }

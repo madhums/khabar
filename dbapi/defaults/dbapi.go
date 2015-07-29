@@ -1,8 +1,17 @@
+/**
+ * What does this migration do?
+ *
+ * - Removes app_name from topics collection if it exists
+ * - Modifies `channels` property in `topics` collection from array of strings
+ *   to array of objects
+ * - Removes previously added `value` property to `topics` collection
+ */
+
 package defaults
 
 import (
-	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2/bson"
 )
 

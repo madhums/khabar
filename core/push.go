@@ -8,8 +8,8 @@ import (
 
 	"gopkg.in/simversity/gottp.v3/utils"
 
-	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/dbapi/saved_item"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/saved_item"
 )
 
 const PARSE_URL = "https://api.parse.com/1/push"

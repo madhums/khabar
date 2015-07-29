@@ -1,9 +1,8 @@
 package available_topics
 
 import (
-	"gopkg.in/bulletind/khabar.v1/db"
-	"gopkg.in/bulletind/khabar.v1/dbapi/locks"
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 )
 
 const trueState = true
@@ -48,6 +47,21 @@ func GetAppTopics(app_name, org string) (*[]db.AvailableTopic, error) {
 	return &topics, err
 }
 
+func GetAllLocked(org string) []db.Topic {
+	session := db.Conn.Session.Copy()
+	defer session.Close()
+
+	result := []db.Topic{}
+
+	db.Conn.Get(session, db.TopicCollection, utils.M{
+		"org":             org,
+		"user":            "",
+		"channels.locked": true,
+	}).All(&result)
+
+	return result
+}
+
 func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 	// Add defaults for org level
 	var availableTopics []string
@@ -83,13 +97,13 @@ func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string
 
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
-				topicMap[topic.Ident][channel].Default = topic.Value
+				topicMap[topic.Ident][channel.Name].Default = channel.Default
 				// topicMap[topic.Ident][channel].Locked = topic.Value
 			}
 		}
 	}
 
-	//Find Globally topic Topics
+	// Find Globally disabled Topics
 	query["user"] = db.BLANK
 	query["org"] = db.BLANK
 
@@ -97,7 +111,7 @@ func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string
 	for pass3.Next(topic) {
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
-				delete(topicMap[topic.Ident], channel)
+				delete(topicMap[topic.Ident], channel.Name)
 			}
 		}
 	}
@@ -108,17 +122,17 @@ func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string
 }
 
 func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
-	enabled := locks.GetAll(org)
+	locked := GetAllLocked(org)
 
-	for _, pref := range enabled {
-		if _, ok := topicMap[pref.Topic]; ok {
-			for _, channel := range pref.Channels {
+	for _, topic := range locked {
+		if _, ok := topicMap[topic.Ident]; ok {
+			for _, channel := range topic.Channels {
 
-				if _, ok := topicMap[pref.Topic][channel]; !ok {
+				if _, ok := topicMap[topic.Ident][channel.Name]; !ok {
 					continue
 				}
 
-				topicMap[pref.Topic][channel].Locked = true
+				topicMap[topic.Ident][channel.Name].Locked = channel.Locked
 			}
 		}
 	}
@@ -127,7 +141,7 @@ func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
 func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 
 	// We are trying to remember what the original user setting was for ident x channel
-	userSetting := make(map[string][]string)
+	userSetting := make(map[string][]db.Channel)
 
 	var availableTopics []string
 	topicMap := map[string]ChotaTopic{}
@@ -166,7 +180,7 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 				userSetting[topic.Ident] = topic.Channels
 
 				// These is what the user has set
-				topicMap[topic.Ident][channel].Value = trueState
+				topicMap[topic.Ident][channel.Name].Value = trueState
 			}
 		}
 	}
@@ -180,7 +194,7 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
 				// Set the default
-				topicMap[topic.Ident][channel].Default = topic.Value
+				topicMap[topic.Ident][channel.Name].Default = channel.Default
 			}
 		}
 	}
@@ -196,7 +210,7 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 		// Override it with the global setting
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
-				delete(topicMap[topic.Ident], channel)
+				delete(topicMap[topic.Ident], channel.Name)
 			}
 		}
 	}

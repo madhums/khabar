@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"gopkg.in/bulletind/khabar.v1/core"
-	"gopkg.in/bulletind/khabar.v1/dbapi/topics"
-	"gopkg.in/bulletind/khabar.v1/utils"
+	"github.com/bulletind/khabar/core"
+	"github.com/bulletind/khabar/dbapi/topics"
+	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v3"
 )
@@ -29,7 +29,7 @@ func (self *Defaults) Post(request *gottp.Request) {
 		return
 	}
 
-	err := topics.InsertOrUpdateTopic(org, ident, channel)
+	err := topics.InsertOrUpdateTopic(org, ident, channel, "Default")
 
 	if err != nil {
 		log.Println(err)
@@ -62,7 +62,7 @@ func (self *Defaults) Delete(request *gottp.Request) {
 		return
 	}
 
-	err := topics.InsertOrUpdateTopic(org, ident, channel)
+	err := topics.InsertOrUpdateTopic(org, ident, channel, "Default")
 
 	if err != nil {
 		if err != mgo.ErrNotFound {

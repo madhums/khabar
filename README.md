@@ -1,4 +1,7 @@
-## Khabar [![Build Status](https://travis-ci.org/bulletind/khabar.svg?branch=develop)](https://travis-ci.org/bulletind/khabar)
+[![Build Status](https://travis-ci.org/bulletind/khabar.svg?branch=develop)](https://travis-ci.org/bulletind/khabar)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bulletind/khabar?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
+## Khabar
 
 Notifications engine.
 
@@ -40,23 +43,33 @@ It means
 
 ## Development
 
-Clone the repo
-
 ```sh
 $ go get github.com/codegangsta/gin
+$ go get github.com/tools/godep
 ```
 
-[gin](http://github.com/codegangsta/gin) is used to to automatically compile files while you are developing
+- [gin](http://github.com/codegangsta/gin) is used to to automatically compile files while you are developing
+- [godep](http://github.com/tools/godep) is used to manage dependencies
 
 Then run
 
 ```sh
+$ mkdir -p $GOPATH/src/github.com/bulletind
+$ cd $GOPATH/src/github.com/bulletind
+$ git clone https://github.com/bulletind/khabar.git # or your fork
+$ cd khabar
 $ DEBUG=* go get && go install && gin -p 8911 -i
 ```
 
 Now you should be able to access the below API's on port `8911`.
 
 MongoDB config is stored in `config/conf.go`.
+
+After you make the changes (if you import any new deps), don't forget to run
+
+```sh
+$ godep save ./...
+```
 
 ## Usage
 
