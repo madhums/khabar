@@ -179,7 +179,7 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 
 				userSetting[topic.Ident] = topic.Channels
 
-				// These is what the user has set
+				// This is what the user has set
 				topicMap[topic.Ident][channel.Name].Value = trueState
 			}
 		}
