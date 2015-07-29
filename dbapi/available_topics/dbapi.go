@@ -89,29 +89,38 @@ func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string
 	query := utils.M{
 		"ident": utils.M{"$in": availableTopics},
 		"user":  db.BLANK,
-		"org":   org,
+		"org":   db.BLANK,
 	}
+
+	// Step 1
+	// Use global settings
 
 	pass1 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
 	for pass1.Next(topic) {
+		if _, ok := topicMap[topic.Ident]; ok {
+			for _, channel := range topic.Channels {
+				if _, ok = topicMap[topic.Ident][channel.Name]; !ok {
+					continue
+				}
+
+				topicMap[topic.Ident][channel.Name].Default = channel.Default
+				topicMap[topic.Ident][channel.Name].Locked = channel.Locked
+			}
+		}
+	}
+
+	// Step 2
+	// Override it with organization settings
+
+	query["org"] = org
+
+	pass2 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
+	for pass2.Next(topic) {
 
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
 				topicMap[topic.Ident][channel.Name].Default = channel.Default
 				// topicMap[topic.Ident][channel].Locked = topic.Value
-			}
-		}
-	}
-
-	// Find Globally disabled Topics
-	query["user"] = db.BLANK
-	query["org"] = db.BLANK
-
-	pass3 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
-	for pass3.Next(topic) {
-		if _, ok := topicMap[topic.Ident]; ok {
-			for _, channel := range topic.Channels {
-				delete(topicMap[topic.Ident], channel.Name)
 			}
 		}
 	}
@@ -141,7 +150,7 @@ func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
 func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 
 	// We are trying to remember what the original user setting was for ident x channel
-	userSetting := make(map[string][]db.Channel)
+	// userSetting := make(map[string][]db.Channel)
 
 	var availableTopics []string
 	topicMap := map[string]ChotaTopic{}
@@ -164,71 +173,92 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 		availableTopics = append(availableTopics, topic.Ident)
 	}
 
-	// Step 1
-	// Add user preferences
 	query := utils.M{
 		"ident": utils.M{"$in": availableTopics},
-		"user":  user,
-		"org":   org,
 	}
+
+	// Step 1
+	// Add global settings
+
+	query["user"] = db.BLANK
+	query["org"] = db.BLANK
 
 	pass1 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
 	for pass1.Next(topic) {
+
+		// Override it with the global setting
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
+				if _, ok = topicMap[topic.Ident][channel.Name]; !ok {
+					continue
+				}
 
-				userSetting[topic.Ident] = topic.Channels
-
-				// This is what the user has set
-				topicMap[topic.Ident][channel.Name].Value = trueState
+				topicMap[topic.Ident][channel.Name].Default = channel.Default
+				topicMap[topic.Ident][channel.Name].Locked = channel.Locked
+				topicMap[topic.Ident][channel.Name].Value = channel.Enabled
 			}
 		}
 	}
 
 	// Step 2
-	// Find all Topics that have been defaulted by the Organization
+	// Use org settings
+
 	query["user"] = db.BLANK
 
 	pass2 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
 	for pass2.Next(topic) {
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
-				// Set the default
+
+				if _, ok = topicMap[topic.Ident][channel.Name]; !ok {
+					continue
+				}
+
+				// Set the default from org
 				topicMap[topic.Ident][channel.Name].Default = channel.Default
+				topicMap[topic.Ident][channel.Name].Locked = channel.Locked
+				topicMap[topic.Ident][channel.Name].Value = channel.Default
 			}
 		}
 	}
 
 	// Step 3
-	// Remove globablly disabled topic/channels
-	query["user"] = db.BLANK
-	query["org"] = db.BLANK
+	// Add user settings
+
+	query["user"] = user
+	query["org"] = org
 
 	pass3 := db.Conn.GetCursor(session, db.TopicCollection, query).Iter()
 	for pass3.Next(topic) {
-
-		// Override it with the global setting
 		if _, ok := topicMap[topic.Ident]; ok {
 			for _, channel := range topic.Channels {
-				delete(topicMap[topic.Ident], channel.Name)
+
+				// userSetting[topic.Ident] = topic.Channels
+
+				// This is what the user has set
+				topicMap[topic.Ident][channel.Name].Value = channel.Enabled
+
+				if topicMap[topic.Ident][channel.Name].Default && topicMap[topic.Ident][channel.Name].Locked {
+					topicMap[topic.Ident][channel.Name].Value = true
+				}
 			}
 		}
 	}
 
 	// After all the overrides apply locks
-	ApplyLocks(org, topicMap)
+	// ApplyLocks(org, topicMap)
 
 	// After the locks have been applied, make sure that the defaults are
 	// applied properly
 
-	for idnt, values := range topicMap {
-		for ch, _ := range values {
+	// for idnt, values := range topicMap {
+	// 	for ch, _ := range values {
 
-			if topicMap[idnt][ch].Default && topicMap[idnt][ch].Locked {
-				topicMap[idnt][ch].Value = true
-			}
-		}
-	}
+	// 		if topicMap[idnt][ch].Default && topicMap[idnt][ch].Locked {
+	// 			topicMap[idnt][ch].Value = true
+	// 		}
+	// 	}
+	// }
 
 	return topicMap, nil
 }

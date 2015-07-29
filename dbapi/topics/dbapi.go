@@ -38,7 +38,7 @@ func Delete(doc *utils.M) error {
  * 		structure has to change OR we use multiple collections
  */
 
-func InsertOrUpdateTopic(org, ident, channelName, attr string) error {
+func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user string) error {
 
 	var channels []db.Channel
 	var channel db.Channel
@@ -47,7 +47,7 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string) error {
 	found := new(db.Topic)
 	query := utils.M{
 		"org":   org,
-		"user":  "",
+		"user":  user, // empty for org
 		"ident": ident,
 	}
 
@@ -60,9 +60,11 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string) error {
 	channel.Name = channelName
 
 	if attr == "Default" {
-		channel.Default = true
+		channel.Default = val
+	} else if attr == "Locked" {
+		channel.Locked = val
 	} else {
-		channel.Locked = true
+		channel.Enabled = val
 	}
 
 	channels = append(channels, channel)
@@ -100,18 +102,22 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string) error {
 			},
 		}
 		delete(query, "channels.name")
-		return AddOrgChannel(query, doc)
+		return AddOrgOrUserChannel(query, doc)
 	}
 
 	// Step 2. Else toggle value
 
 	if attr == "Default" {
 		spec = utils.M{
-			"channels.$.default": !GetDefaultOrLocked(found.Channels, channelName, "Default"),
+			"channels.$.default": !GetChannelProperty(found.Channels, channelName, attr),
 		}
-	} else {
+	} else if attr == "Locked" {
 		spec = utils.M{
-			"channels.$.locked": !GetDefaultOrLocked(found.Channels, channelName, "Locked"),
+			"channels.$.locked": !GetChannelProperty(found.Channels, channelName, attr),
+		}
+	} else if attr == "Enabled" {
+		spec = utils.M{
+			"channels.$.enabled": !GetChannelProperty(found.Channels, channelName, attr),
 		}
 	}
 
@@ -119,21 +125,23 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string) error {
 		"$set": spec,
 	}
 
-	return AddOrgChannel(query, doc)
+	return AddOrgOrUserChannel(query, doc)
 }
 
-func AddOrgChannel(query, doc utils.M) error {
+func AddOrgOrUserChannel(query, doc utils.M) error {
 	return db.Conn.Update(db.TopicCollection, query, doc)
 }
 
-func GetDefaultOrLocked(channels []db.Channel, channelName, attr string) bool {
+func GetChannelProperty(channels []db.Channel, channelName, attr string) bool {
 	var val bool
 	for _, channel := range channels {
 		if channel.Name == channelName {
 			if attr == "Default" {
 				val = channel.Default
-			} else {
+			} else if attr == "Locked" {
 				val = channel.Locked
+			} else if attr == "Enabled" {
+				val = channel.Enabled
 			}
 		}
 	}
@@ -344,14 +352,20 @@ func RemoveChannel(ident, channelName, user, organization string) error {
 		"channels.name": channelName,
 	}
 
-	err := db.Conn.Update(
+	found := new(db.Topic)
+
+	err := db.Conn.GetOne(
+		db.TopicCollection,
+		query,
+		found,
+	)
+
+	err = db.Conn.Update(
 		db.TopicCollection,
 		query,
 		utils.M{
-			"$pull": utils.M{
-				"channels": utils.M{
-					"name": channelName,
-				},
+			"$set": utils.M{
+				"channels.$.enabled": false,
 			},
 		},
 	)

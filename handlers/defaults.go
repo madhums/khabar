@@ -29,7 +29,7 @@ func (self *Defaults) Post(request *gottp.Request) {
 		return
 	}
 
-	err := topics.InsertOrUpdateTopic(org, ident, channel, "Default")
+	err := topics.InsertOrUpdateTopic(org, ident, channel, "Default", true, "")
 
 	if err != nil {
 		log.Println(err)
@@ -62,7 +62,7 @@ func (self *Defaults) Delete(request *gottp.Request) {
 		return
 	}
 
-	err := topics.InsertOrUpdateTopic(org, ident, channel, "Default")
+	err := topics.InsertOrUpdateTopic(org, ident, channel, "Default", false, "")
 
 	if err != nil {
 		if err != mgo.ErrNotFound {

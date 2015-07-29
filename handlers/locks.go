@@ -30,7 +30,7 @@ func (self *Locks) Post(request *gottp.Request) {
 		return
 	}
 
-	err := topics.InsertOrUpdateTopic(org, ident, channelName, "Locked")
+	err := topics.InsertOrUpdateTopic(org, ident, channelName, "Locked", true, "")
 
 	if err != nil {
 		log.Println(err)
@@ -62,7 +62,7 @@ func (self *Locks) Delete(request *gottp.Request) {
 		return
 	}
 
-	err := topics.InsertOrUpdateTopic(org, ident, channelName, "Locked")
+	err := topics.InsertOrUpdateTopic(org, ident, channelName, "Locked", false, "")
 
 	if err != nil {
 		if err != mgo.ErrNotFound {

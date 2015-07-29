@@ -28,7 +28,10 @@ func (self *TopicChannel) Delete(request *gottp.Request) {
 	topic := new(db.Topic)
 	request.ConvertArguments(topic)
 
-	err := topics.RemoveChannel(topic.Ident, channelName, topic.User, topic.Organization)
+	err := topics.InsertOrUpdateTopic(topic.Organization, topic.Ident, channelName, "Enabled", false, topic.User)
+
+	// err := topics.RemoveChannel(topic.Ident, channelName, topic.User, topic.Organization)
+
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, err.Error()})
 		return
@@ -57,7 +60,9 @@ func (self *TopicChannel) Post(request *gottp.Request) {
 	topic := new(db.Topic)
 	request.ConvertArguments(topic)
 
-	err := topics.AddChannel(topic.Ident, channelName, topic.User, topic.Organization)
+	err := topics.InsertOrUpdateTopic(topic.Organization, topic.Ident, channelName, "Enabled", true, topic.User)
+	// topics.AddChannel(topic.Ident, channelName, topic.User, topic.Organization)
+
 	if err != nil {
 		request.Raise(gottp.HttpError{http.StatusBadRequest, err.Error()})
 		return
