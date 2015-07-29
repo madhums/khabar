@@ -22,8 +22,6 @@ func emailHandler(
 	if !ok {
 		log.Println("Email field is of invalid type")
 		return
-		//} else {
-		//email = "testing@piyushverma.net"
 	}
 
 	var sender string = ""
