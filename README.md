@@ -280,12 +280,10 @@ $ khabar
   }
   ```
 
-## Todo and future plans
+## Todo
 
 - Verify if the api's listed above are correct and update them.
-- Break the library into multiple pieces like types, api and only keep the business logic in this repo.
 - Spin up a nice demo.
-- Add the admin for managing topics etc.
 - Ability to use `MONGODB_URL` from environment variable.
 - Ability to listen on a specified port (`--port` from command line?) or via `PORT` environment variable.
 - Deployment and hosting.
