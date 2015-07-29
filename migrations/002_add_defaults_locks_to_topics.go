@@ -16,6 +16,8 @@
  * - Remove previously added `value` property to `topics` collection
  * - Modify `channels` property in `topics` collection from array of strings
  *   to array of objects
+ * - Rename locks collection to `temp_locks`
+ * - Rename defaults collection to `temp_defaults`
  */
 
 package main
