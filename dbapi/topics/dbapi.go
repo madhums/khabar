@@ -29,7 +29,6 @@ func Delete(doc *utils.M) error {
 /**
  * Insert a topic in `topics` collection if it doesn't exist
  * Or Update the topic
- * Used only in the org level mostly to set default and locked
  *
  * - 	This is not a very effecient way of doing it but we are doing it at
  * 		the cost of the data structure we want
@@ -44,6 +43,7 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 	var channel db.Channel
 	var doc utils.M
 	var spec utils.M
+
 	found := new(db.Topic)
 	query := utils.M{
 		"org":   org,
@@ -51,11 +51,33 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 		"ident": ident,
 	}
 
+	// See if this setting already exists
 	err := db.Conn.GetOne(
 		db.TopicCollection,
 		query,
 		found,
 	)
+
+	// Fetch the global setting
+	// Because if the above setting already doesn't exist, then set the other
+	// attr to what is set in global
+	if attr == "Default" || attr == "Locked" {
+		global := new(db.Topic)
+		q := utils.M{"org": "", "user": "", "ident": ident}
+		e := db.Conn.GetOne(db.TopicCollection, q, &global)
+
+		if e == nil {
+			for _, ch := range global.Channels {
+				if ch.Name == channelName {
+					if attr == "Default" {
+						channel.Locked = ch.Locked
+					} else if attr == "Locked" {
+						channel.Default = ch.Default
+					}
+				}
+			}
+		}
+	}
 
 	channel.Name = channelName
 
@@ -85,7 +107,7 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 	// If it does exist, find the document in the array and modify it
 	// Do one of the two depending on whether its present or not
 	// Step 1. if its not present, add to channels array
-	// Step 2. if its present, toggle the value
+	// Step 2. if its present, set the value
 
 	query["channels.name"] = channelName
 	err = db.Conn.GetOne(
@@ -106,7 +128,7 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 		return AddOrgOrUserChannel(query, doc)
 	}
 
-	// Step 2. Else toggle value
+	// Step 2. Else set the value
 
 	if attr == "Default" {
 		spec = utils.M{
