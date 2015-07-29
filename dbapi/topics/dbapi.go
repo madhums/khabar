@@ -76,6 +76,7 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 		topic.PrepareSave()
 		topic.Ident = ident
 		topic.Organization = org
+		topic.User = user
 		topic.Channels = channels
 		Insert(topic)
 		return nil
@@ -109,15 +110,15 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 
 	if attr == "Default" {
 		spec = utils.M{
-			"channels.$.default": !GetChannelProperty(found.Channels, channelName, attr),
+			"channels.$.default": val,
 		}
 	} else if attr == "Locked" {
 		spec = utils.M{
-			"channels.$.locked": !GetChannelProperty(found.Channels, channelName, attr),
+			"channels.$.locked": val,
 		}
 	} else if attr == "Enabled" {
 		spec = utils.M{
-			"channels.$.enabled": !GetChannelProperty(found.Channels, channelName, attr),
+			"channels.$.enabled": val,
 		}
 	}
 
