@@ -49,10 +49,12 @@ type Topic struct {
  */
 
 func main() {
-	session, db := Connect()
+	session, db, dbName := Connect()
 	RemoveAppName(db)
 	RemoveValue(db)
 	ModifyChannels(db)
+	RemoveLocks(session, dbName)
+	RemoveDefaults(session, dbName)
 	session.Close()
 	fmt.Println("\n", "Closing mongodb connection")
 }
@@ -61,7 +63,7 @@ func main() {
  * Connect to mongo
  */
 
-func Connect() (*mgo.Session, *mgo.Database) {
+func Connect() (*mgo.Session, *mgo.Database, string) {
 	uri := os.Getenv("MONGODB_URL")
 
 	if uri == "" {
@@ -79,7 +81,7 @@ func Connect() (*mgo.Session, *mgo.Database) {
 
 	sess := session.Clone()
 
-	return session, sess.DB(mInfo.Database)
+	return session, sess.DB(mInfo.Database), mInfo.Database
 }
 
 /**
@@ -174,6 +176,36 @@ func ModifyChannels(db *mgo.Database) (err error) {
 	fmt.Println("Updated", change.Updated, "documents in `", topicsCollection, "` collection")
 
 	return
+}
+
+/**
+ * Remove locks collection
+ */
+
+func RemoveLocks(session *mgo.Session, dbName string) {
+	var result interface{}
+	err := session.Run(bson.D{
+		{"renameCollection", dbName + ".locks"},
+		{"to", dbName + ".temp_locks"},
+	}, result)
+	if err != nil {
+		fmt.Println("Error removing locks collection. It may have already been removed")
+	}
+}
+
+/**
+ * Remove defaults collection
+ */
+
+func RemoveDefaults(session *mgo.Session, dbName string) {
+	var result interface{}
+	err := session.Run(bson.D{
+		{"renameCollection", dbName + ".defaults"},
+		{"to", dbName + ".temp_defaults"},
+	}, result)
+	if err != nil {
+		fmt.Println("Error removing defaults collection. It may have already been removed")
+	}
 }
 
 /**
