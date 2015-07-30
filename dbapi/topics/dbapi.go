@@ -74,6 +74,8 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 					} else if attr == "Locked" {
 						channel.Default = ch.Default
 					}
+				} else if err != nil {
+					channels = append(channels, ch)
 				}
 			}
 		}
