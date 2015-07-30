@@ -61,22 +61,21 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 	// Fetch the global setting
 	// Because if the above setting already doesn't exist, then set the other
 	// attr to what is set in global
-	if attr == "Default" || attr == "Locked" {
-		global := new(db.Topic)
-		q := utils.M{"org": "", "user": "", "ident": ident}
-		e := db.Conn.GetOne(db.TopicCollection, q, &global)
 
-		if e == nil {
-			for _, ch := range global.Channels {
-				if ch.Name == channelName {
-					if attr == "Default" {
-						channel.Locked = ch.Locked
-					} else if attr == "Locked" {
-						channel.Default = ch.Default
-					}
-				} else if err != nil {
-					channels = append(channels, ch)
+	global := new(db.Topic)
+	q := utils.M{"org": "", "user": "", "ident": ident}
+	e := db.Conn.GetOne(db.TopicCollection, q, &global)
+
+	if e == nil {
+		for _, ch := range global.Channels {
+			if ch.Name == channelName {
+				if attr == "Default" {
+					channel.Locked = ch.Locked
+				} else if attr == "Locked" {
+					channel.Default = ch.Default
 				}
+			} else if err != nil {
+				channels = append(channels, ch)
 			}
 		}
 	}
