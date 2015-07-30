@@ -52,7 +52,10 @@ func getText(locale, ident, channel string, pending_item *db.PendingItem) string
 
 func send(locale, channelIdent string, pending_item *db.PendingItem) {
 	if !topics.ChannelAllowed(
-		pending_item.User, pending_item.Organization, pending_item.Topic,
+		pending_item.User,
+		pending_item.Organization,
+		pending_item.AppName,
+		pending_item.Topic,
 		channelIdent,
 	) {
 		log.Println("Channel", channelIdent, "is blocked for topic", pending_item.Topic)

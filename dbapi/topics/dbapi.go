@@ -1,7 +1,10 @@
 package topics
 
 import (
+	"log"
+
 	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/dbapi/available_topics"
 	"github.com/bulletind/khabar/utils"
 )
 
@@ -215,15 +218,40 @@ func GetAllDisabled(org string) []db.Topic {
 	return result
 }
 
-func ChannelAllowed(user, org, topicName, channel string) bool {
+func ChannelAllowed(user, org, app_name, ident, channelName string) bool {
+
+	var available = []string{"email", "web", "push"}
+	var preference map[string]available_topics.ChotaTopic
+	appTopics, err := available_topics.GetAppTopics(app_name, org)
+	channels := []string{}
+	for _, idnt := range available {
+		channels = append(channels, idnt)
+	}
+	preference, err = available_topics.GetUserTopics(user, org, appTopics, &channels)
+
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	if _, ok := preference[ident]; !ok {
+		return false
+	}
+
+	if _, ok := preference[ident][channelName]; !ok {
+		return false
+	}
+
+	return preference[ident][channelName].Value
+
 	// TODO: Populate default values here.
-	defUser := db.Conn.Count(db.TopicCollection, utils.M{
+	/*defUser := db.Conn.Count(db.TopicCollection, utils.M{
 		"$or": []utils.M{
 			utils.M{"user": user, "org": db.BLANK},
 			utils.M{"user": user, "org": org},
 		},
-		"ident":    topicName,
-		"channels": channel,
+		"ident":         ident,
+		"channels.name": channelName,
 	}) == 0
 
 	defOrg := db.Conn.Count(db.TopicCollection, utils.M{
@@ -231,21 +259,34 @@ func ChannelAllowed(user, org, topicName, channel string) bool {
 			utils.M{"user": db.BLANK, "org": org},
 			utils.M{"user": db.BLANK, "org": db.BLANK},
 		},
-		"ident":    topicName,
-		"channels": channel,
+		"ident":         ident,
+		"channels.name": channelName,
 	}) == 0
 
-	lockEntry := new(db.Locks)
+	preference := new(db.Topic)
+	locked := false
 
-	err := db.Conn.GetOne(db.LocksCollection,
-		utils.M{"org": org, "ident": topicName, "channels": channel},
-		lockEntry)
+	err := db.Conn.GetOne(
+		db.TopicCollection,
+		utils.M{
+			"org":           org,
+			"ident":         ident,
+			"channels.name": channelName,
+		},
+		preference,
+	)
 
 	if err != nil {
 		return defOrg && defUser
 	} else {
-		return defOrg && lockEntry.Enabled
-	}
+		for _, channel := range preference.Channels {
+			if channel.Name == channelName {
+				locked = channel.Locked
+			}
+		}
+
+		return defOrg && locked
+	}*/
 }
 
 func DisableUserChannel(orgs, topics []string, user, channelName string) {
