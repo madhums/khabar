@@ -243,50 +243,6 @@ func ChannelAllowed(user, org, app_name, ident, channelName string) bool {
 	}
 
 	return preference[ident][channelName].Value
-
-	// TODO: Populate default values here.
-	/*defUser := db.Conn.Count(db.TopicCollection, utils.M{
-		"$or": []utils.M{
-			utils.M{"user": user, "org": db.BLANK},
-			utils.M{"user": user, "org": org},
-		},
-		"ident":         ident,
-		"channels.name": channelName,
-	}) == 0
-
-	defOrg := db.Conn.Count(db.TopicCollection, utils.M{
-		"$or": []utils.M{
-			utils.M{"user": db.BLANK, "org": org},
-			utils.M{"user": db.BLANK, "org": db.BLANK},
-		},
-		"ident":         ident,
-		"channels.name": channelName,
-	}) == 0
-
-	preference := new(db.Topic)
-	locked := false
-
-	err := db.Conn.GetOne(
-		db.TopicCollection,
-		utils.M{
-			"org":           org,
-			"ident":         ident,
-			"channels.name": channelName,
-		},
-		preference,
-	)
-
-	if err != nil {
-		return defOrg && defUser
-	} else {
-		for _, channel := range preference.Channels {
-			if channel.Name == channelName {
-				locked = channel.Locked
-			}
-		}
-
-		return defOrg && locked
-	}*/
 }
 
 func DisableUserChannel(orgs, topics []string, user, channelName string) {
