@@ -18,8 +18,6 @@ const (
 	SavedWebCollection       = "saved_web"
 	AvailableTopicCollection = "topics_available"
 
-	DefaultsCollection  = "defaults"
-	LocksCollection     = "locks"
 	ProcessedCollection = "processed"
 )
 
@@ -27,22 +25,6 @@ type Processed struct {
 	BaseModel    `bson:",inline"`
 	User         string `bson:"user"`
 	Organization string `bson:"org"`
-}
-
-type Defaults struct {
-	BaseModel    `bson:",inline"`
-	Organization string   `json:"org" bson:"org"`
-	Topic        string   `json:"ident" bson:"ident" required:"true"`
-	Channels     []string `json:"channels" bson:"channels" required:"true"`
-	Enabled      bool     `json:"enabled" bson:"enabled"`
-}
-
-type Locks struct {
-	BaseModel    `bson:",inline"`
-	Organization string   `json:"org" bson:"org" required:"true"`
-	Topic        string   `json:"ident" bson:"ident" required:"true"`
-	Channels     []string `json:"channels" bson:"channels" required:"true"`
-	Enabled      bool     `json:"enabled" bson:"enabled"`
 }
 
 type AvailableTopic struct {
