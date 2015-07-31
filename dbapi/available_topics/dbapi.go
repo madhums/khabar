@@ -5,10 +5,6 @@ import (
 	"github.com/bulletind/khabar/utils"
 )
 
-const trueState = true
-const falseState = false
-const disabledState = false
-
 type TopicDetail struct {
 	Locked  bool `json:"locked"`
 	Value   bool `json:"value"`
@@ -47,6 +43,10 @@ func GetAppTopics(app_name, org string) (*[]db.AvailableTopic, error) {
 	return &topics, err
 }
 
+/**
+ * Get all the (ident x channel)s that are locked by the org
+ */
+
 func GetAllLocked(org string) []db.Topic {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
@@ -62,6 +62,10 @@ func GetAllLocked(org string) []db.Topic {
 	return result
 }
 
+/**
+ * Get organization preferences
+ */
+
 func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 	// Add defaults for org level
 	var availableTopics []string
@@ -71,7 +75,7 @@ func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string
 	for _, availableTopic := range *appTopics {
 		ct := ChotaTopic{}
 		for _, channel := range availableTopic.Channels {
-			ct[channel] = &TopicDetail{Locked: false, Value: trueState}
+			ct[channel] = &TopicDetail{Locked: false, Value: true}
 		}
 
 		topicMap[availableTopic.Ident] = ct
@@ -126,27 +130,12 @@ func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string
 		}
 	}
 
-	// ApplyLocks(org, topicMap)
-
 	return topicMap, nil
 }
 
-func ApplyLocks(org string, topicMap map[string]ChotaTopic) {
-	locked := GetAllLocked(org)
-
-	for _, topic := range locked {
-		if _, ok := topicMap[topic.Ident]; ok {
-			for _, channel := range topic.Channels {
-
-				if _, ok := topicMap[topic.Ident][channel.Name]; !ok {
-					continue
-				}
-
-				topicMap[topic.Ident][channel.Name].Locked = channel.Locked
-			}
-		}
-	}
-}
+/**
+ * Get user preferences
+ */
 
 func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 
@@ -159,7 +148,7 @@ func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[
 	for _, availableTopic := range *appTopics {
 		ct := ChotaTopic{}
 		for _, channel := range availableTopic.Channels {
-			ct[channel] = &TopicDetail{Locked: false, Value: falseState}
+			ct[channel] = &TopicDetail{Locked: false, Value: false}
 		}
 
 		orgSetting[availableTopic.Ident] = ct
