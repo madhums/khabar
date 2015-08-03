@@ -14,15 +14,6 @@ import (
 
 var Conn *MConn
 
-func Convert(doc utils.M, out interface{}) {
-	stream, err := bson.Marshal(doc)
-	if err == nil {
-		bson.Unmarshal(stream, out)
-	} else {
-		panic(err)
-	}
-}
-
 type MConn struct {
 	Session *mgo.Session
 	Dbname  string
@@ -59,51 +50,6 @@ func (self *MConn) getCursor(session *mgo.Session, table string,
 	return cursor.Limit(limit).Skip(skip).Sort(sort).Select(fields)
 }
 
-type MapReduce mgo.MapReduce
-
-func (self *MConn) MapReduce(session *mgo.Session, table string,
-	query utils.M, result interface{}, job *MapReduce) (*mgo.MapReduceInfo, error) {
-	db := session.DB(self.Dbname)
-
-	coll := db.C(table)
-	realJob := mgo.MapReduce{Map: job.Map, Reduce: job.Reduce,
-		Finalize: job.Finalize, Scope: job.Scope, Verbose: true}
-	return coll.Find(query).MapReduce(&realJob, result)
-}
-
-func (self *MConn) DropIndex(table string, key ...string) error {
-	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
-	db := session.DB(self.Dbname)
-	defer session.Close()
-
-	coll := db.C(table)
-	return coll.DropIndex(key...)
-}
-
-func (self *MConn) DropIndices(table string) error {
-	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
-	db := session.DB(self.Dbname)
-	defer session.Close()
-
-	collection := db.C(table)
-	indexes, err := collection.Indexes()
-	if err == nil {
-		for _, index := range indexes {
-			err = collection.DropIndex(index.Key...)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	if err != nil {
-		panic(err)
-	}
-	return nil
-}
-
 func (self *MConn) findAndApply(
 	table string, query utils.M, change mgo.Change, result interface{},
 ) (*mgo.ChangeInfo, error) {
@@ -122,16 +68,6 @@ func (self *MConn) findAndApply(
 	return info, err
 }
 
-func (self *MConn) FindAndUpsert(
-	table string, query utils.M, doc utils.M, result interface{},
-) (*mgo.ChangeInfo, error) {
-	change := mgo.Change{
-		Update: doc,
-		Upsert: true,
-	}
-	return self.findAndApply(table, query, change, result)
-}
-
 func (self *MConn) FindAndUpdate(
 	table string, query utils.M, doc utils.M, result interface{},
 ) (*mgo.ChangeInfo, error) {
@@ -140,16 +76,6 @@ func (self *MConn) FindAndUpdate(
 		Upsert: true,
 	}
 	return self.findAndApply(table, query, change, result)
-}
-
-func (self *MConn) EnsureIndex(table string, index mgo.Index) error {
-	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
-	db := session.DB(self.Dbname)
-	defer session.Close()
-
-	coll := db.C(table)
-	return coll.EnsureIndex(index)
 }
 
 func (self *MConn) GetCursor(session *mgo.Session, table string,
@@ -167,21 +93,6 @@ func (self *MConn) Get(session *mgo.Session, table string,
 	return self.getCursor(session, table, query).Iter()
 }
 
-func (self *MConn) HintedGetOne(table string, query utils.M,
-	result interface{}, hint string) error {
-	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
-	defer session.Close()
-
-	cursor := self.getCursor(session, table, query).Hint(hint)
-	err := cursor.One(result)
-	if err != nil {
-		log.Println("Error fetching", table, err)
-	}
-
-	return err
-}
-
 func (self *MConn) GetOne(table string, query utils.M,
 	result interface{}) error {
 	//Create a Session Copy and be responsible for Closing it.
@@ -195,21 +106,6 @@ func (self *MConn) GetOne(table string, query utils.M,
 	}
 
 	return err
-}
-
-func (self *MConn) HintedCount(table string, query utils.M, hint string) int {
-	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
-	defer session.Close()
-
-	cursor := self.getCursor(session, table, query).
-		Select(utils.M{"_id": 1}).Hint(hint)
-	count, err := cursor.Count()
-	if err != nil {
-		log.Println("Error Counting", table, err)
-	}
-
-	return count
 }
 
 func (self *MConn) Count(table string, query utils.M) int {
@@ -359,15 +255,6 @@ func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {
 	}
 
 	return
-}
-
-func (self *MConn) Aggregate(session *mgo.Session, table string,
-	doc []utils.M) *mgo.Pipe {
-	//Create a Session Copy and be responsible for Closing it.
-	db := session.DB(self.Dbname)
-
-	coll := db.C(table)
-	return coll.Pipe(doc)
 }
 
 var cached = struct {

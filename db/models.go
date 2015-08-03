@@ -48,13 +48,6 @@ type SentItem struct {
 	Entity         string                 `json:"entity" bson:"entity" required:"true"`
 }
 
-func (self *SentItem) IsValid() bool {
-	if len(self.Text) == 0 {
-		return false
-	}
-	return true
-}
-
 type SavedItem struct {
 	BaseModel `bson:",inline"`
 	Data      interface{} `bson:"data"`

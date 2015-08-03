@@ -1,3 +1,5 @@
+// Package main is the CLI.
+// You can use the CLI via Terminal.
 package main
 
 import (

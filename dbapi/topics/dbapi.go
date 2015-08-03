@@ -4,42 +4,24 @@ import (
 	"log"
 
 	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/available_topics"
+	availableTopics "github.com/bulletind/khabar/dbapi/available_topics"
 	"github.com/bulletind/khabar/utils"
 )
 
-func Update(user, org, ident string, doc *utils.M) error {
-
-	return db.Conn.Update(db.TopicCollection,
-		utils.M{
-			"org":   org,
-			"user":  user,
-			"ident": ident,
-		},
-		utils.M{
-			"$set": *doc,
-		})
-}
-
+// Insert adds a new user or organization preference
 func Insert(topic *db.Topic) string {
 	return db.Conn.Insert(db.TopicCollection, topic)
 }
 
-func Delete(doc *utils.M) error {
-	return db.Conn.Delete(db.TopicCollection, *doc)
-}
-
-/**
- * Insert a topic in `topics` collection if it doesn't exist
- * Or Update the topic
- *
- * - 	This is not a very effecient way of doing it but we are doing it at
- * 		the cost of the data structure we want
- * - 	One of the limitations is that mongo is not yet capable of
- * 		upserting to array of documents. For this to happen in a simple way the data
- * 		structure has to change OR we use multiple collections
- */
-
+// InsertOrUpdateTopic adds a topic in `topics` collection if it doesn't exist
+// Or it update the topic if it exists
+//
+// This is not a very effecient way of doing it but we are doing it at the cost
+// of the data structure we want.
+//
+// One of the limitations is that mongo is not yet capable of upserting to array
+// of documents. For this to happen in a simple way the data structure has to
+// change from channels: []Channel to channels: map[string]interface
 func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user string) error {
 
 	var channels []db.Channel
@@ -129,7 +111,7 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 			},
 		}
 		delete(query, "channels.name")
-		return AddOrgOrUserChannel(query, doc)
+		return updateTopics(query, doc)
 	}
 
 	// Step 2. Else set the value
@@ -152,35 +134,21 @@ func InsertOrUpdateTopic(org, ident, channelName, attr string, val bool, user st
 		"$set": spec,
 	}
 
-	return AddOrgOrUserChannel(query, doc)
+	return updateTopics(query, doc)
 }
 
-func AddOrgOrUserChannel(query, doc utils.M) error {
+// updateTopics updates user or organization preferences
+func updateTopics(query, doc utils.M) error {
 	return db.Conn.Update(db.TopicCollection, query, doc)
 }
 
-func GetChannelProperty(channels []db.Channel, channelName, attr string) bool {
-	var val bool
-	for _, channel := range channels {
-		if channel.Name == channelName {
-			if attr == "Default" {
-				val = channel.Default
-			} else if attr == "Locked" {
-				val = channel.Locked
-			} else if attr == "Enabled" {
-				val = channel.Enabled
-			}
-		}
-	}
-	return val
-}
-
+// Initialize creates a list of "default - non-enabled" preferences for user or org
 func Initialize(user, org string) error {
 	if user == db.BLANK {
 		org = db.BLANK
 	}
 
-	disabled := GetAllDisabled(org)
+	disabled := GetAllDefault(org)
 	preferences := []interface{}{}
 
 	for _, topic := range disabled {
@@ -203,7 +171,8 @@ func Initialize(user, org string) error {
 	return nil
 }
 
-func GetAllDisabled(org string) []db.Topic {
+// GetAllDefault returns all the "default - non-enabled" preferences for the organization
+func GetAllDefault(org string) []db.Topic {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
 
@@ -218,16 +187,19 @@ func GetAllDisabled(org string) []db.Topic {
 	return result
 }
 
+// ChannelAllowed checks if the requested channel is allowed by the user for sending
+// out the notification
 func ChannelAllowed(user, org, app_name, ident, channelName string) bool {
 
 	var available = []string{"email", "web", "push"}
-	var preference map[string]available_topics.ChotaTopic
-	appTopics, err := available_topics.GetAppTopics(app_name, org)
+	var preference map[string]availableTopics.ChotaTopic
+
+	appTopics, err := availableTopics.GetAppTopics(app_name, org)
 	channels := []string{}
 	for _, idnt := range available {
 		channels = append(channels, idnt)
 	}
-	preference, err = available_topics.GetUserTopics(user, org, appTopics, &channels)
+	preference, err = availableTopics.GetUserPreferences(user, org, appTopics, &channels)
 
 	if err != nil {
 		log.Println(err)
@@ -306,37 +278,7 @@ func Get(user, org, topicName string) (topic *db.Topic, err error) {
 	return
 }
 
-func findPerUser(user, org, topicName string) (topic *db.Topic, err error) {
-
-	topic, err = Get(user, org, topicName)
-	if err != nil {
-		topic, err = Get(user, db.BLANK, topicName)
-	}
-
-	return
-}
-
-func findPerOrgnaization(org, topicName string) (topic *db.Topic, err error) {
-	return Get(db.BLANK, org, topicName)
-}
-
-func findGlobal(topicName string) (topic *db.Topic, err error) {
-	return Get(db.BLANK, db.BLANK, topicName)
-}
-
-func Find(user, org, topicName string) (topic *db.Topic, err error) {
-
-	topic, err = findPerUser(user, org, topicName)
-	if err != nil {
-		topic, err = findPerOrgnaization(org, topicName)
-		if err != nil {
-			topic, err = findGlobal(topicName)
-		}
-	}
-
-	return
-}
-
+// DeleteTopic deletes the ident from `topics_available` collection
 func DeleteTopic(ident string) error {
 	err := db.Conn.Delete(db.TopicCollection, utils.M{"ident": ident})
 	if err != nil {
@@ -346,6 +288,7 @@ func DeleteTopic(ident string) error {
 	return err
 }
 
+// AddChannel enables the channel for that particular ident for sending notifications
 func AddChannel(ident, channelName, user, organization string) error {
 	query := utils.M{
 		"org":   organization,
@@ -365,6 +308,8 @@ func AddChannel(ident, channelName, user, organization string) error {
 	return err
 }
 
+// RemoveChannel disables the channel for that particular ident for sending
+// notifications
 func RemoveChannel(ident, channelName, user, organization string) error {
 	query := utils.M{
 		"org":           organization,

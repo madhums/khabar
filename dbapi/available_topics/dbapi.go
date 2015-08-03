@@ -43,30 +43,8 @@ func GetAppTopics(app_name, org string) (*[]db.AvailableTopic, error) {
 	return &topics, err
 }
 
-/**
- * Get all the (ident x channel)s that are locked by the org
- */
-
-func GetAllLocked(org string) []db.Topic {
-	session := db.Conn.Session.Copy()
-	defer session.Close()
-
-	result := []db.Topic{}
-
-	db.Conn.Get(session, db.TopicCollection, utils.M{
-		"org":             org,
-		"user":            "",
-		"channels.locked": true,
-	}).All(&result)
-
-	return result
-}
-
-/**
- * Get organization preferences
- */
-
-func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
+// GetOrgPreferences lists all the organization preferences for the ident and channel
+func GetOrgPreferences(org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 	// Add defaults for org level
 	var availableTopics []string
 
@@ -133,11 +111,8 @@ func GetOrgTopics(org string, appTopics *[]db.AvailableTopic, channels *[]string
 	return topicMap, nil
 }
 
-/**
- * Get user preferences
- */
-
-func GetUserTopics(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
+// GetUserPreferences lists all the user preferences
+func GetUserPreferences(user, org string, appTopics *[]db.AvailableTopic, channels *[]string) (map[string]ChotaTopic, error) {
 
 	// Remember what the original org and global settings for ident x channel
 	orgSetting := map[string]ChotaTopic{}
@@ -265,10 +240,12 @@ func Get(topic string) (found *db.AvailableTopic, err error) {
 	return found, nil
 }
 
+// Insert creates a new available topic
 func Insert(newTopic *db.AvailableTopic) string {
 	return db.Conn.Insert(db.AvailableTopicCollection, newTopic)
 }
 
+// Delete removes an available topic
 func Delete(doc *utils.M) error {
 	return db.Conn.Delete(db.AvailableTopicCollection, *doc)
 }
