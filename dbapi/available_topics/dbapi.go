@@ -1,3 +1,4 @@
+// Provides methods for fetching preferences and modifying availbale topics
 package available_topics
 
 import (
@@ -13,6 +14,7 @@ type TopicDetail struct {
 
 type ChotaTopic map[string]*TopicDetail
 
+// GetAllTopics returns all the available topics
 func GetAllTopics() []string {
 	session := db.Conn.Session.Copy()
 	defer session.Close()
@@ -26,6 +28,7 @@ func GetAllTopics() []string {
 	return topics
 }
 
+// GetAppTopics returns all the available topics for the particular app
 func GetAppTopics(app_name, org string) (*[]db.AvailableTopic, error) {
 	session := db.Conn.Session.Copy()
 	defer session.Close()

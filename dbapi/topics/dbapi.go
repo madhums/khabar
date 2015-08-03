@@ -1,3 +1,4 @@
+// Provides methods for creating and modifying preferenfes
 package topics
 
 import (
