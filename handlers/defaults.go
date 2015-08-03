@@ -45,7 +45,6 @@ func (self *Defaults) Post(request *gottp.Request) {
 	})
 
 	return
-
 }
 
 func (self *Defaults) Delete(request *gottp.Request) {
@@ -75,5 +74,4 @@ func (self *Defaults) Delete(request *gottp.Request) {
 	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil,
 		Message: "NoContent."})
 	return
-
 }

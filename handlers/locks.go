@@ -4,9 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bulletind/khabar/dbapi/topics"
-
 	"github.com/bulletind/khabar/core"
+	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/simversity/gottp.v3"
