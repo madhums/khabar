@@ -13,12 +13,12 @@ func registerHandlers() {
 	// PUT - Mark all notifications as read
 	gottp.NewUrl("notifications", "^/notifications/?$", new(handlers.Notifications))
 
-	// Mark a notification as read
-	gottp.NewUrl("notification", "^/notifications/(?P<_id>\\w+)/?$", new(handlers.Notification))
-
 	// Get notification stats
 	// Add/Update timestamp in last_seen_at collection
 	gottp.NewUrl("stats", "^/notifications/stats/?$", new(handlers.Stats))
+
+	// Mark a notification as read
+	gottp.NewUrl("notification", "^/notifications/(?P<_id>\\w+)/?$", new(handlers.Notification))
 
 	// Preferences
 	//
