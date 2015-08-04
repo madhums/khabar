@@ -31,7 +31,9 @@ It means
     3. [Mark all unread notifications as read](#mark-all-unread-notifications-as-read)
     4. [Get notification stats](#get-notification-stats)
     5. [Update last seen time stamp](#update-last-seen-time-stamp)
+    6. [Send notification](#send-notification)
   - [Some general conventions](#some-general-conventions)
+- [Envrionment variables](#environment-variables)
 
 ## Concept and idea
 
@@ -259,6 +261,43 @@ $ khabar
     - `user`: (required) user id
     - `org`: (required) organization id
 
+  6. ##### Send notification
+
+    ```
+    POST /notifications?topic=text
+    ```
+
+    Request Body:
+    ```js
+    {
+      "created_by" : "5486e02870a0d30200bdcfd3",
+      "org" : "5486d3d986ba633a207682b6",
+      "app_name" : "myapp", // <- this is the category
+      "topic" : "log_incoming",
+      "user" : "5486e02870a0d30200bdcfe0",
+      "destination_uri" : "http://...",
+      "context" : {
+        "Organization" : "5486d3d986ba633a207682b6",
+        "sender" : "org name",
+        "fullname" : "John hopkins",
+        "logger" : "Elvis",
+        "refnumber" : "IL2958",
+        "Collection" : "collection_name",
+        "Id" : "554caa744aca430a00de5324",
+        "User" : "5486e02870a0d30200bdcfe0",
+        "destination_uri" : "http://...",
+        "email" : "john.hopkins@email",
+        "severity" : "low",
+        "subject" : "New log"
+      },
+      "entity" : "554caa744aca430a00de5324"
+    }
+    ```
+
+    Query params:
+
+    - `topic`: Text that is used for sending notification (short text)
+
 #### Some general conventions:
 
 - For all of the above request you must pass atleast one of the `org` or `user` or both
@@ -283,3 +322,16 @@ $ khabar
     "status": 204
   }
   ```
+
+## Environment variables
+
+We use [parse](https://www.parse.com/) to send push notifications. When you are sending out a notification using the [`POST /notifications`](#send-notification) api call, it looks for certain environment variables and they are based on the categories you are using to in the `topics_available` (events) collection.
+
+For example if your category is called "mayapp", and you have some events configured in the `topics_available` collection, when you make `POST /notifications` call, it looks for `PARSE_myapp_API_KEY` and `PARSE_myapp_APP_ID` enviroment variables.
+
+You can set them by doing
+
+```sh
+$ export PARSE_myapp_API_KEY=***
+$ export PARSE_myapp_APP_ID=***
+```

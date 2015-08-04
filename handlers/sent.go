@@ -79,6 +79,7 @@ func (self *Notifications) Put(request *gottp.Request) {
 	return
 }
 
+// Send a notification to the user depending on preferences
 func (self *Notifications) Post(request *gottp.Request) {
 	pending_item := new(db.PendingItem)
 	request.ConvertArguments(pending_item)
