@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/bulletind/khabar/core"
 	"github.com/bulletind/khabar/dbapi/topics"
@@ -83,5 +84,5 @@ func getDefaultOrLocked(req *gottp.Request) string {
 	if val == "defaults" {
 		val = "default"
 	}
-	return utils.Capitalize(val)
+	return strings.Title(val)
 }

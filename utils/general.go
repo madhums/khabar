@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"bytes"
 	"net/http"
-	"strings"
 
 	"gopkg.in/simversity/gottp.v3"
 	"gopkg.in/simversity/gottp.v3/utils"
@@ -76,17 +74,4 @@ func RemoveDuplicates(arr *[]string) {
 		}
 	}
 	*arr = (*arr)[:j]
-}
-
-func Capitalize(s string) string {
-	if len(s) < 2 {
-		return strings.ToUpper(s)
-	}
-
-	bts := []byte(s)
-
-	lc := bytes.ToUpper([]byte{bts[0]})
-	rest := bts[1:]
-
-	return string(bytes.Join([][]byte{lc, rest}, nil))
 }
