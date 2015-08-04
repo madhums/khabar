@@ -97,7 +97,7 @@ func getParseKeys(category string) utils.M {
 		envKey := "PARSE_" + category + "_" + parse.Name
 		doc[parse.Key] = os.Getenv(envKey)
 		if len(os.Getenv(envKey)) == 0 {
-			log.Println("PARSE_"+category+"_"+parse.Name, "is empty. Make sure you set this env variable")
+			log.Println(envKey, "is empty. Make sure you set this env variable")
 		}
 	}
 	return doc
