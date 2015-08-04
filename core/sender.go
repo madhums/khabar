@@ -103,15 +103,15 @@ func getParseKeys(category string) utils.M {
 	return doc
 }
 
-func send(locale, channelIdent string, pending_item *db.PendingItem) {
+func send(locale, channelName string, pending_item *db.PendingItem) {
 	if !topics.ChannelAllowed(
 		pending_item.User,
 		pending_item.Organization,
 		pending_item.AppName,
 		pending_item.Topic,
-		channelIdent,
+		channelName,
 	) {
-		log.Println("Channel", channelIdent, "is blocked for topic", pending_item.Topic)
+		log.Println("Channel", channelName, "is blocked for topic", pending_item.Topic)
 		return
 	}
 
@@ -120,25 +120,23 @@ func send(locale, channelIdent string, pending_item *db.PendingItem) {
 		return
 	}
 
-	var channelData utils.M
+	channelData := map[string]interface{}{}
 
-	if channelIdent != WEB {
+	if channelName != WEB {
 		channelData = getParseKeys(pending_item.AppName)
-	} else {
-		channelData = map[string]interface{}{}
 	}
 
-	text := getText(locale, pending_item.Topic, channelIdent, pending_item)
+	text := getText(locale, pending_item.Topic, channelName, pending_item)
 	if text == "" {
 		// If Topic == text, do not send the notification. This can happen
 		// if the translation fails to find a sensible string in the JSON files
 		// OR the translation provided was meaningless. To prevent the users
 		// from being annpyed, abort this routine.
-		log.Println("No translation for:", channelIdent, pending_item.Topic)
+		log.Println("No translation for:", channelName, pending_item.Topic)
 		return
 	}
 
-	subject := getText(locale, pending_item.Topic+"_subject", channelIdent, pending_item)
+	subject := getText(locale, pending_item.Topic+"_subject", channelName, pending_item)
 
 	if subject != "" {
 		pending_item.Context["subject"] = subject
@@ -146,7 +144,7 @@ func send(locale, channelIdent string, pending_item *db.PendingItem) {
 		log.Println("Subject not found.")
 	}
 
-	if channelIdent == EMAIL {
+	if channelName == EMAIL {
 		buffer := new(bytes.Buffer)
 
 		transDir := config.Settings.Khabar.TranslationDirectory
@@ -164,7 +162,7 @@ func send(locale, channelIdent string, pending_item *db.PendingItem) {
 		}
 	}
 
-	sendToChannel(pending_item, text, channelIdent, channelData)
+	sendToChannel(pending_item, text, channelName, channelData)
 }
 
 func ProcessDefaults(user, org string) {
