@@ -27,6 +27,7 @@ type Stats struct {
 	gottp.BaseHandler
 }
 
+// Get notification stats
 func (self *Stats) Get(request *gottp.Request) {
 	args := statsApi.RequestArgs{}
 
@@ -63,6 +64,8 @@ func (self *Stats) Get(request *gottp.Request) {
 
 }
 
+// Update last seen timestamp
+// Add/Update timestamp in last_seen_at collection
 func (self *Stats) Put(request *gottp.Request) {
 	args := statsApi.RequestArgs{}
 

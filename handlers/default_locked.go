@@ -11,16 +11,17 @@ import (
 	"gopkg.in/simversity/gottp.v3"
 )
 
-type Defaults struct {
+type DefaultLocked struct {
 	gottp.BaseHandler
 }
 
-func (self *Defaults) Post(request *gottp.Request) {
-	channel := request.GetArgument("channel").(string)
+func (self *DefaultLocked) Post(request *gottp.Request) {
+	channelName := request.GetArgument("channel").(string)
 	ident := request.GetArgument("ident").(string)
 	org := request.GetArgument("org").(string)
+	defaultOrLocked := getDefaultOrLocked(request)
 
-	if !core.IsChannelAvailable(channel) {
+	if !core.IsChannelAvailable(channelName) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
 			"Channel is not supported",
@@ -29,7 +30,7 @@ func (self *Defaults) Post(request *gottp.Request) {
 		return
 	}
 
-	err := topics.InsertOrUpdateTopic(org, ident, channel, "Default", true, "")
+	err := topics.InsertOrUpdateTopic(org, ident, channelName, defaultOrLocked, true, "")
 
 	if err != nil {
 		log.Println(err)
@@ -47,12 +48,13 @@ func (self *Defaults) Post(request *gottp.Request) {
 	return
 }
 
-func (self *Defaults) Delete(request *gottp.Request) {
-	channel := request.GetArgument("channel").(string)
+func (self *DefaultLocked) Delete(request *gottp.Request) {
+	channelName := request.GetArgument("channel").(string)
 	ident := request.GetArgument("ident").(string)
 	org := request.GetArgument("org").(string)
+	defaultOrLocked := getDefaultOrLocked(request)
 
-	if !core.IsChannelAvailable(channel) {
+	if !core.IsChannelAvailable(channelName) {
 		request.Raise(gottp.HttpError{
 			http.StatusBadRequest,
 			"Channel is not supported",
@@ -61,7 +63,7 @@ func (self *Defaults) Delete(request *gottp.Request) {
 		return
 	}
 
-	err := topics.InsertOrUpdateTopic(org, ident, channel, "Default", false, "")
+	err := topics.InsertOrUpdateTopic(org, ident, channelName, defaultOrLocked, false, "")
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -74,4 +76,12 @@ func (self *Defaults) Delete(request *gottp.Request) {
 	request.Write(utils.R{StatusCode: http.StatusNoContent, Data: nil,
 		Message: "NoContent."})
 	return
+}
+
+func getDefaultOrLocked(req *gottp.Request) string {
+	val := req.GetArgument("type").(string)
+	if val == "defaults" {
+		val = "default"
+	}
+	return utils.Capitalize(val)
 }

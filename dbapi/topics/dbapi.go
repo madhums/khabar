@@ -279,16 +279,6 @@ func Get(user, org, topicName string) (topic *db.Topic, err error) {
 	return
 }
 
-// DeleteTopic deletes the ident from `topics_available` collection
-func DeleteTopic(ident string) error {
-	err := db.Conn.Delete(db.TopicCollection, utils.M{"ident": ident})
-	if err != nil {
-		return err
-	}
-	err = db.Conn.Delete(db.AvailableTopicCollection, utils.M{"ident": ident})
-	return err
-}
-
 // AddChannel enables the channel for that particular ident for sending notifications
 func AddChannel(ident, channelName, user, organization string) error {
 	query := utils.M{

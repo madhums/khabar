@@ -18,6 +18,7 @@ type Notifications struct {
 	gottp.BaseHandler
 }
 
+// List all notifications
 func (self *Notifications) Get(request *gottp.Request) {
 	var args struct {
 		Organization string `json:"org"`
@@ -28,8 +29,7 @@ func (self *Notifications) Get(request *gottp.Request) {
 	request.ConvertArguments(&args)
 	paginator := request.GetPaginator()
 
-	all, err := sentApi.GetAll(paginator, args.User, args.AppName,
-		args.Organization)
+	all, err := sentApi.GetAll(paginator, args.User, args.AppName, args.Organization)
 
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -52,6 +52,7 @@ func (self *Notifications) Get(request *gottp.Request) {
 	return
 }
 
+// Mark all notifications as read
 func (self *Notifications) Put(request *gottp.Request) {
 	var args struct {
 		Organization string `json:"org"`
@@ -61,8 +62,7 @@ func (self *Notifications) Put(request *gottp.Request) {
 
 	request.ConvertArguments(&args)
 
-	err := sentApi.MarkRead(args.User, args.AppName,
-		args.Organization)
+	err := sentApi.MarkRead(args.User, args.AppName, args.Organization)
 
 	if err != nil {
 		log.Println(err)
