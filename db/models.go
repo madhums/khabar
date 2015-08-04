@@ -10,7 +10,6 @@ const (
 	SentCollection       = "sent_notifications"
 	StatsCollection      = "last_seen_at"
 	TopicCollection      = "topics"
-	GullyCollection      = "gullys"
 	UserLocaleCollection = "user_locales"
 
 	SavedEmailCollection     = "saved_email"
