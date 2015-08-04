@@ -6,41 +6,38 @@ import (
 )
 
 func registerHandlers() {
-	gottp.NewUrl("notifications", "^/notifications/?$",
-		new(handlers.Notifications))
 
-	gottp.NewUrl("stats", "^/notifications/stats/?$",
-		new(handlers.Stats))
+	// Notifications
+	//
+	// GET - List all notifications
+	// PUT - Mark all notifications as read
+	gottp.NewUrl("notifications", "^/notifications/?$", new(handlers.Notifications))
 
-	gottp.NewUrl("notification", "^/notifications/(?P<_id>\\w+)/?$",
-		new(handlers.Notification))
+	// Mark a notification as read
+	gottp.NewUrl("notification", "^/notifications/(?P<_id>\\w+)/?$", new(handlers.Notification))
 
-	gottp.NewUrl("channel", "^/channels/(?P<ident>\\w+)/?$",
-		new(handlers.Gully))
+	// Get notification stats
+	// Add/Update timestamp in last_seen_at collection
+	gottp.NewUrl("stats", "^/notifications/stats/?$", new(handlers.Stats))
 
-	gottp.NewUrl("topic_channel",
-		"^/topics/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$",
-		new(handlers.TopicChannel))
-
-	gottp.NewUrl("topic", "^/topics/(?P<ident>\\w+)/?$",
-		new(handlers.Topic))
-
-	gottp.NewUrl("user_locale", "^/locales/(?P<user>\\w+)/?$",
-		new(handlers.UserLocale))
-
-	gottp.NewUrl("channels", "^/channels/?$", new(handlers.Gullys))
-
+	// Preferences
+	//
+	// List user/org preferences
 	gottp.NewUrl("topics", "^/topics/?$", new(handlers.Topics))
 
-	gottp.NewUrl("defaultTopics", "^/topics/defaults/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$",
-		new(handlers.Defaults))
+	// Set/Unset user preference
+	gottp.NewUrl("topic_channel", "^/topics/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$", new(handlers.TopicChannel))
 
-	gottp.NewUrl("lockedTopics", "^/topics/locked/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$",
-		new(handlers.Locks))
+	// Set/Unset org defaults or locked
+	gottp.NewUrl("default_locked", "^/topics/(?P<type>\\w+)/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$", new(handlers.DefaultLocked))
+
+	// Store and update user locale
+	gottp.NewUrl("user_locale", "^/locales/(?P<user>\\w+)/?$", new(handlers.UserLocale))
 
 	gottp.NewUrl("snsBounce", "^/sns/bounce/?$", new(handlers.SnsBounce))
-
 	gottp.NewUrl("snsComplain", "^/sns/complaint/?$", new(handlers.SnsComplaint))
-
 	gottp.NewUrl("mandrillBounce", "^/mandrill/bounce/?$", new(handlers.MandrillBounce))
+
+	gottp.NewUrl("channels", "^/channels/?$", new(handlers.Gullys))
+	gottp.NewUrl("channel", "^/channels/(?P<ident>\\w+)/?$", new(handlers.Gully))
 }

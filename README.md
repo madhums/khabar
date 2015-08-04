@@ -19,26 +19,21 @@ It means
 - [Development](#development)
 - [Usage](#usage)
 - [API](#api)
-  - **[Channels](#channels)**
-    1. [Add a new channel](#add-a-new-channel)
-    2. [Remove a channel](#remove-a-channel)
-    3. [Get all channels](#get-all-channels)
-  - **[Topics](#topics)**
-    1. [Add a new topic](#add-a-new-topic)
-    2. [Remove a topic](#remove-a-topic)
-    3. [Get all topics](#get-all-topics)
+  - **[Preferences](#preferences)**
+    1. [List all preferences of user or org](#list-all-preferences-of-user-or-org)
+    2. [Set an user preference](#set-an-user-preference)
+    3. [Unset an user preference](#unset-an-user-preference)
+    4. [Set an org preference](#set-an-org-preference)
+    5. [Unset an org preference](#unset-an-org-preference)
   - **[Notifications](#notifications)**
-    1. [Get all notifications](#get-all-notifications)
+    1. [List all notifications](#list-all-notifications)
     2. [Mark a single notification as read](#mark-a-single-notification-as-read)
     3. [Mark all unread notifications as read](#mark-all-unread-notifications-as-read)
+    4. [Get notification stats](#get-notification-stats)
+    5. [Update last seen time stamp](#update-last-seen-time-stamp)
   - [Some general conventions](#some-general-conventions)
-- [Todo and future plans](#todo-and-future-plans)
 
 ## Concept and idea
-
-**Channels**
-
-**Ident** or **topic**
 
 ## How does it work?
 
@@ -81,104 +76,9 @@ $ khabar
 
 ## API
 
-1. #### Channels
+1. #### Preferences
 
-  1. ##### Add a new channel
-
-    ```
-    POST /topic/<notification_ident>/channel/<channel_ident>
-    ```
-
-    Request:
-    ```js
-    {
-        org: "",
-        user: "",
-        ident: ""
-    }
-    ```
-
-  2. ##### Remove a channel
-
-    ```
-    DELETE /topic/<notification_ident>/channel/<channel_ident>
-    ```
-
-    Request:
-    ```js
-    {
-      org: "",
-      user: "",
-      ident: ""
-    }
-    ```
-
-  3. ##### Get all channels
-
-    ```
-    GET /channels
-    ```
-
-    Query params:
-
-    - `org`: organization id
-    - `user`: user id
-
-    Response:
-    ```js
-    [
-      {
-          "_id": "",
-          "created_on": 1425545240236,
-          "updated_on": 1425545240236,
-          "user": "",
-          "org": "",
-          "app_name": "",
-          "data": {
-          },
-          "ident": ""
-      }
-    ]
-    ```
-
-2. #### Topics
-
-  1. ##### Add a new topic
-
-    ```
-    POST /topic
-    ```
-
-    Request:
-    ```js
-    {
-        org: "123",
-        user: "",
-        ident: "",
-        app_name: "myapp"
-    }
-    ```
-
-    - `ident` is requred
-    - `org` is required
-    - `app_name` is required
-
-  2. ##### Remove a topic
-
-    ```
-    DELETE /topic/<notification_ident>
-    ```
-
-    Request:
-    ```js
-    {
-        org: "",
-        user: "",
-        ident: ""
-    }
-    ```
-
-  3. ##### Get all topics
+  1. ##### List all preferences of user or org
 
     ```
     GET /topics
@@ -188,6 +88,10 @@ $ khabar
 
     - `org`: organization id
     - `user`: user id
+
+    if org and user are not sent in query params, then it will send global preferences
+    if org is sent and user is not, then it will send org preferences
+    if org and user are both sent, then it will send user preferences
 
     Response:
     ```js
@@ -208,9 +112,55 @@ $ khabar
     ]
     ```
 
-3. #### Notifications
+  2. ##### Set an user preference
 
-  1. ##### Get all notifications
+    ```
+    POST /topics/:ident/channels/:channel
+    ```
+
+    Query params:
+
+    - `org`: (required) organization id
+    - `user`: (required) user id
+
+  3. ##### Unset an user preference
+
+    ```
+    DELETE /topics/:ident/channels/:channel
+    ```
+
+    Query params:
+
+    - `org`: (required) organization id
+    - `user`: (required) user id
+
+  4. ##### Set an org preference
+
+    ```
+    POST /topics/:type/:ident/channels/:channel
+    ```
+
+    `:type` here is either `defaults` or `locked`
+
+    Query params:
+
+    - `org`: (required) organization id
+
+  5. ##### Unset an org preference
+
+    ```
+    DELETE /topics/:type/:ident/channels/:channel
+    ```
+
+    `:type` here is either `defaults` or `locked`
+
+    Query params:
+
+    - `org`: (required) organization id
+
+2. #### Notifications
+
+  1. ##### List all notifications
 
     ```
     GET /notifications
@@ -246,15 +196,68 @@ $ khabar
     PUT /notification/:_id
     ```
 
+    Request Body:
+    ```json
+    {
+      "destination_uri": "http://link-to-entity",
+      "text": "Notification text",
+      "topic": "Notification topic"
+    }
+    ```
+
+    - `destination_uri`: (required) Link to relevant entity. (i.e action, incident)
+    - `text`: (required) Notification text (long text)
+    - `topic`: (required) Notification topic (short text)
+
   3. ##### Mark all unread notifications as read
 
     ```
     PUT /notifications
     ```
 
-    - `destination_uri`: Link to relevant entity. #### (i.e action, incident)
-    - `text`: Notification text
-    - `topic`: Notification topic
+    Request Body:
+    ```json
+    {
+      "org": "123",
+      "user": "456"
+    }
+    ```
+
+    - `org`: (required) org id
+    - `user`: (required) user id
+    - `app_name`: (optional) name of the app or category
+
+  4. ##### Get notification stats
+
+    ```
+    GET /notifications/stats
+    ```
+
+    Query params:
+
+    - `user`: (required) user id
+    - `org`: (required) organization id
+
+    Response:
+    ```
+    {
+      "last_seen": "2015-08-03T14:26:05.860Z",
+      "total_count": 37,
+      "unread_count": 0,
+      "total_unread": 32
+    }
+    ```
+
+  5. ##### Update last seen time stamp
+
+    ```
+    PUT /notifications/stats
+    ```
+
+    Query params:
+
+    - `user`: (required) user id
+    - `org`: (required) organization id
 
 #### Some general conventions:
 
@@ -280,11 +283,3 @@ $ khabar
     "status": 204
   }
   ```
-
-## Todo
-
-- Verify if the api's listed above are correct and update them.
-- Spin up a nice demo.
-- Ability to use `MONGODB_URL` from environment variable.
-- Ability to listen on a specified port (`--port` from command line?) or via `PORT` environment variable.
-- Deployment and hosting.

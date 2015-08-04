@@ -38,7 +38,7 @@ func GetAll(paginator *gottp.Paginator, user, appName, org string) (*[]db.SentIt
 	if paginator != nil {
 		query = *utils.GetPaginationToQuery(paginator)
 	}
-	var result []db.SentItem
+	result := make([]db.SentItem, 0)
 	query["user"] = user
 
 	if len(appName) > 0 {
