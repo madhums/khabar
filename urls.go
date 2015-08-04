@@ -37,7 +37,4 @@ func registerHandlers() {
 	gottp.NewUrl("snsBounce", "^/sns/bounce/?$", new(handlers.SnsBounce))
 	gottp.NewUrl("snsComplain", "^/sns/complaint/?$", new(handlers.SnsComplaint))
 	gottp.NewUrl("mandrillBounce", "^/mandrill/bounce/?$", new(handlers.MandrillBounce))
-
-	gottp.NewUrl("channels", "^/channels/?$", new(handlers.Gullys))
-	gottp.NewUrl("channel", "^/channels/(?P<ident>\\w+)/?$", new(handlers.Gully))
 }

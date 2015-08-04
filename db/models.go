@@ -10,7 +10,6 @@ const (
 	SentCollection       = "sent_notifications"
 	StatsCollection      = "last_seen_at"
 	TopicCollection      = "topics"
-	GullyCollection      = "gullys"
 	UserLocaleCollection = "user_locales"
 
 	SavedEmailCollection     = "saved_email"
@@ -81,30 +80,6 @@ type LastSeen struct {
 	Organization string `json:"org" bson:"org"`
 	AppName      string `json:"app_name" bson:"app_name"`
 	Timestamp    int64  `json:"timestamp" bson:"timestamp" required:"true"`
-}
-
-type Gully struct {
-	BaseModel    `bson:",inline"`
-	User         string                 `json:"user" bson:"user"`
-	Organization string                 `json:"org" bson:"org"`
-	AppName      string                 `json:"app_name" bson:"app_name"`
-	Data         map[string]interface{} `json:"data" bson:"data" required:"true"`
-	Ident        string                 `json:"ident" bson:"ident" required:"true"`
-}
-
-func (self *Gully) IsValid(op_type int) bool {
-
-	if len(self.Ident) == 0 {
-		return false
-	}
-
-	if op_type == INSERT_OPERATION {
-		if len(self.Data) == 0 {
-			return false
-		}
-	}
-
-	return true
 }
 
 type UserLocale struct {

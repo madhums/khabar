@@ -4,22 +4,28 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
+	"os"
 	"sync"
 
 	"text/template"
 
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/dbapi/gully"
 	"github.com/bulletind/khabar/dbapi/processed"
 	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/dbapi/user_locale"
+	"github.com/bulletind/khabar/utils"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
 const webIdent = "web"
 const DEFAULT_LOCALE = "en_US"
 const DEFAULT_TIMEZONE = "GMT+0.0"
+
+type Parse struct {
+	Name string
+	Key  string
+}
 
 func sendToChannel(
 	pending_item *db.PendingItem,
@@ -50,6 +56,53 @@ func getText(locale, ident, channel string, pending_item *db.PendingItem) string
 	return text
 }
 
+// getCategories fetchs distinct available categories to which we can send notifications
+func getCategories() []string {
+	session := db.Conn.Session.Copy()
+	defer session.Close()
+
+	var categories []string
+
+	db.Conn.GetCursor(
+		session, db.AvailableTopicCollection, utils.M{},
+	).Distinct("app_name", &categories)
+
+	return categories
+}
+
+// validCategory checks if the category is valid for sending notification
+func validCategory(category string) bool {
+	categories := getCategories()
+	var found bool
+	for _, c := range categories {
+		if c == category {
+			found = true
+			break
+		}
+	}
+	return found
+}
+
+// getParseKeys returns map of parse api key and app id
+// It gets the values from the enviroment variables
+func getParseKeys(category string) utils.M {
+	doc := utils.M{}
+	var keys = []Parse{
+		Parse{"APP_ID", "parse_application_id"},
+		Parse{"API_KEY", "parse_rest_api_key"},
+	}
+
+	// Set the Parse api key and id
+	for _, parse := range keys {
+		envKey := "PARSE_" + category + "_" + parse.Name
+		doc[parse.Key] = os.Getenv(envKey)
+		if len(os.Getenv(envKey)) == 0 {
+			log.Println(envKey, "is empty. Make sure you set this env variable")
+		}
+	}
+	return doc
+}
+
 func send(locale, channelIdent string, pending_item *db.PendingItem) {
 	if !topics.ChannelAllowed(
 		pending_item.User,
@@ -62,22 +115,15 @@ func send(locale, channelIdent string, pending_item *db.PendingItem) {
 		return
 	}
 
-	var channelData map[string]interface{}
+	if !validCategory(pending_item.AppName) {
+		log.Println("Category", pending_item.AppName, "doesn't exist")
+		return
+	}
+
+	var channelData utils.M
 
 	if channelIdent != WEB {
-		channel, err := gully.FindOne(
-			pending_item.User,
-			pending_item.AppName,
-			pending_item.Organization,
-			channelIdent,
-		)
-
-		if err != nil {
-			log.Println(channelIdent, err.Error())
-			return
-		}
-
-		channelData = channel.Data
+		channelData = getParseKeys(pending_item.AppName)
 	} else {
 		channelData = map[string]interface{}{}
 	}

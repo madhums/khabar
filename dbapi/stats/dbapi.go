@@ -1,3 +1,4 @@
+// Provides methods to get and set notification stats
 package stats
 
 import (
@@ -21,6 +22,8 @@ type RequestArgs struct {
 	User         string `json:"user" required:"true"`
 }
 
+// Save updates the last seen time stamp if the record already exists for the user
+// otherwise it creates one
 func Save(args *RequestArgs) error {
 	user := args.User
 	appName := args.AppName
@@ -42,6 +45,8 @@ func Save(args *RequestArgs) error {
 	return db.Conn.Upsert(db.StatsCollection, stats_query, save_doc)
 }
 
+// Get returns notification stats like when was it last seen, total count,
+// unread count and total unread
 func Get(args *RequestArgs) (stats *Stats, err error) {
 	user := args.User
 	appName := args.AppName
