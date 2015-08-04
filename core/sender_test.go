@@ -55,8 +55,6 @@ func TestGetParseKeys(t *testing.T) {
 	if _, ok := channelData["parse_rest_api_key"]; !ok {
 		t.Error("parse_rest_api_key is not set for category", validName)
 	}
-
-	defer cleanup()
 }
 
 func cleanup() {
