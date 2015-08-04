@@ -325,9 +325,9 @@ $ khabar
 
 ## Environment variables
 
-We use [parse](https://www.parse.com/) to send push notifications. When you are sending out a notification using the [`POST /notifications`](#send-notification) api call, it looks for certain environment variables and they are based on the categories you are using to in the `topics_available` (events) collection.
+We use [parse](https://www.parse.com/) to send push notifications. When you are sending out a notification using the [`POST /notifications`](#send-notification) api call, it looks for certain environment variables. These env variables are based on the categories (`app_name`s) you are using in the `topics_available` collection.
 
-For example if your category is called "mayapp", and you have some events configured in the `topics_available` collection, when you make `POST /notifications` call, it looks for `PARSE_myapp_API_KEY` and `PARSE_myapp_APP_ID` enviroment variables.
+For example: You have an event (ident) `log_incoming` configured for the category (app_name) `myapp` in the `topics_available` collection. Now, when you make a call to `POST /notifications`, it looks for `PARSE_myapp_API_KEY` and `PARSE_myapp_APP_ID` enviroment variables and uses them to send the push notifications.
 
 You can set them by doing
 
