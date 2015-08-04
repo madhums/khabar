@@ -23,5 +23,6 @@ _testmain.go
 *.test
 *.prof
 
-# live reload debug file
+# live reload debug file and build file
 gin-bin
+bin/*

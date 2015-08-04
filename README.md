@@ -17,21 +17,22 @@ It means
 - [Concept and idea](#concept-and-idea)
 - [How does it work?](#how-does-it-work)
 - [Development](#development)
+  - [Sanity checks](#sanity-checks)
 - [Usage](#usage)
 - [API](#api)
   - **[Preferences](#preferences)**
-    1. [List all preferences of user or org](#list-all-preferences-of-user-or-org)
-    2. [Set an user preference](#set-an-user-preference)
-    3. [Unset an user preference](#unset-an-user-preference)
-    4. [Set an org preference](#set-an-org-preference)
-    5. [Unset an org preference](#unset-an-org-preference)
+    1. [List all preferences of user or org](#list-all-preferences-of-user-or-org) `GET /topics?org=&user=`
+    2. [Set an user preference](#set-an-user-preference) `POST /topics/:ident/channels/:channel?org=&user=`
+    3. [Unset an user preference](#unset-an-user-preference) `DELETE /topics/:ident/channels/:channel?org=&user=`
+    4. [Set an org preference](#set-an-org-preference) `POST /topics/:type/:ident/channels/:channel?org=`
+    5. [Unset an org preference](#unset-an-org-preference) `DELETE /topics/:type/:ident/channels/:channel?org=`
   - **[Notifications](#notifications)**
-    1. [List all notifications](#list-all-notifications)
-    2. [Mark a single notification as read](#mark-a-single-notification-as-read)
-    3. [Mark all unread notifications as read](#mark-all-unread-notifications-as-read)
-    4. [Get notification stats](#get-notification-stats)
-    5. [Update last seen time stamp](#update-last-seen-time-stamp)
-    6. [Send notification](#send-notification)
+    1. [List all notifications](#list-all-notifications) `GET /notifications`
+    2. [Mark a single notification as read](#mark-a-single-notification-as-read) `PUT /notification/:_id`
+    3. [Mark all unread notifications as read](#mark-all-unread-notifications-as-read) `PUT /notifications?org=&user=`
+    4. [Get notification stats](#get-notification-stats) `GET /notifications/stats?org=&user=`
+    5. [Update last seen time stamp](#update-last-seen-time-stamp) `PUT /notifications/stats?org=&user=`
+    6. [Send notification](#send-notification) `POST /notifications?topic=`
   - [Some general conventions](#some-general-conventions)
 - [Envrionment variables](#environment-variables)
 
@@ -56,7 +57,7 @@ $ mkdir -p $GOPATH/src/github.com/bulletind
 $ cd $GOPATH/src/github.com/bulletind
 $ git clone https://github.com/bulletind/khabar.git # or your fork
 $ cd khabar
-$ DEBUG=* go get && go install && gin -p 8911 -i
+$ DEBUG=* go get && go install && gin -p 8911 -i # or make dev
 ```
 
 Now you should be able to access the below API's on port `8911`.
@@ -66,7 +67,15 @@ MongoDB config is stored in `config/conf.go`.
 After you make the changes (if you import any new deps), don't forget to run
 
 ```sh
-$ godep save ./...
+$ godep save ./... # or make godep
+```
+
+#### Sanity checks
+
+```sh
+$ make vet    # https://godoc.org/golang.org/x/tools/cmd/vet
+$ make lint   # https://github.com/golang/lint
+$ make test
 ```
 
 ## Usage
