@@ -80,6 +80,9 @@ func GetAll(paginator *gottp.Paginator, user, appName, org string) (*[]db.SentIt
 		return nil, err
 	}
 
+	// TODO:
+	// This returns `null` sometimes. Figure out why and fix it
+
 	return &result, nil
 }
 
