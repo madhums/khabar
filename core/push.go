@@ -12,9 +12,10 @@ import (
 	"github.com/bulletind/khabar/dbapi/saved_item"
 )
 
-const PARSE_URL = "https://api.parse.com/1/push"
-
-const PUSH_SOUND = "default"
+const (
+	PARSE_URL  = "https://api.parse.com/1/push"
+	PUSH_SOUND = "default"
+)
 
 func pushHandler(item *db.PendingItem, text string, settings map[string]interface{}) {
 	log.Println("Sending Push Notification...")
