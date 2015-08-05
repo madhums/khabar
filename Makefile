@@ -1,11 +1,13 @@
-.PHONY: build doc fmt lint dev test vet godep install
+.PHONY: build doc fmt lint dev test vet godep install bench
+
+PKG_NAME=$(shell basename `pwd`)
 
 install:
 	go get -t -v ./...
 
 build: vet \
 	test \
-	go build -v -o ./bin/khabar
+	go build -v -o ./bin/$(PKG_NAME)
 
 doc:
 	godoc -http=:6060
@@ -23,6 +25,10 @@ dev:
 
 test:
 	go test ./...
+
+# Runs benchmarks
+bench:
+	go test ./... -bench=.
 
 # https://godoc.org/golang.org/x/tools/cmd/vet
 vet:
