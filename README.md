@@ -35,6 +35,8 @@ It means
     6. [Send notification](#send-notification) `POST /notifications?topic=`
   - [Some general conventions](#some-general-conventions)
 - [Envrionment variables](#environment-variables)
+  - [Push notifications](#push-notifications)
+  - [Email notifications](#email-notifications)
 
 ## Concept and idea
 
@@ -334,6 +336,10 @@ $ khabar
 
 ## Environment variables
 
+We use environment variables to fetch the keys and secrets.
+
+#### Push notifications
+
 We use [parse](https://www.parse.com/) to send push notifications. When you are sending out a notification using the [`POST /notifications`](#send-notification) api call, it looks for certain environment variables. These env variables are based on the categories (`app_name`s) you are using in the `topics_available` collection.
 
 For example: You have an event (ident) `log_incoming` configured for the category (app_name) `myapp` in the `topics_available` collection. Now, when you make a call to `POST /notifications`, it looks for `PARSE_myapp_API_KEY` and `PARSE_myapp_APP_ID` enviroment variables and uses them to send the push notifications.
@@ -343,4 +349,16 @@ You can set them by doing
 ```sh
 $ export PARSE_myapp_API_KEY=***
 $ export PARSE_myapp_APP_ID=***
+```
+
+#### Email notifications
+
+You can configure the email notifications by setting the following env variables
+
+```sh
+$ export SMTP_HOSTNAME=***
+$ export SMTP_USERNAME=***
+$ export SMTP_PASSWORD=***
+$ export SMTP_PORT=***
+$ export SMTP_FROM=***
 ```
