@@ -48,12 +48,20 @@ func TestValidCategory(t *testing.T) {
 func TestGetParseKeys(t *testing.T) {
 	channelData := getParseKeys(validName)
 
-	if _, ok := channelData["parse_application_id"]; !ok {
-		t.Error("parse_application_id is not set for category", validName)
+	for _, p := range parseKeys {
+		if _, ok := channelData[p.Key]; !ok {
+			t.Error(p.Key, "is not set for category", validName)
+		}
 	}
+}
 
-	if _, ok := channelData["parse_rest_api_key"]; !ok {
-		t.Error("parse_rest_api_key is not set for category", validName)
+func TestGetEmailKeys(t *testing.T) {
+	channelData := getEmailKeys()
+
+	for _, key := range emailKeys {
+		if _, ok := channelData[key]; !ok {
+			t.Error(key, "is not set")
+		}
 	}
 }
 

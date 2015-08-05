@@ -16,11 +16,7 @@ const PARSE_URL = "https://api.parse.com/1/push"
 
 const PUSH_SOUND = "default"
 
-func pushHandler(
-	item *db.PendingItem,
-	text string,
-	settings map[string]interface{},
-) {
+func pushHandler(item *db.PendingItem, text string, settings map[string]interface{}) {
 	log.Println("Sending Push Notification...")
 
 	application_id, ok := settings["parse_application_id"].(string)

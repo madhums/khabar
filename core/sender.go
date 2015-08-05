@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	"text/template"
@@ -18,14 +19,30 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-const webIdent = "web"
-const DEFAULT_LOCALE = "en_US"
-const DEFAULT_TIMEZONE = "GMT+0.0"
+const (
+	DEFAULT_LOCALE   = "en_US"
+	DEFAULT_TIMEZONE = "GMT+0.0"
+)
 
 type Parse struct {
 	Name string
 	Key  string
 }
+
+var (
+	parseKeys = []Parse{
+		Parse{"APP_ID", "parse_application_id"},
+		Parse{"API_KEY", "parse_rest_api_key"},
+	}
+
+	emailKeys = []string{
+		"smtp_hostname",
+		"smtp_username",
+		"smtp_password",
+		"smtp_port",
+		"smtp_from",
+	}
+)
 
 func sendToChannel(
 	pending_item *db.PendingItem,
@@ -87,15 +104,27 @@ func validCategory(category string) bool {
 // It gets the values from the enviroment variables
 func getParseKeys(category string) utils.M {
 	doc := utils.M{}
-	var keys = []Parse{
-		Parse{"APP_ID", "parse_application_id"},
-		Parse{"API_KEY", "parse_rest_api_key"},
-	}
 
 	// Set the Parse api key and id
-	for _, parse := range keys {
+	for _, parse := range parseKeys {
 		envKey := "PARSE_" + category + "_" + parse.Name
 		doc[parse.Key] = os.Getenv(envKey)
+		if len(os.Getenv(envKey)) == 0 {
+			log.Println(envKey, "is empty. Make sure you set this env variable")
+		}
+	}
+	return doc
+}
+
+// getEmailKeys returns map of email smtp settings
+// It gets the values from the environment variables
+func getEmailKeys() utils.M {
+	doc := utils.M{}
+
+	// Set the Email key
+	for _, key := range emailKeys {
+		envKey := strings.ToUpper(key)
+		doc[key] = os.Getenv(envKey)
 		if len(os.Getenv(envKey)) == 0 {
 			log.Println(envKey, "is empty. Make sure you set this env variable")
 		}
@@ -122,7 +151,7 @@ func send(locale, channelName string, pending_item *db.PendingItem) {
 
 	channelData := map[string]interface{}{}
 
-	if channelName != WEB {
+	if channelName == PUSH {
 		channelData = getParseKeys(pending_item.AppName)
 	}
 
@@ -145,6 +174,7 @@ func send(locale, channelName string, pending_item *db.PendingItem) {
 	}
 
 	if channelName == EMAIL {
+		channelData = getEmailKeys()
 		buffer := new(bytes.Buffer)
 
 		transDir := config.Settings.Khabar.TranslationDirectory
