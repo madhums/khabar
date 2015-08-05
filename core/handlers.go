@@ -9,8 +9,7 @@ const (
 	PUSH  = "push"
 )
 
-var ChannelMap = map[string]func(*db.PendingItem, string,
-	map[string]interface{}){
+var ChannelMap = map[string]func(*db.PendingItem, string, map[string]interface{}){
 	EMAIL: emailHandler,
 	WEB:   webHandler,
 	PUSH:  pushHandler,

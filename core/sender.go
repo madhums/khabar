@@ -40,7 +40,7 @@ var (
 		"smtp_username",
 		"smtp_password",
 		"smtp_port",
-		"smtp_hostname",
+		"smtp_from",
 	}
 )
 

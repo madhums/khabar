@@ -3,10 +3,9 @@ package core
 import (
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/sent"
-	"github.com/bulletind/khabar/utils"
 )
 
-func webHandler(item *db.PendingItem, text string, settings utils.M) {
+func webHandler(item *db.PendingItem, text string, settings map[string]interface{}) {
 
 	sent_item := db.SentItem{
 		CreatedBy:      item.CreatedBy,
