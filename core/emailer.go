@@ -8,9 +8,7 @@ import (
 	"github.com/bulletind/khabar/utils"
 )
 
-func emailHandler(
-	item *db.PendingItem, text string, settings map[string]interface{},
-) {
+func emailHandler(item *db.PendingItem, text string, settings utils.M) {
 	log.Println("Sending email...")
 
 	if item.Context["email"] == nil {
