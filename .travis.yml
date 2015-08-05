@@ -19,12 +19,13 @@ before_script:
 before_install:
   - cd $HOME/gopath/src/github.com/bulletind/khabar
 
+install: make install
+
 script:
   - go test -v ./...
   - go build -v ./...
 
 after_success:
-  - mv $HOME/gopath/bin/khabar.v1 $HOME/gopath/bin/khabar
   - artifacts upload $HOME/gopath/bin/khabar
 
 notifications:

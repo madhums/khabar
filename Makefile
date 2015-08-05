@@ -1,4 +1,7 @@
-.PHONY: build doc fmt lint dev test vet godep
+.PHONY: build doc fmt lint dev test vet godep install
+
+install:
+	go get -t -v ./...
 
 build: vet \
 	test \
