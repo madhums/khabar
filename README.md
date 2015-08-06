@@ -103,9 +103,11 @@ $ khabar
     - `org`: organization id
     - `user`: user id
 
-    if org and user are not sent in query params, then it will send global preferences
-    if org is sent and user is not, then it will send org preferences
-    if org and user are both sent, then it will send user preferences
+    If org and user are not sent in query params, then it will send global preferences.
+
+    If org is sent and user is not, then it will send org preferences.
+
+    If org and user are both sent, then it will send user preferences.
 
     Response:
     ```js
