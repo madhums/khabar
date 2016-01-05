@@ -49,7 +49,14 @@ var (
 func setLocales() bson.M {
 	locales := bson.M{}
 	for _, language := range i18n.LanguageTags() {
-		locales[strings.Replace(language, "_", "-", 1)] = language
+		// so we load files with names like 'en_US_email', we get 'en-us-email'
+		// so we have to make valid stuff again
+		key := language[:2] + "-" + strings.ToUpper(language[3:5])
+		_, ok := locales[key]
+		if !ok {
+			value := language[:2] + "_" + strings.ToUpper(language[3:5])
+			locales[key] = value
+		}
 	}
 
 	//fallback for flemish
@@ -57,6 +64,7 @@ func setLocales() bson.M {
 	if !ok {
 		locales["nl-BE"] = "nl_NL"
 	}
+
 	return locales
 }
 
