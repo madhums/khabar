@@ -31,9 +31,6 @@ func registerHandlers() {
 	// Set/Unset org defaults or locked
 	gottp.NewUrl("default_locked", "^/topics/(?P<type>\\w+)/(?P<ident>\\w+)/channels/(?P<channel>\\w+)/?$", new(handlers.DefaultLocked))
 
-	// Store and update user locale
-	gottp.NewUrl("user_locale", "^/locales/(?P<user>\\w+)/?$", new(handlers.UserLocale))
-
 	gottp.NewUrl("snsBounce", "^/sns/bounce/?$", new(handlers.SnsBounce))
 	gottp.NewUrl("snsComplain", "^/sns/complaint/?$", new(handlers.SnsComplaint))
 	gottp.NewUrl("mandrillBounce", "^/mandrill/bounce/?$", new(handlers.MandrillBounce))

@@ -49,7 +49,7 @@ var (
 func setLocales() bson.M {
 	locales := bson.M{}
 	for _, language := range i18n.LanguageTags() {
-		locales[strings.Replace(element, "_", "-", 1)] = language
+		locales[strings.Replace(language, "_", "-", 1)] = language
 	}
 
 	//fallback for flemish
