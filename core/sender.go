@@ -14,9 +14,9 @@ import (
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/processed"
 	"github.com/bulletind/khabar/dbapi/topics"
-	"github.com/bulletind/khabar/dbapi/user_locale"
 	"github.com/bulletind/khabar/utils"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
@@ -42,7 +42,23 @@ var (
 		"smtp_port",
 		"smtp_from",
 	}
+
+	locales = setLocales()
 )
+
+func setLocales() bson.M {
+	locales := bson.M{}
+	for _, language := range i18n.LanguageTags() {
+		locales[strings.Replace(element, "_", "-", 1)] = language
+	}
+
+	//fallback for flemish
+	_, ok := locales["nl-BE"]
+	if !ok {
+		locales["nl-BE"] = "nl_NL"
+	}
+	return locales
+}
 
 func sendToChannel(
 	pending_item *db.PendingItem,
@@ -208,16 +224,6 @@ func ProcessDefaults(user, org string) {
 }
 
 func SendNotification(pending_item *db.PendingItem) {
-	userLocale, err := user_locale.Get(pending_item.User)
-	if err != nil {
-		log.Println("Unable to find locale for user", err.Error())
-		userLocale = new(db.UserLocale)
-
-		//FIXME:: Please do not hardcode this.
-		userLocale.Locale = DEFAULT_LOCALE
-		userLocale.TimeZone = DEFAULT_TIMEZONE
-	}
-
 	ProcessDefaults(pending_item.User, pending_item.Organization)
 
 	childwg := new(sync.WaitGroup)
@@ -226,13 +232,24 @@ func SendNotification(pending_item *db.PendingItem) {
 		childwg.Add(1)
 
 		go func(
-			locale, channelIdent string,
+			language, channelIdent string,
 			pending_item *db.PendingItem,
 		) {
 			defer childwg.Done()
-			send(locale, channelIdent, pending_item)
-		}(userLocale.Locale, channel, pending_item)
+			send(language, channelIdent, pending_item)
+		}(getLocale(pending_item), channel, pending_item)
 	}
 
 	childwg.Wait()
+}
+
+func getLocale(pending_item *db.PendingItem) string {
+	context, ok := pending_item.Context["locale"].(string)
+	if ok {
+		locale, found := locales[context].(string)
+		if found {
+			return locale
+		}
+	}
+	return DEFAULT_LOCALE
 }
