@@ -43,11 +43,19 @@ var (
 		"smtp_from",
 	}
 
-	locales = setLocales()
+	locales       = bson.M{}
+	localesLoaded = false
 )
 
-func setLocales() bson.M {
-	locales := bson.M{}
+func getLocales() bson.M {
+	if !localesLoaded {
+		loadLocales()
+	}
+	return locales
+}
+
+func loadLocales() {
+	locales = bson.M{}
 	for _, language := range i18n.LanguageTags() {
 		// so we load files with names like 'en_US_email', we get 'en-us-email'
 		// so we have to make valid stuff again
@@ -65,7 +73,8 @@ func setLocales() bson.M {
 		locales["nl-BE"] = "nl_NL"
 	}
 
-	return locales
+	log.Println("locales", locales)
+	localesLoaded = true
 }
 
 func sendToChannel(
@@ -254,7 +263,7 @@ func SendNotification(pending_item *db.PendingItem) {
 func getLocale(pending_item *db.PendingItem) string {
 	context, ok := pending_item.Context["locale"].(string)
 	if ok {
-		locale, found := locales[context].(string)
+		locale, found := getLocales()[context].(string)
 		if found {
 			return locale
 		}
