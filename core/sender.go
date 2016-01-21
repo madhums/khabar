@@ -14,9 +14,9 @@ import (
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/processed"
 	"github.com/bulletind/khabar/dbapi/topics"
-	"github.com/bulletind/khabar/dbapi/user_locale"
 	"github.com/bulletind/khabar/utils"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
@@ -42,7 +42,40 @@ var (
 		"smtp_port",
 		"smtp_from",
 	}
+
+	locales       = bson.M{}
+	localesLoaded = false
 )
+
+func getLocales() bson.M {
+	if !localesLoaded {
+		loadLocales()
+	}
+	return locales
+}
+
+func loadLocales() {
+	locales = bson.M{}
+	for _, language := range i18n.LanguageTags() {
+		// so we load files with names like 'en_US_email', we get 'en-us-email'
+		// so we have to make valid stuff again
+		key := language[:2] + "-" + strings.ToUpper(language[3:5])
+		_, ok := locales[key]
+		if !ok {
+			value := language[:2] + "_" + strings.ToUpper(language[3:5])
+			locales[key] = value
+		}
+	}
+
+	//fallback for flemish
+	_, ok := locales["nl-BE"]
+	if !ok {
+		locales["nl-BE"] = "nl_NL"
+	}
+
+	log.Println("locales", locales)
+	localesLoaded = true
+}
 
 func sendToChannel(
 	pending_item *db.PendingItem,
@@ -208,16 +241,6 @@ func ProcessDefaults(user, org string) {
 }
 
 func SendNotification(pending_item *db.PendingItem) {
-	userLocale, err := user_locale.Get(pending_item.User)
-	if err != nil {
-		log.Println("Unable to find locale for user", err.Error())
-		userLocale = new(db.UserLocale)
-
-		//FIXME:: Please do not hardcode this.
-		userLocale.Locale = DEFAULT_LOCALE
-		userLocale.TimeZone = DEFAULT_TIMEZONE
-	}
-
 	ProcessDefaults(pending_item.User, pending_item.Organization)
 
 	childwg := new(sync.WaitGroup)
@@ -226,13 +249,24 @@ func SendNotification(pending_item *db.PendingItem) {
 		childwg.Add(1)
 
 		go func(
-			locale, channelIdent string,
+			language, channelIdent string,
 			pending_item *db.PendingItem,
 		) {
 			defer childwg.Done()
-			send(locale, channelIdent, pending_item)
-		}(userLocale.Locale, channel, pending_item)
+			send(language, channelIdent, pending_item)
+		}(getLocale(pending_item), channel, pending_item)
 	}
 
 	childwg.Wait()
+}
+
+func getLocale(pending_item *db.PendingItem) string {
+	context, ok := pending_item.Context["locale"].(string)
+	if ok {
+		locale, found := getLocales()[context].(string)
+		if found {
+			return locale
+		}
+	}
+	return DEFAULT_LOCALE
 }
