@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/bulletind/khabar",
-	"GoVersion": "go1.5",
+	"GoVersion": "go1.5.2",
 	"Packages": [
 		"./..."
 	],
@@ -11,13 +11,13 @@
 		},
 		{
 			"ImportPath": "github.com/nicksnyder/go-i18n/i18n",
-			"Comment": "v1.1.0-11-ga268f4d",
-			"Rev": "a268f4d6ed86ee49fff2665174c2d22885290491"
+			"Comment": "v1.3.0-5-g37e5c2d",
+			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2",
-			"Comment": "r2015.06.03-3-g3569c88",
-			"Rev": "3569c88678d88179dcbd68d02ab081cbca3cd4d0"
+			"Comment": "r2015.10.05",
+			"Rev": "f402e3a216db333ae6b3ba68b9152a34a0bc6984"
 		},
 		{
 			"ImportPath": "gopkg.in/simversity/gotracer.v1",
@@ -28,6 +28,10 @@
 			"ImportPath": "gopkg.in/simversity/gottp.v3",
 			"Comment": "v3.3",
 			"Rev": "b8c6bc147875efde7569cae23ebdd05776cbccaf"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "53feefa2559fb8dfa8d81baad31be332c97d6c77"
 		}
 	]
 }
