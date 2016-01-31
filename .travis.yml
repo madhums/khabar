@@ -26,8 +26,8 @@ before_install:
 install: make install
 
 script:
-  - go test -v ./...
-  - go build -v ./...
+  - go test -v $(go list ./... | grep -v /vendor/)
+  - go build -v $(go list ./... | grep -v /vendor/)
 
 after_success:
   - artifacts upload $HOME/gopath/bin/khabar
