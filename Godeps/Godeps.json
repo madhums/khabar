@@ -1,9 +1,6 @@
 {
 	"ImportPath": "github.com/bulletind/khabar",
-	"GoVersion": "go1.5.2",
-	"Packages": [
-		"./..."
-	],
+	"GoVersion": "go1.6",
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/gcfg",
