@@ -10,10 +10,11 @@ const (
 	validName   = "incidentapp"
 	invalidName = "sheldon-cooper"
 	dbName      = "notifications_test"
+	dbUrl	    = "mongodb://localhost/notifications_test"
 )
 
 func init() {
-	db.Conn = db.GetConn(dbName, "localhost")
+	db.Conn = db.GetConn(dbUrl, dbName)
 	setup()
 }
 
