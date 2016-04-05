@@ -19,15 +19,9 @@ func sysInit() {
 	config.InitTracer()
 	log.Println("Initialized GoTracer")
 
-	db.Conn = db.GetConn(
-		config.Settings.Khabar.DBName,
-		config.Settings.Khabar.DBAddress,
-		config.Settings.Khabar.DBUsername,
-		config.Settings.Khabar.DBPassword,
-	)
+	db.Conn = db.GetConn(config.Settings.Khabar.DbUrl, config.Settings.Khabar.DbName)
 
-	log.Println("Database Connected :" + config.Settings.Khabar.DBName + " " +
-		"at address:" + config.Settings.Khabar.DBAddress)
+	log.Println("Database Connected: " + config.Settings.Khabar.DbName)
 
 	transDir := config.Settings.Khabar.TranslationDirectory
 
