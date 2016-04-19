@@ -9,17 +9,26 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/bulletind/khabar/utils"
-	"strings"
 	"crypto/tls"
+	"github.com/bulletind/khabar/utils"
 	"net"
+	"strings"
 )
 
 var Conn *MConn
 
 type MConn struct {
-	Session *mgo.Session
-	Dbname  string
+	session    *mgo.Session
+	Dbname     string
+	ConnString string
+}
+
+func (self MConn) Session() *mgo.Session {
+	if self.session == nil {
+		log.Println("Forced to renew session, investigate why!")
+		self.session = getNewSession(self.ConnString, self.Dbname)
+	}
+	return self.session
 }
 
 func (self *MConn) getCursor(session *mgo.Session, table string,
@@ -57,7 +66,7 @@ func (self *MConn) findAndApply(
 	table string, query utils.M, change mgo.Change, result interface{},
 ) (*mgo.ChangeInfo, error) {
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
+	session := self.Session().Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -99,7 +108,7 @@ func (self *MConn) Get(session *mgo.Session, table string,
 func (self *MConn) GetOne(table string, query utils.M,
 	result interface{}) error {
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
+	session := self.Session().Copy()
 	defer session.Close()
 
 	cursor := self.getCursor(session, table, query)
@@ -113,7 +122,7 @@ func (self *MConn) GetOne(table string, query utils.M,
 
 func (self *MConn) Count(table string, query utils.M) int {
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
+	session := self.Session().Copy()
 	defer session.Close()
 
 	cursor := self.getCursor(session, table, query).Select(utils.M{"_id": 1})
@@ -128,7 +137,7 @@ func (self *MConn) Count(table string, query utils.M) int {
 func (self *MConn) Upsert(table string, query utils.M, doc utils.M) error {
 
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
+	session := self.Session().Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -163,7 +172,7 @@ func AlterDoc(doc *utils.M, operator string, operation utils.M) {
 func (self *MConn) Update(table string, query utils.M, doc utils.M) error {
 
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
+	session := self.Session().Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -187,7 +196,7 @@ func (self *MConn) Update(table string, query utils.M, doc utils.M) error {
 
 func (self *MConn) Delete(table string, query utils.M) error {
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
+	session := self.Session().Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -216,7 +225,7 @@ func InArray(key string, arrays ...[]string) bool {
 }
 
 func (self *MConn) InsertMulti(table string, arguments ...interface{}) (error, *mgo.BulkResult) {
-	session := self.Session.Copy()
+	session := self.Session().Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -231,7 +240,7 @@ func (self *MConn) InsertMulti(table string, arguments ...interface{}) (error, *
 
 func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session.Copy()
+	session := self.Session().Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -275,40 +284,9 @@ func GetConn(connString, db_name string) *MConn {
 	cached.RUnlock()
 
 	if !ok {
-		// quick hack to allow SSL based connections, may be removed in future when parseURL supports it
-		// see also: https://github.com/go-mgo/mgo/issues/84
-		const SSL_SUFFIX = "?ssl=true"
-		useSsl := false
-
-		if strings.HasSuffix(connString, SSL_SUFFIX) {
-			connString = strings.TrimSuffix(connString, SSL_SUFFIX)
-			useSsl = true
-		}
-
-		dialInfo, err := mgo.ParseURL(connString)
-		if err != nil {
-			panic(err)
-		}
-
-		dialInfo.Timeout = 10 * time.Second
-
-		if useSsl {
-			config := tls.Config{}
-			config.InsecureSkipVerify = true
-
-			dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
-				return tls.Dial("tcp", addr.String(), &config)
-			}
-		}
-
-		// get a mgo session
-		session, err = mgo.DialWithInfo(dialInfo)
-		if err != nil {
-			panic(err)
-		}
+		session = getNewSession(connString, db_name)
 
 		//Save the Session for Later use.
-
 		cached.Lock()
 		cached.sessions[db_name] = session
 		cached.Unlock()
@@ -317,5 +295,41 @@ func GetConn(connString, db_name string) *MConn {
 	//Return only a Session & the name. Let the Consumer make a Session.Copy()
 	//to ensure that database state is resumed.
 
-	return &MConn{session, db_name}
+	return &MConn{session, db_name, connString}
+}
+
+func getNewSession(connString, db_name string) *mgo.Session {
+	// quick hack to allow SSL based connections, may be removed in future when parseURL supports it
+	// see also: https://github.com/go-mgo/mgo/issues/84
+	const SSL_SUFFIX = "?ssl=true"
+	useSsl := false
+
+	if strings.HasSuffix(connString, SSL_SUFFIX) {
+		connString = strings.TrimSuffix(connString, SSL_SUFFIX)
+		useSsl = true
+	}
+
+	dialInfo, err := mgo.ParseURL(connString)
+	if err != nil {
+		panic(err)
+	}
+
+	dialInfo.Timeout = 10 * time.Second
+
+	if useSsl {
+		config := tls.Config{}
+		config.InsecureSkipVerify = true
+
+		dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
+			return tls.Dial("tcp", addr.String(), &config)
+		}
+	}
+
+	// get a mgo session
+	session, err := mgo.DialWithInfo(dialInfo)
+	if err != nil {
+		panic(err)
+	}
+
+	return session
 }
