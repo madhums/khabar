@@ -23,7 +23,7 @@ func Get(coll string, query *utils.M) (savedItem *db.SavedItem, err error) {
 }
 
 func GetSentOrganizations(coll string, email string) (string, []string) {
-	session := db.Conn.Session.Copy()
+	session := db.Conn.Session().Copy()
 	defer session.Close()
 
 	orgs := []string{}
