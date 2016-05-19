@@ -16,7 +16,7 @@ type ChotaTopic map[string]*TopicDetail
 
 // GetAllTopics returns all the available topics
 func GetAllTopics() []string {
-	session := db.Conn.Session().Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	topics := []string{}
@@ -30,7 +30,7 @@ func GetAllTopics() []string {
 
 // GetAppTopics returns all the available topics for the particular app
 func GetAppTopics(app_name, org string) (*[]db.AvailableTopic, error) {
-	session := db.Conn.Session().Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	query := utils.M{"app_name": app_name}
@@ -64,7 +64,7 @@ func GetOrgPreferences(org string, appTopics *[]db.AvailableTopic, channels *[]s
 
 	topic := new(db.Topic)
 
-	session := db.Conn.Session().Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	for _, topic := range *appTopics {
@@ -135,7 +135,7 @@ func GetUserPreferences(user, org string, appTopics *[]db.AvailableTopic, channe
 
 	topic := new(db.Topic)
 
-	session := db.Conn.Session().Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	for _, topic := range *appTopics {

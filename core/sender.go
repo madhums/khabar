@@ -108,7 +108,7 @@ func getText(locale, ident, channel string, pending_item *db.PendingItem) string
 
 // getCategories fetchs distinct available categories to which we can send notifications
 func getCategories() []string {
-	session := db.Conn.Session().Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	var categories []string

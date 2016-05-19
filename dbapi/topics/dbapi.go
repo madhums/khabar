@@ -174,7 +174,7 @@ func Initialize(user, org string) error {
 
 // GetAllDefault returns all the "default - non-enabled" preferences for the organization
 func GetAllDefault(org string) []db.Topic {
-	session := db.Conn.Session().Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	result := []db.Topic{}
@@ -219,7 +219,7 @@ func ChannelAllowed(user, org, app_name, ident, channelName string) bool {
 }
 
 func DisableUserChannel(orgs, topics []string, user, channelName string) {
-	session := db.Conn.Session().Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	utils.RemoveDuplicates(&orgs)
