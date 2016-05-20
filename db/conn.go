@@ -18,17 +18,9 @@ import (
 var Conn *MConn
 
 type MConn struct {
-	session    *mgo.Session
+	Session    *mgo.Session
 	Dbname     string
 	ConnString string
-}
-
-func (self MConn) Session() *mgo.Session {
-	if self.session == nil {
-		log.Println("Forced to renew session, investigate why!")
-		self.session = getNewSession(self.ConnString, self.Dbname)
-	}
-	return self.session
 }
 
 func (self *MConn) getCursor(session *mgo.Session, table string,
@@ -66,7 +58,7 @@ func (self *MConn) findAndApply(
 	table string, query utils.M, change mgo.Change, result interface{},
 ) (*mgo.ChangeInfo, error) {
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session().Copy()
+	session := self.Session.Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -108,7 +100,7 @@ func (self *MConn) Get(session *mgo.Session, table string,
 func (self *MConn) GetOne(table string, query utils.M,
 	result interface{}) error {
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session().Copy()
+	session := self.Session.Copy()
 	defer session.Close()
 
 	cursor := self.getCursor(session, table, query)
@@ -121,15 +113,8 @@ func (self *MConn) GetOne(table string, query utils.M,
 }
 
 func (self *MConn) Count(table string, query utils.M) int {
-	if self == nil {
-		log.Println("self is nil, investigate why!")
-	}
-	if self.Session() == nil {
-		log.Println("self.Session() is nil, investigate why!")
-	}
-
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session().Copy()
+	session := self.Session.Copy()
 	defer session.Close()
 
 	cursor := self.getCursor(session, table, query).Select(utils.M{"_id": 1})
@@ -144,7 +129,7 @@ func (self *MConn) Count(table string, query utils.M) int {
 func (self *MConn) Upsert(table string, query utils.M, doc utils.M) error {
 
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session().Copy()
+	session := self.Session.Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -179,7 +164,7 @@ func AlterDoc(doc *utils.M, operator string, operation utils.M) {
 func (self *MConn) Update(table string, query utils.M, doc utils.M) error {
 
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session().Copy()
+	session := self.Session.Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -203,7 +188,7 @@ func (self *MConn) Update(table string, query utils.M, doc utils.M) error {
 
 func (self *MConn) Delete(table string, query utils.M) error {
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session().Copy()
+	session := self.Session.Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -232,7 +217,7 @@ func InArray(key string, arrays ...[]string) bool {
 }
 
 func (self *MConn) InsertMulti(table string, arguments ...interface{}) (error, *mgo.BulkResult) {
-	session := self.Session().Copy()
+	session := self.Session.Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
@@ -247,7 +232,7 @@ func (self *MConn) InsertMulti(table string, arguments ...interface{}) (error, *
 
 func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {
 	//Create a Session Copy and be responsible for Closing it.
-	session := self.Session().Copy()
+	session := self.Session.Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
 

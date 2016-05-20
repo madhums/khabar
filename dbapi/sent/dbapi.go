@@ -70,7 +70,7 @@ func GetAll(paginator *gottp.Paginator, user, appName, org string) (*[]db.SentIt
 	delete(query, "limit")
 	delete(query, "skip")
 
-	session := db.Conn.Session().Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	err := db.Conn.GetCursor(session, db.SentCollection,

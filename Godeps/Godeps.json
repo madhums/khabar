@@ -7,6 +7,10 @@
 			"Rev": "c2d3050044d05357eaf6c3547249ba57c5e235cb"
 		},
 		{
+			"ImportPath": "github.com/jinzhu/copier",
+			"Rev": "b0be9dc6538c1c9029d6baedfc06247b37f077fa"
+		},
+		{
 			"ImportPath": "github.com/nicksnyder/go-i18n/i18n",
 			"Comment": "v1.3.0-5-g37e5c2d",
 			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"

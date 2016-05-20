@@ -15,6 +15,7 @@ import (
 	"github.com/bulletind/khabar/dbapi/processed"
 	"github.com/bulletind/khabar/dbapi/topics"
 	"github.com/bulletind/khabar/utils"
+	"github.com/jinzhu/copier"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -108,7 +109,7 @@ func getText(locale, ident, channel string, pending_item *db.PendingItem) string
 
 // getCategories fetchs distinct available categories to which we can send notifications
 func getCategories() []string {
-	session := db.Conn.Session().Copy()
+	session := db.Conn.Session.Copy()
 	defer session.Close()
 
 	var categories []string
@@ -243,18 +244,24 @@ func ProcessDefaults(user, org string) {
 func SendNotification(pending_item *db.PendingItem) {
 	ProcessDefaults(pending_item.User, pending_item.Organization)
 
+	locale := getLocale(pending_item)
+
 	childwg := new(sync.WaitGroup)
 
 	for channel, _ := range ChannelMap {
 		childwg.Add(1)
+
+		// create copy so parallel processes can alter the item
+		var itemToSend *db.PendingItem
+		copier.Copy(pending_item, itemToSend)
 
 		go func(
 			language, channelIdent string,
 			pending_item *db.PendingItem,
 		) {
 			defer childwg.Done()
-			send(language, channelIdent, pending_item)
-		}(getLocale(pending_item), channel, pending_item)
+			send(language, channelIdent, itemToSend)
+		}(locale, channel, itemToSend)
 	}
 
 	childwg.Wait()

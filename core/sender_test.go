@@ -26,7 +26,7 @@ func setup() {
 		Channels: []string{"email", "web", "push"},
 	}
 	available.PrepareSave()
-	err := db.Conn.Session().DB(dbName).C(db.AvailableTopicCollection).Insert(available)
+	err := db.Conn.Session.DB(dbName).C(db.AvailableTopicCollection).Insert(available)
 	if err != nil {
 		t.Error("Unable to setup db for testing")
 	}
@@ -67,5 +67,5 @@ func TestGetEmailKeys(t *testing.T) {
 }
 
 func cleanup() {
-	db.Conn.Session().DB(dbName).DropDatabase()
+	db.Conn.Session.DB(dbName).DropDatabase()
 }
