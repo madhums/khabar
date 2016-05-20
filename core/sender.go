@@ -74,7 +74,6 @@ func loadLocales() {
 		locales["nl-BE"] = "nl_NL"
 	}
 
-	log.Println("locales", locales)
 	localesLoaded = true
 }
 
