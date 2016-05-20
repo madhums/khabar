@@ -113,13 +113,6 @@ func (self *MConn) GetOne(table string, query utils.M,
 }
 
 func (self *MConn) Count(table string, query utils.M) int {
-	if self == nil {
-		log.Println("self is nil, investigate why!")
-	}
-	if self.Session == nil {
-		log.Println("self.Session() is nil, investigate why!")
-	}
-
 	//Create a Session Copy and be responsible for Closing it.
 	session := self.Session.Copy()
 	defer session.Close()
