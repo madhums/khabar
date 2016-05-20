@@ -251,8 +251,8 @@ func SendNotification(pending_item *db.PendingItem) {
 		childwg.Add(1)
 
 		// create copy so parallel processes can alter the item
-		var itemToSend *db.PendingItem
-		copier.Copy(pending_item, itemToSend)
+		var itemToSend = new(db.PendingItem)
+		copier.Copy(itemToSend, pending_item)
 
 		go func(
 			language, channelIdent string,
