@@ -261,18 +261,22 @@ func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {
 	return
 }
 
-func (self *MConn) InitIndexes() {
-	session := self.Session.Copy()
-	db := session.DB(self.Dbname)
-	defer session.Close()
-
+func GetIndexes() map[string]string {
 	// define unique indexes
 	indexes := make(map[string]string)
 	indexes["channel"] = "name"
 	indexes["topics_available"] = "ident appname"
 	indexes["topics"] = "ident organization user"
 
-	for collection, keys := range indexes {
+	return indexes
+}
+
+func (self *MConn) InitIndexes() {
+	session := self.Session.Copy()
+	db := session.DB(self.Dbname)
+	defer session.Close()
+
+	for collection, keys := range GetIndexes() {
 		index := mgo.Index{
 			Key:        strings.Split(keys, " "),
 			Unique:     true,
