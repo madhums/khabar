@@ -261,6 +261,34 @@ func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {
 	return
 }
 
+func (self *MConn) InitIndexes() {
+	session := self.Session.Copy()
+	db := session.DB(self.Dbname)
+	defer session.Close()
+
+	// define unique indexes
+	indexes := make(map[string]string)
+	indexes["channel"] = "name"
+	indexes["topics_available"] = "ident appname"
+	indexes["topics"] = "ident organization user"
+
+	for collection, keys := range indexes {
+		index := mgo.Index{
+			Key:        strings.Split(keys, " "),
+			Unique:     true,
+			DropDups:   true,
+			Background: true,
+			Sparse:     true,
+		}
+
+		err := db.C(collection).EnsureIndex(index)
+		if err != nil {
+			log.Println("Error creating index:", err)
+			panic(err)
+		}
+	}
+}
+
 var cached = struct {
 	sync.RWMutex
 	sessions map[string]*mgo.Session
