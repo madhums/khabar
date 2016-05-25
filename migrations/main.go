@@ -54,6 +54,15 @@ func Migrate() {
 	})
 }
 
+func migrationIndex(path string) bool, int {
+	fName := filepath.Base(path)
+	extName := filepath.Ext(path)
+	bName := fName[:len(fName)-len(extName)]
+	if (len(bName)> 3) {
+		
+	}
+}
+
 /**
  * Main
  */
