@@ -6,9 +6,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/migrations"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gottp.v3"
 )
@@ -55,6 +57,10 @@ func sysInit() {
 }
 
 func main() {
+	if len(os.Args) > 1 && strings.ToLower(os.Args[1]) == "migrate" {
+		migrations.Migrate()
+		return
+	}
 
 	go sysInit()
 

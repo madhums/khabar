@@ -19,7 +19,7 @@
  * 	 setting is a `default` one on an org level
  */
 
-package main
+package migrations
 
 import (
 	"fmt"
@@ -45,31 +45,6 @@ func main() {
 	MigrateTopics(db)
 	session.Close()
 	fmt.Println("\n", "Closing mongodb connection")
-}
-
-/**
- * Connect to mongo
- */
-
-func Connect() (*mgo.Session, *mgo.Database) {
-	uri := os.Getenv("MONGODB_URL")
-
-	if uri == "" {
-		uri = "mongodb://localhost:27017/notifications_testing"
-	}
-
-	mInfo, err := mgo.ParseURL(uri)
-	session, err := mgo.Dial(uri)
-	if err != nil {
-		fmt.Printf("Can't connect to mongo, go error %v\n", err)
-		os.Exit(1)
-	}
-	session.SetSafe(&mgo.Safe{})
-	fmt.Println("Connected to", uri, "\n")
-
-	sess := session.Clone()
-
-	return session, sess.DB(mInfo.Database)
 }
 
 /**
@@ -115,15 +90,4 @@ func MigrateTopics(db *mgo.Database) (err error) {
 	handle_errors(err)
 	fmt.Println("Updated", change.Updated, "documents in `", topicsCollection, "` collection")
 	return
-}
-
-/**
- * Handle errors
- */
-
-func handle_errors(err error) {
-	if err != nil {
-		log.Printf("Error %v\n", err)
-		os.Exit(1)
-	}
 }

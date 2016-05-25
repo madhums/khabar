@@ -17,96 +17,70 @@
  * - Removes org and user settings from topics collection
  */
 
-package main
+package migrations
 
 import (
-	"fmt"
-	"log"
-	"os"
+	// "fmt"
+	// "log"
+	// "os"
 
-	"github.com/bulletind/khabar/db"
-	"github.com/bulletind/khabar/utils"
+	// "github.com/bulletind/khabar/db"
+	// "github.com/bulletind/khabar/utils"
 
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	// "gopkg.in/mgo.v2"
+	// "gopkg.in/mgo.v2/bson"
 )
+
+init() {
+	//Migrators = make(map[int]Migrator)
+	fmt.Println("init 004")
+}
 
 /**
  * Main
  */
-
 func main() {
 	session, db, _ := Connect()
-
-	for collection, keys := range db.GetIndexes() {
-		index := mgo.Index{
-			Key:        strings.Split(keys, " "),
-			Unique:     true,
-			DropDups:   true,
-			Background: true,
-			Sparse:     true,
-		}
-
-		err := db.C(collection).EnsureIndex(index)
-		if err != nil {
-			log.Println("Error creating index:", err)
-			panic(err)
-		}
-	}
-
-	Topics := db.C(topicsCollection)
-	query := bson.M{
-		"org":  utils.M{"$ne": ""},
-		"user": utils.M{"$ne": ""},
-	}
-
-	// Remove user preference
-	change, err := Topics.RemoveAll(query)
-	handle_errors(err)
-	fmt.Println(change.Removed, "user preferences  were removed from `", topicsCollection, "` collection")
-
-	// Remove org preference
-	query["user"] = ""
-	change, err = Topics.RemoveAll(query)
-	handle_errors(err)
-	fmt.Println(change.Removed, "org preferences  were removed from `", topicsCollection, "` collection")
-
-	session.Close()
-	fmt.Println("\n", "Closing mongodb connection")
+	defer session.Close()
+	fmt.Println("\n", "Closing mongodb connection woeha")
 }
 
-/**
- * Connect to mongo
- */
+// func main2() {
+// 	session, db, _ := Connect()
+// 	defer session.Close()
 
-func Connect() (*mgo.Session, *mgo.Database, string) {
-	uri := os.Getenv("MONGODB_URL")
+// 	for collection, keys := range db.GetIndexes() {
+// 		index := mgo.Index{
+// 			Key:        strings.Split(keys, " "),
+// 			Unique:     true,
+// 			DropDups:   true,
+// 			Background: true,
+// 			Sparse:     true,
+// 		}
 
-	if uri == "" {
-		uri = "mongodb://localhost:27017/notifications_testing"
-	}
+// 		err := db.C(collection).EnsureIndex(index)
+// 		if err != nil {
+// 			log.Println("Error creating index:", err)
+// 			panic(err)
+// 		}
+// 	}
 
-	mInfo, err := mgo.ParseURL(uri)
-	session, err := mgo.Dial(uri)
-	if err != nil {
-		fmt.Printf("Can't connect to mongo, go error %v\n", err)
-		os.Exit(1)
-	}
-	session.SetSafe(&mgo.Safe{})
-	fmt.Println("Connected to", uri, "\n")
+// 	Topics := db.C(topicsCollection)
+// 	query := bson.M{
+// 		"org":  utils.M{"$ne": ""},
+// 		"user": utils.M{"$ne": ""},
+// 	}
 
-	sess := session.Clone()
+// 	// Remove user preference
+// 	change, err := Topics.RemoveAll(query)
+// 	handle_errors(err)
+// 	fmt.Println(change.Removed, "user preferences  were removed from `", topicsCollection, "` collection")
 
-	return session, sess.DB(mInfo.Database), mInfo.Database
-}
+// 	// Remove org preference
+// 	query["user"] = ""
+// 	change, err = Topics.RemoveAll(query)
+// 	handle_errors(err)
+// 	fmt.Println(change.Removed, "org preferences  were removed from `", topicsCollection, "` collection")
 
-/**
- * Handle errors
- */
-
-func handle_errors(err error) {
-	if err != nil {
-		log.Printf("Error %v\n", err)
-		os.Exit(1)
-	}
+// 	fmt.Println("\n", "Closing mongodb connection")
 }
