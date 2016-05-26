@@ -89,12 +89,15 @@ func Connect() (*mgo.Session, *mgo.Database, string) {
 		uri = "mongodb://localhost:27017/notifications_testing"
 	}
 
-	mInfo, err := mgo.ParseURL(uri)
-	session, err := mgo.Dial(uri)
-	if err != nil {
-		fmt.Printf("Can't connect to mongo, go error %v\n", err)
-		os.Exit(1)
+	const SSL_SUFFIX = "?ssl=true"
+	connStringForDb := uri
+	if strings.HasSuffix(uri, SSL_SUFFIX) {
+		connStringForDb = strings.TrimSuffix(uri, SSL_SUFFIX)
 	}
+
+	mInfo, _ := mgo.ParseURL(connStringForDb)
+	conn := db.GetConn(uri, mInfo.Database)
+	session := conn.Session
 	session.SetSafe(&mgo.Safe{})
 	fmt.Println("Connected to", uri, "\n")
 
