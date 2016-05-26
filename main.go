@@ -23,6 +23,8 @@ func sysInit() {
 
 	log.Println("Database Connected: " + config.Settings.Khabar.DbName)
 
+	db.Conn.InitIndexes()
+
 	transDir := config.Settings.Khabar.TranslationDirectory
 
 	if len(transDir) == 0 {
