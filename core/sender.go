@@ -256,10 +256,10 @@ func SendNotification(pending_item *db.PendingItem) {
 
 		go func(
 			language, channelIdent string,
-			pending_item *db.PendingItem,
+			item *db.PendingItem,
 		) {
 			defer childwg.Done()
-			send(language, channelIdent, itemToSend)
+			send(language, channelIdent, item)
 		}(locale, channel, itemToSend)
 	}
 
