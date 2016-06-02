@@ -256,10 +256,16 @@ func SendNotification(pending_item *db.PendingItem) {
 		) {
 			defer childwg.Done()
 			// create copy so parallel processes can alter the item
-			var clonedItem = new(db.PendingItem)
-			copier.Copy(clonedItem, pending_item)
+			var clone = new(db.PendingItem)
+			copier.Copy(clone, pending_item)
 
-			send(language, channelIdent, clonedItem)
+			// maps are not deep cloned - that was what we're after in the end - duh!
+			clone.Context = make(map[string]interface{})
+			for key, val := range pending_item.Context {
+				clone.Context[key] = val
+			}
+
+			send(language, channelIdent, clone)
 		}(locale, channel, pending_item)
 	}
 
