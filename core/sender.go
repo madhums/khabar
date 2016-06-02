@@ -250,17 +250,17 @@ func SendNotification(pending_item *db.PendingItem) {
 	for channel, _ := range ChannelMap {
 		childwg.Add(1)
 
-		// create copy so parallel processes can alter the item
-		var itemToSend = new(db.PendingItem)
-		copier.Copy(itemToSend, pending_item)
-
 		go func(
 			language, channelIdent string,
-			item *db.PendingItem,
+			pending_item *db.PendingItem,
 		) {
 			defer childwg.Done()
-			send(language, channelIdent, item)
-		}(locale, channel, itemToSend)
+			// create copy so parallel processes can alter the item
+			var clonedItem = new(db.PendingItem)
+			copier.Copy(clonedItem, pending_item)
+
+			send(language, channelIdent, clonedItem)
+		}(locale, channel, pending_item)
 	}
 
 	childwg.Wait()
