@@ -65,9 +65,13 @@ func main() {
 				fmt.Println("Number of dups: ", dups, row["_id"])
 			}
 
-			// remove item per item
-			for i := 0; i < dups-1; i++ {
-				errDelete := database.C(collection).Remove(row["_id"])
+			var rows []Row
+			database.C(collection).Find(row["_id"]).Sort("updated_on").All(&rows)
+
+			// remove item per item sorted on last change date
+			for i := 0; i < len(rows)-1; i++ {
+				//fmt.Println(rows[i])
+				errDelete := database.C(collection).Remove(bson.M{"_id": rows[i].ID})
 				if errDelete != nil {
 					fmt.Println(errDelete, row["_id"])
 				}
@@ -76,6 +80,11 @@ func main() {
 
 		fmt.Println(collection, " --duplicates-- ", len(result))
 	}
+}
+
+type Row struct {
+	ID        bson.ObjectId `bson:"_id,omitempty"`
+	UpdatedOn int           `bson:"updated_on"`
 }
 
 /**
