@@ -247,6 +247,11 @@ func SendNotification(pending_item *db.PendingItem) {
 
 	childwg := new(sync.WaitGroup)
 
+	user, _ := pending_item.Context["User"].(string)
+	fullname, _ := pending_item.Context["fullname"].(string)
+	mail, _ := pending_item.Context["email"].(string)
+	log.Printf("Notifying id:[%s] name:%s email:%s \n", user, fullname, mail)
+
 	for channel, _ := range ChannelMap {
 		childwg.Add(1)
 
