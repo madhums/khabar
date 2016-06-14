@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/bulletind/khabar/config"
 	"log"
 	"net/smtp"
 	"strings"
@@ -48,6 +49,7 @@ func (conn *MailConn) SendEmail(message Message) {
 		conn.MessageBytes(message))
 
 	if err != nil {
-		log.Panic(err)
+		log.Print(err)
+		config.Tracer.Notify()
 	}
 }

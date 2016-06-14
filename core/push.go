@@ -8,6 +8,7 @@ import (
 
 	"gopkg.in/simversity/gottp.v3/utils"
 
+	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/saved_item"
 )
@@ -64,7 +65,8 @@ func pushHandler(item *db.PendingItem, text string, settings map[string]interfac
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		log.Print(err)
+		config.Tracer.Notify()
 	}
 	defer resp.Body.Close()
 
