@@ -1,14 +1,9 @@
 package core
 
 import (
-	"bytes"
-	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 	"sync"
-
-	"text/template"
 
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
@@ -25,25 +20,7 @@ const (
 	DEFAULT_TIMEZONE = "GMT+0.0"
 )
 
-type Parse struct {
-	Name string
-	Key  string
-}
-
 var (
-	parseKeys = []Parse{
-		Parse{"APP_ID", "parse_application_id"},
-		Parse{"API_KEY", "parse_rest_api_key"},
-	}
-
-	emailKeys = []string{
-		"smtp_hostname",
-		"smtp_username",
-		"smtp_password",
-		"smtp_port",
-		"smtp_from",
-	}
-
 	locales       = bson.M{}
 	localesLoaded = false
 )
@@ -79,8 +56,10 @@ func loadLocales() {
 
 func sendToChannel(
 	pending_item *db.PendingItem,
-	text, channelIdent string,
-	context map[string]interface{},
+	text,
+	locale,
+	appName,
+	channelIdent string,
 ) {
 	handlerFunc, ok := ChannelMap[channelIdent]
 	if !ok {
@@ -89,7 +68,7 @@ func sendToChannel(
 	}
 
 	defer config.Tracer.Notify()
-	handlerFunc(pending_item, text, context)
+	handlerFunc(pending_item, text, locale, appName)
 }
 
 func getText(locale, ident, channel string, pending_item *db.PendingItem) string {
@@ -133,38 +112,6 @@ func validCategory(category string) bool {
 	return found
 }
 
-// getParseKeys returns map of parse api key and app id
-// It gets the values from the enviroment variables
-func getParseKeys(category string) utils.M {
-	doc := utils.M{}
-
-	// Set the Parse api key and id
-	for _, parse := range parseKeys {
-		envKey := "PARSE_" + category + "_" + parse.Name
-		doc[parse.Key] = os.Getenv(envKey)
-		if len(os.Getenv(envKey)) == 0 {
-			log.Println(envKey, "is empty. Make sure you set this env variable")
-		}
-	}
-	return doc
-}
-
-// getEmailKeys returns map of email smtp settings
-// It gets the values from the environment variables
-func getEmailKeys() utils.M {
-	doc := utils.M{}
-
-	// Set the Email key
-	for _, key := range emailKeys {
-		envKey := strings.ToUpper(key)
-		doc[key] = os.Getenv(envKey)
-		if len(os.Getenv(envKey)) == 0 {
-			log.Println(envKey, "is empty. Make sure you set this env variable")
-		}
-	}
-	return doc
-}
-
 func send(locale, channelName string, pending_item *db.PendingItem) {
 	if !topics.ChannelAllowed(
 		pending_item.User,
@@ -180,12 +127,6 @@ func send(locale, channelName string, pending_item *db.PendingItem) {
 	if !validCategory(pending_item.AppName) {
 		log.Println("Category", pending_item.AppName, "doesn't exist")
 		return
-	}
-
-	channelData := map[string]interface{}{}
-
-	if channelName == PUSH {
-		channelData = getParseKeys(pending_item.AppName)
 	}
 
 	text := getText(locale, pending_item.Topic, channelName, pending_item)
@@ -206,26 +147,7 @@ func send(locale, channelName string, pending_item *db.PendingItem) {
 		log.Println("Subject not found.")
 	}
 
-	if channelName == EMAIL {
-		channelData = getEmailKeys()
-		buffer := new(bytes.Buffer)
-
-		transDir := config.Settings.Khabar.TranslationDirectory
-		path := transDir + "/" + locale + "_base_email.tmpl"
-
-		content, err := ioutil.ReadFile(path)
-		if err != nil {
-			log.Println("Cannot Load the base email template:", path)
-		} else {
-			t := template.Must(template.New("email").Parse(string(content)))
-
-			data := struct{ Content string }{text}
-			t.Execute(buffer, &data)
-			text = buffer.String()
-		}
-	}
-
-	sendToChannel(pending_item, text, channelName, channelData)
+	sendToChannel(pending_item, text, locale, pending_item.AppName, channelName)
 }
 
 func ProcessDefaults(user, org string) {

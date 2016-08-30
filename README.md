@@ -35,7 +35,7 @@ It means
     5. [Update last seen time stamp](#update-last-seen-time-stamp) `PUT /notifications/stats?org=&user=`
     6. [Send notification](#send-notification) `POST /notifications?topic=`
   - [Some general conventions](#some-general-conventions)
-- [Envrionment variables](#environment-variables)
+- [Environment variables](#environment-variables)
   - [Push notifications](#push-notifications)
   - [Email notifications](#email-notifications)
 
@@ -65,7 +65,8 @@ $ DEBUG=* go get && go install && gin -p 8911 -i # or make dev
 
 Now you should be able to access the below API's on port `8911`.
 
-MongoDB config is stored in `config/conf.go`.
+MongoDB config is stored in `config/conf.go`. Same goes for `TranslationDirectory`.
+Or provide env vars `MONGODB_URL` and `TRANSLATION_DIRECTORY`.
 
 After you make the changes (if you import any new deps), don't forget to run
 
@@ -290,6 +291,7 @@ $ khabar
       "topic" : "log_incoming",
       "user" : "5486e02870a0d30200bdcfe0",
       "destination_uri" : "http://...",
+      "device_tokens": [{ "token": "5486d3d986ba633a207682b6", "type": "ios" }],
       "context" : {
         "Organization" : "5486d3d986ba633a207682b6",
         "sender" : "org name",
@@ -314,7 +316,9 @@ $ khabar
 
 #### Some general conventions:
 
-- For all of the above request you must pass atleast one of the `org` or `user` or both
+- For all of the above request you must pass at least one of the `org` or `user` or both
+- `context.email` is used for sending out emails
+- `device_tokens` are used to send out push notifications
 - For all the listings, you get a status code of `200`
 - When you create a resource you get a status code of `201`
 - When you modify/delete a resource you get a status code of `204`
@@ -342,6 +346,9 @@ $ khabar
 We use environment variables to fetch the keys and secrets.
 
 #### Push notifications
+We support both Parse and AWS SNS to send out push notifications. As long as env variable `SNS_KEY` is not there push notifications are sent out using Parse.
+
+#### Push notifications (PARSE)
 
 We use [parse](https://www.parse.com/) to send push notifications. When you are sending out a notification using the [`POST /notifications`](#send-notification) api call, it looks for certain environment variables. These env variables are based on the categories (`app_name`s) you are using in the `topics_available` collection.
 
@@ -352,6 +359,26 @@ You can set them by doing
 ```sh
 $ export PARSE_myapp_API_KEY=***
 $ export PARSE_myapp_APP_ID=***
+```
+
+#### Push notifications (SNS)
+
+We use [sns](https://aws.amazon.com/sns/) to send push notifications.
+For setup see README of https://github.com/changer/pushnotification.
+
+When you are sending out a notification using the [`POST /notifications`](#send-notification) api call, it looks for certain environment variables. Besides base AWS variables `key`, `secret` and `region` there are env variables are based on the categories (`app_name`s) you are using in the `topics_available` collection. You will need one per mobile platform (`ios|android|windows`).
+
+For example: You have an event (ident) `log_incoming` configured for the category (app_name) `myapp` in the `topics_available` collection. Now, when you make a call to `POST /notifications`, it looks for `SNS_ANDROID_myapp` and `SNS_IOS_myapp` enviroment variables and uses them to send the push notifications.
+
+You can set them by doing
+
+```sh
+$ export SNS_KEY=***
+$ export SNS_SECRET=***
+$ export SNS_REGION=***
+$ export SNS_GCM_myapp=***
+$ export SNS_APNS_myapp=***
+$ export SNS_APNSSANDBOX_myapp=***
 ```
 
 #### Email notifications

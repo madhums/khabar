@@ -10,9 +10,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"crypto/tls"
-	"github.com/bulletind/khabar/utils"
 	"net"
 	"strings"
+
+	"github.com/bulletind/khabar/utils"
 )
 
 var Conn *MConn
@@ -265,8 +266,8 @@ func GetIndexes() map[string]string {
 	// define unique indexes
 	indexes := make(map[string]string)
 	indexes["channel"] = "name"
-	indexes["topics_available"] = "ident appname"
-	indexes["topics"] = "ident org user"
+	indexes[AvailableTopicCollection] = "ident appname"
+	indexes[TopicCollection] = "ident org user"
 
 	return indexes
 }
@@ -275,6 +276,8 @@ func (self *MConn) InitIndexes() {
 	session := self.Session.Copy()
 	db := session.DB(self.Dbname)
 	defer session.Close()
+
+	expireIndex(db)
 
 	for collection, keys := range GetIndexes() {
 		index := mgo.Index{
@@ -290,6 +293,22 @@ func (self *MConn) InitIndexes() {
 			log.Println("Error creating index:", err)
 			panic(err)
 		}
+	}
+}
+
+func expireIndex(db *mgo.Database) {
+	index := mgo.Index{
+		Key:         []string{"updated_on"},
+		Unique:      false,
+		DropDups:    false,
+		Background:  true,
+		ExpireAfter: time.Duration(24*180) * time.Hour,
+	}
+
+	err := db.C(DeviceCollection).EnsureIndex(index)
+	if err != nil {
+		log.Println("Error creating index:", err)
+		panic(err)
 	}
 }
 

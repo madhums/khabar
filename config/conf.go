@@ -1,14 +1,15 @@
 package config
 
 import (
-	"gopkg.in/simversity/gottp.v3/conf"
 	"os"
+
+	"gopkg.in/simversity/gottp.v3/conf"
 )
 
 type config struct {
 	Gottp  conf.GottpSettings
 	Khabar struct {
-		DbUrl		     string
+		DbUrl                string
 		DbName               string
 		TranslationDirectory string
 		Debug                bool
@@ -25,6 +26,10 @@ func (self *config) MakeConfig(configPath string) {
 	}
 
 	self.Khabar.DbName = "notifications_testing"
+
+	if Dir := os.Getenv("TRANSLATION_DIRECTORY"); Dir != "" {
+		self.Khabar.TranslationDirectory = Dir
+	}
 
 	if configPath != "" {
 		conf.MakeConfig(configPath, self)

@@ -2,15 +2,17 @@ package core
 
 import (
 	"bytes"
+	"os"
 
 	"log"
 	"net/http"
 
-	"gopkg.in/simversity/gottp.v3/utils"
+	gottpUtils "gopkg.in/simversity/gottp.v3/utils"
 
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/saved_item"
+	khabarUtils "github.com/bulletind/khabar/utils"
 )
 
 const (
@@ -18,8 +20,20 @@ const (
 	PUSH_SOUND = "default"
 )
 
-func pushHandler(item *db.PendingItem, text string, settings map[string]interface{}) {
+var parseKeys = []Parse{
+	Parse{"APP_ID", "parse_application_id"},
+	Parse{"API_KEY", "parse_rest_api_key"},
+}
+
+type Parse struct {
+	Name string
+	Key  string
+}
+
+func parseHandler(item *db.PendingItem, text string, locale string, appName string) {
 	log.Println("Sending Push Notification...")
+
+	settings := getParseKeys(appName)
 
 	application_id, ok := settings["parse_application_id"].(string)
 	if !ok {
@@ -54,7 +68,7 @@ func pushHandler(item *db.PendingItem, text string, settings map[string]interfac
 	data["data"] = body
 	data["channels"] = []string{"USER_" + item.User}
 
-	var jsonStr = utils.Encoder(&data)
+	var jsonStr = gottpUtils.Encoder(&data)
 
 	req, err := http.NewRequest("POST", PARSE_URL, bytes.NewBuffer(jsonStr))
 
@@ -73,4 +87,20 @@ func pushHandler(item *db.PendingItem, text string, settings map[string]interfac
 	saved_item.Insert(db.SavedPushCollection, &db.SavedItem{Data: data, Details: *item})
 
 	log.Println("Push notification status:", resp.Status)
+}
+
+// getParseKeys returns map of parse api key and app id
+// It gets the values from the enviroment variables
+func getParseKeys(appName string) khabarUtils.M {
+	doc := khabarUtils.M{}
+
+	// Set the Parse api key and id
+	for _, parse := range parseKeys {
+		envKey := "PARSE_" + appName + "_" + parse.Name
+		doc[parse.Key] = os.Getenv(envKey)
+		if len(os.Getenv(envKey)) == 0 {
+			log.Println(envKey, "is empty. Make sure you set this env variable")
+		}
+	}
+	return doc
 }

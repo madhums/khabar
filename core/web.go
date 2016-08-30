@@ -5,7 +5,7 @@ import (
 	"github.com/bulletind/khabar/dbapi/sent"
 )
 
-func webHandler(item *db.PendingItem, text string, settings map[string]interface{}) {
+func webHandler(item *db.PendingItem, text string, locale string, appName string) {
 
 	sent_item := db.SentItem{
 		CreatedBy:      item.CreatedBy,

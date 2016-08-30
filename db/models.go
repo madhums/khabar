@@ -11,6 +11,7 @@ const (
 	StatsCollection      = "last_seen_at"
 	TopicCollection      = "topics"
 	UserLocaleCollection = "user_locales"
+	DeviceCollection     = "devices"
 
 	SavedEmailCollection     = "saved_email"
 	SavedPushCollection      = "saved_push"
@@ -65,6 +66,13 @@ type PendingItem struct {
 	Context        map[string]interface{} `json:"context" bson:"context" required:"true"`
 	IsRead         bool                   `json:"is_read" bson:"is_read"`
 	Entity         string                 `json:"entity" bson:"entity" required:"true"`
+	DeviceTokens   []DeviceToken          `bson:"device_tokens"`
+}
+
+type DeviceToken struct {
+	Type    string `json:"type" bson:"type"`
+	Token   string `json:"token" bson:"token"`
+	AppName string `json:"app_name" bson:"app_name"`
 }
 
 func (self *PendingItem) IsValid() bool {
@@ -95,4 +103,11 @@ type Topic struct {
 	Organization string    `json:"org" bson:"org"`
 	Channels     []Channel `json:"channels" bson:"channels" required:"true"`
 	Ident        string    `json:"ident" bson:"ident" required:"true" form:"ident" binding:"required"`
+}
+
+type Device struct {
+	BaseModel   `bson:",inline"`
+	Token       string `json:"token" bson:"token" required:"true"`
+	Type        string `json:"type" bson:"type" required:"true"`
+	EndpointArn string `json:"endpoint_arn" bson:"endpoint_arn" required:"true"`
 }
