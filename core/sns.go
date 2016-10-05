@@ -24,16 +24,20 @@ func snsHandler(item *db.PendingItem, text string, locale string, appName string
 		subject = item.Topic
 	}
 
+	custom := getCustomData(item)
+	custom["data"] = getCustomData(item)
+
 	data := &push.Data{
 		Alert:   aws.String(text),
 		Subject: aws.String(subject),
 		Sound:   aws.String(PUSH_SOUND_SNS),
 		Badge:   aws.Int(1),
+		Data:    custom,
 	}
 
 	for _, userDevice := range item.DeviceTokens {
-		// only send if no appname is provided or app name is same
-		if len(userDevice.AppName) > 0 && userDevice.AppName != appName {
+		// only send if appname is provided or app name is same
+		if len(userDevice.AppName) == 0 || userDevice.AppName != appName {
 			continue
 		}
 
@@ -70,21 +74,31 @@ func snsHandler(item *db.PendingItem, text string, locale string, appName string
 	store(item, text, subject)
 }
 
+func getCustomData(item *db.PendingItem) map[string]interface{} {
+	return map[string]interface{}{
+		"entity":       item.Entity,
+		"organization": item.Organization,
+		"app_name":     item.AppName,
+		"topic":        item.Topic,
+		"created_on":   item.CreatedOn,
+	}
+}
+
 func getService(appName string) push.Service {
 	awsKey := getKey("SNS_KEY", true)
 	awsSecret := getKey("SNS_SECRET", true)
 	awsRegion := getKey("SNS_REGION", true)
 	awsAPNS := getKey("SNS_APNS_"+appName, false)
-	awsAPNSSandbox := getKey("SNS_APNSSANDBOX_"+appName, false)
+	//awsAPNSSandbox := getKey("SNS_APNSSANDBOX_"+appName, false)
 	awsGCM := getKey("SNS_GCM_"+appName, false)
 
 	return push.Service{
-		Key:         awsKey,
-		Secret:      awsSecret,
-		Region:      awsRegion,
-		APNS:        awsAPNS,
-		APNSSandbox: awsAPNSSandbox,
-		GCM:         awsGCM,
+		Key:    awsKey,
+		Secret: awsSecret,
+		Region: awsRegion,
+		APNS:   awsAPNS,
+		//APNSSandbox: awsAPNSSandbox,
+		GCM: awsGCM,
 	}
 }
 

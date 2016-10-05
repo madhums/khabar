@@ -12,7 +12,7 @@
 		},
 		{
 			"ImportPath": "github.com/changer/pushnotification",
-			"Rev": "31491af356a4943bc685852e2b49e38431119527"
+			"Rev": "23bc0ba664bab6997f1365465ef5b8fa61825d0b"
 		},
 		{
 			"ImportPath": "github.com/nicksnyder/go-i18n/i18n",

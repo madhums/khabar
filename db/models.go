@@ -66,7 +66,7 @@ type PendingItem struct {
 	Context        map[string]interface{} `json:"context" bson:"context" required:"true"`
 	IsRead         bool                   `json:"is_read" bson:"is_read"`
 	Entity         string                 `json:"entity" bson:"entity" required:"true"`
-	DeviceTokens   []DeviceToken          `bson:"device_tokens"`
+	DeviceTokens   []DeviceToken          `json:"device_tokens" bson:"device_tokens"`
 }
 
 type DeviceToken struct {
