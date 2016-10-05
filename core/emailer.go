@@ -83,7 +83,7 @@ func makeEmail(input string, locale string) (output string) {
 	} else {
 		t := template.Must(template.New("email").Parse(string(content)))
 
-		data := struct{ Content string }{input}
+		data := struct{ Content interface{} }{template.HTML(input)}
 		t.Execute(buffer, &data)
 		output = buffer.String()
 	}
