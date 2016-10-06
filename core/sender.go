@@ -130,11 +130,11 @@ func send(locale, channelName string, pending_item *db.PendingItem) {
 	}
 
 	text := getText(locale, pending_item.Topic, channelName, pending_item)
-	if text == "" {
+	if text == "" && channelName != EMAIL {
 		// If Topic == text, do not send the notification. This can happen
 		// if the translation fails to find a sensible string in the JSON files
 		// OR the translation provided was meaningless. To prevent the users
-		// from being annpyed, abort this routine.
+		// from being annoyed, abort this routine.
 		log.Println("No translation for:", channelName, pending_item.Topic)
 		return
 	}

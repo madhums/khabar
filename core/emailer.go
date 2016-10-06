@@ -2,28 +2,59 @@ package core
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/aymerick/douceur/inliner"
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/saved_item"
 	"github.com/bulletind/khabar/utils"
 )
 
-var emailKeys = []string{
-	"smtp_hostname",
-	"smtp_username",
-	"smtp_password",
-	"smtp_port",
-	"smtp_from",
+type mailSettings struct {
+	//CSS  string
+	Base string
+	SMTP *smtpSettings
+}
+
+type smtpSettings struct {
+	HostName string
+	UserName string
+	Password string
+	Port     string
+	From     string
+}
+
+// load once, store for reuse
+var settings *mailSettings
+
+func loadConfig() {
+	if settings != nil {
+		return
+	}
+
+	settings = &mailSettings{
+		Base: getContentString("email/base.tmpl"),
+		//CSS:  getContentString("email/css.css"),
+		SMTP: &smtpSettings{
+			HostName: getEnv("HostName"),
+			UserName: getEnv("UserName"),
+			Password: getEnv("Password"),
+			Port:     getEnv("Port"),
+			From:     getEnv("From"),
+		},
+	}
 }
 
 func emailHandler(item *db.PendingItem, text string, locale string, appName string) {
 	log.Println("Sending email...")
+	loadConfig()
 
 	if item.Context["email"] == nil {
 		log.Println("Email field not found.")
@@ -36,8 +67,7 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 		return
 	}
 
-	settings := getEmailKeys()
-	text = makeEmail(text, locale)
+	text = makeEmail(item, text, locale)
 	var sender string = ""
 	var subject string = ""
 
@@ -50,17 +80,16 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 	}
 
 	mailConn := utils.MailConn{
-		HostName:   settings["smtp_hostname"].(string),
-		UserName:   settings["smtp_username"].(string),
-		Password:   settings["smtp_password"].(string),
+		HostName:   settings.SMTP.HostName,
+		UserName:   settings.SMTP.UserName,
+		Password:   settings.SMTP.Password,
+		Port:       settings.SMTP.Port,
+		Host:       settings.SMTP.HostName + ":" + settings.SMTP.Port,
 		SenderName: sender,
-		Port:       settings["smtp_port"].(string),
-		Host: settings["smtp_hostname"].(string) + ":" +
-			settings["smtp_port"].(string),
 	}
 
 	msg := utils.Message{
-		From:    settings["smtp_from"].(string),
+		From:    settings.SMTP.From,
 		To:      []string{email},
 		Subject: subject,
 		Body:    text,
@@ -71,37 +100,83 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: msg, Details: *item})
 }
 
-func makeEmail(input string, locale string) (output string) {
-	buffer := new(bytes.Buffer)
+func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
+	// get json translations for template
+	templateContext := getTemplateContext(locale)
 
+	if topicMail == "" {
+		topicMail = getContentString(fmt.Sprintf("%v_email/%v.tmpl", locale, item.Topic))
+	}
+
+	if templateContext != nil && topicMail != "" {
+		templateContext["Content"] = template.HTML(topicMail)
+		//templateContext["CSS"] = settings.CSS
+
+		subject, ok := item.Context["subject"].(string)
+		if ok && subject != "" {
+			templateContext["Subject"] = subject
+		}
+
+		// 1st combine template with css, language specifixc texts and topic-mail or topic-text
+		combined := parse(settings.Base, templateContext)
+		// now parse the context from the message
+		parsed := parse(combined, item.Context)
+		// and change from css to style per element
+		output, err := inliner.Inline(parsed)
+		if err != nil {
+			log.Println("Error parsing css:", err)
+		}
+		return output
+	}
+	return ""
+}
+
+func getTemplateContext(locale string) map[string]interface{} {
+	// get json translations for template
+	var templateContext map[string]interface{}
+
+	localeContext := getContent(fmt.Sprintf("%v_base_email.json", locale))
+	if localeContext == nil {
+		log.Println("No locale " + locale + " context found for template:")
+		return templateContext
+	}
+
+	// parse to json
+	err := json.Unmarshal(localeContext, &templateContext)
+	if err != nil {
+		log.Println("Error parsing locale context to json:", err)
+	}
+	return templateContext
+}
+
+func getEnv(key string) string {
+	envKey := strings.ToUpper("smtp_" + key)
+	value := os.Getenv(envKey)
+	if len(os.Getenv(envKey)) == 0 {
+		log.Println(envKey, "is empty. Make sure you set this env variable")
+	}
+	return value
+}
+
+func getContentString(subpath string) string {
+	return string(getContent(subpath))
+}
+
+func getContent(subpath string) (output []byte) {
 	transDir := config.Settings.Khabar.TranslationDirectory
-	path := transDir + "/" + locale + "_base_email.tmpl"
-
+	path := transDir + "/" + subpath
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Println("Cannot Load the base email template:", path)
+		log.Println("Cannot Load the template:", path)
 	} else {
-		t := template.Must(template.New("email").Parse(string(content)))
-
-		data := struct{ Content interface{} }{template.HTML(input)}
-		t.Execute(buffer, &data)
-		output = buffer.String()
+		output = content
 	}
 	return
 }
 
-// getEmailKeys returns map of email smtp settings
-// It gets the values from the environment variables
-func getEmailKeys() utils.M {
-	doc := utils.M{}
-
-	// Set the Email key
-	for _, key := range emailKeys {
-		envKey := strings.ToUpper(key)
-		doc[key] = os.Getenv(envKey)
-		if len(os.Getenv(envKey)) == 0 {
-			log.Println(envKey, "is empty. Make sure you set this env variable")
-		}
-	}
-	return doc
+func parse(content string, data interface{}) string {
+	buffer := new(bytes.Buffer)
+	t := template.Must(template.New("email").Parse(string(content)))
+	t.Execute(buffer, &data)
+	return buffer.String()
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
@@ -37,7 +38,7 @@ func sysInit() {
 
 	filepath.Walk(transDir, func(path string, _ os.FileInfo, err error) error {
 		fileExt := filepath.Ext(path)
-		if fileExt == ".json" && err == nil {
+		if fileExt == ".json" && strings.HasSuffix(path, "base_email.json") == false && err == nil {
 			log.Println("Loading translation file:" + path)
 			i18n.MustLoadTranslationFile(path)
 		} else {

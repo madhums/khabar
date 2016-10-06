@@ -56,15 +56,21 @@ func TestGetParseKeys(t *testing.T) {
 	}
 }
 
-func TestGetEmailKeys(t *testing.T) {
-	channelData := getEmailKeys()
-
-	for _, key := range emailKeys {
-		if _, ok := channelData[key]; !ok {
-			t.Error(key, "is not set")
-		}
-	}
-}
+// func TestGetEmailKeys(t *testing.T) {
+// 	loadConfig()
+//
+// 	checkKey(t, settings.SMTP.HostName)
+// 	checkKey(t, settings.SMTP.UserName)
+// 	checkKey(t, settings.SMTP.Password)
+// 	checkKey(t, settings.SMTP.Port)
+// 	checkKey(t, settings.SMTP.From)
+// }
+//
+// func checkKey(t *testing.T, key string) {
+// 	if key == "" {
+// 		t.Error("smtp_" + key + "is not set")
+// 	}
+// }
 
 func cleanup() {
 	db.Conn.Session.DB(dbName).DropDatabase()
