@@ -7,14 +7,17 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"net/mail"
+	"net/smtp"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/aymerick/douceur/inliner"
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/saved_item"
-	"github.com/bulletind/khabar/utils"
+	"github.com/scorredoira/email"
 )
 
 type mailSettings struct {
@@ -24,11 +27,16 @@ type mailSettings struct {
 }
 
 type smtpSettings struct {
-	HostName string
-	UserName string
-	Password string
-	Port     string
-	From     string
+	HostName  string
+	UserName  string
+	Password  string
+	Port      string
+	FromEmail string
+	FromName  string
+}
+
+func (smtp smtpSettings) GetAddress() string {
+	return smtp.HostName + ":" + smtp.Port
 }
 
 // load once, store for reuse
@@ -43,11 +51,12 @@ func loadConfig() {
 		Base: getContentString("email/base.tmpl"),
 		//CSS:  getContentString("email/css.css"),
 		SMTP: &smtpSettings{
-			HostName: getEnv("HostName"),
-			UserName: getEnv("UserName"),
-			Password: getEnv("Password"),
-			Port:     getEnv("Port"),
-			From:     getEnv("From"),
+			HostName:  getEnv("HostName"),
+			UserName:  getEnv("UserName"),
+			Password:  getEnv("Password"),
+			Port:      getEnv("Port"),
+			FromEmail: getEnv("From_Email"),
+			FromName:  getEnv("From_Name"),
 		},
 	}
 }
@@ -61,43 +70,53 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 		return
 	}
 
-	email, ok := item.Context["email"].(string)
+	emailAddress, ok := item.Context["email"].(string)
 	if !ok {
 		log.Println("Email field is of invalid type")
 		return
 	}
 
 	text = makeEmail(item, text, locale)
-	var sender string = ""
+	var sender string = settings.SMTP.FromName
 	var subject string = ""
 
 	if item.Context["sender"] != nil {
-		sender, ok = item.Context["sender"].(string)
+		ctxSender, _ := item.Context["sender"].(string)
+		if sender != "" {
+			sender = fmt.Sprintf("%v (%v)", sender, ctxSender)
+		} else {
+			sender = ctxSender
+		}
 	}
 
 	if item.Context["subject"] != nil {
 		subject, ok = item.Context["subject"].(string)
 	}
 
-	mailConn := utils.MailConn{
-		HostName:   settings.SMTP.HostName,
-		UserName:   settings.SMTP.UserName,
-		Password:   settings.SMTP.Password,
-		Port:       settings.SMTP.Port,
-		Host:       settings.SMTP.HostName + ":" + settings.SMTP.Port,
-		SenderName: sender,
+	emailauth := smtp.PlainAuth("", settings.SMTP.UserName, settings.SMTP.Password, settings.SMTP.HostName)
+	emailContent := email.NewHTMLMessage(subject, text)
+	emailContent.From = mail.Address{Name: sender, Address: settings.SMTP.FromEmail}
+	emailContent.To = []string{emailAddress}
+	//
+	//  files := []string{
+	//          "big.jpg",
+	//          "small.jpg",
+	//  } // change here to your own files
+	//
+	//  for _, filename := range files {
+	//          err := emailContent.Attach(filename)
+	//
+	//          if err != nil {
+	//                  fmt.Println(err)
+	//          }
+	//  }
+
+	// send out the email
+	err := email.Send(settings.SMTP.GetAddress(), emailauth, emailContent)
+	if err != nil {
+		log.Println("Error sending mail", err)
 	}
-
-	msg := utils.Message{
-		From:    settings.SMTP.From,
-		To:      []string{email},
-		Subject: subject,
-		Body:    text,
-	}
-
-	mailConn.SendEmail(msg)
-
-	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: msg, Details: *item})
+	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: emailContent, Details: *item})
 }
 
 func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
@@ -120,7 +139,7 @@ func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
 		// 1st combine template with css, language specifixc texts and topic-mail or topic-text
 		combined := parse(settings.Base, templateContext)
 		// now parse the context from the message
-		parsed := parse(combined, item.Context)
+		parsed := parse(combined, copy(item.Context))
 		// and change from css to style per element
 		output, err := inliner.Inline(parsed)
 		if err != nil {
@@ -179,4 +198,27 @@ func parse(content string, data interface{}) string {
 	t := template.Must(template.New("email").Parse(string(content)))
 	t.Execute(buffer, &data)
 	return buffer.String()
+}
+
+func copy(item interface{}) interface{} {
+	kind := reflect.TypeOf(item).Kind()
+	original := reflect.ValueOf(item)
+
+	if kind == reflect.Slice {
+		clone := []interface{}{}
+		for i := 0; i < original.Len(); i += 1 {
+			clone = append(clone, copy(original.Index(i).Interface()))
+		}
+		return clone
+	} else if kind == reflect.Map {
+		clone := map[string]interface{}{}
+		for key, val := range item.(map[string]interface{}) {
+			clone[key] = copy(val)
+		}
+		return clone
+	} else if kind == reflect.String {
+		return template.HTML(fmt.Sprint(item))
+	} else {
+		return item
+	}
 }
