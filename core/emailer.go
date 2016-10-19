@@ -51,12 +51,12 @@ func loadConfig() {
 		Base: getContentString("email/base.tmpl"),
 		//CSS:  getContentString("email/css.css"),
 		SMTP: &smtpSettings{
-			HostName:  getEnv("HostName"),
-			UserName:  getEnv("UserName"),
-			Password:  getEnv("Password"),
-			Port:      getEnv("Port"),
-			FromEmail: getEnv("From_Email"),
-			FromName:  getEnv("From_Name"),
+			HostName:  getEnv("HostName", true),
+			UserName:  getEnv("UserName", true),
+			Password:  getEnv("Password", true),
+			Port:      getEnv("Port", true),
+			FromEmail: getEnv("From_Email", true),
+			FromName:  getEnv("From_Name", false),
 		},
 	}
 }
@@ -168,10 +168,10 @@ func getTemplateContext(locale string) map[string]interface{} {
 	return templateContext
 }
 
-func getEnv(key string) string {
+func getEnv(key string, required bool) string {
 	envKey := strings.ToUpper("smtp_" + key)
 	value := os.Getenv(envKey)
-	if len(os.Getenv(envKey)) == 0 {
+	if len(os.Getenv(envKey)) == 0 && required {
 		log.Println(envKey, "is empty. Make sure you set this env variable")
 	}
 	return value

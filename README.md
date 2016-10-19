@@ -291,7 +291,7 @@ $ khabar
       "topic" : "log_incoming",
       "user" : "5486e02870a0d30200bdcfe0",
       "destination_uri" : "http://...",
-      "device_tokens": [{ "token": "5486d3d986ba633a207682b6", "type": "ios" }],
+      "device_tokens": [{ "token": "5486d3d986ba633a207682b6", "type": "ios", "app_name": "myapp" }],
       "context" : {
         "Organization" : "5486d3d986ba633a207682b6",
         "sender" : "org name",
@@ -318,7 +318,7 @@ $ khabar
 
 - For all of the above request you must pass at least one of the `org` or `user` or both
 - `context.email` is used for sending out emails
-- `device_tokens` are used to send out push notifications
+- `device_tokens` are used to send out push notifications, `device_token.app_name` needs to match `app_name`  
 - For all the listings, you get a status code of `200`
 - When you create a resource you get a status code of `201`
 - When you modify/delete a resource you get a status code of `204`
@@ -383,12 +383,18 @@ $ export SNS_APNSSANDBOX_myapp=***
 
 #### Email notifications
 
-You can configure the email notifications by setting the following env variables
+When sending emails, some magic is involved. The supplied translations will be searched for a base email `base.tmpl` template in directory `email`. This template needs to have a `Subject` and a `Content` section. Besides that a basic translation file `<locale>_email.json` will be loaded so footers and other 'static' content can be provided to the base template.
+All styles defined in the `styles` section in the base template will be applied to all relevant elements, so no inline styling is needed.
+
+When no topic entry is available the directory `<locale>_email` will be searched for the topic template `<topic>.tmpl`. More complex logic can be used within the template like loops etc.. See for more info the [html/template](https://golang.org/pkg/html/template/) package.
+
+You can configure the email notifications by setting the env variables. Except for `SMTP_FROM_NAME` all keys are required. `SMTP_FROM_NAME` will be used as sender name. When a `sender` is provided in the context, it will be combined to `SMTP_FROM_NAME (sender)`.
 
 ```sh
 $ export SMTP_HOSTNAME=***
 $ export SMTP_USERNAME=***
 $ export SMTP_PASSWORD=***
 $ export SMTP_PORT=***
-$ export SMTP_FROM=***
+$ export SMTP_FROM_EMAIL=***
+$ export SMTP_FROM_NAME=***
 ```
