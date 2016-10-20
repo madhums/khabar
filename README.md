@@ -393,7 +393,7 @@ All styles defined in the `styles` section in the base template will be applied 
 
 When no topic entry is available the directory `<locale>_email` will be searched for the topic template `<topic>.tmpl`. More complex logic can be used within the template like loops etc.. See for more info the [html/template](https://golang.org/pkg/html/template/) package.
 
-All `attachments` are attached to the email. When the url is public, the file will be downloaded. When the url is private, the file is downloaded using the provided settings for the mediaserver. 
+All `attachments` are attached to the email. When the url is public, the file will be downloaded. When the url is private, the file is downloaded using the provided settings for the mediaserver.
 
 You can configure the email notifications by setting the env variables. Except for `SMTP_FROM_NAME` all keys are required. `SMTP_FROM_NAME` will be used as sender name. When a `sender` is provided in the context, it will be combined to `SMTP_FROM_NAME (sender)`.
 

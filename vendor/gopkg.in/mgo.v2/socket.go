@@ -94,27 +94,23 @@ type queryWrapper struct {
 }
 
 func (op *queryOp) finalQuery(socket *mongoSocket) interface{} {
-	if socket.ServerInfo().Mongos {
+	if op.flags&flagSlaveOk != 0 && socket.ServerInfo().Mongos {
 		var modeName string
-		if op.flags&flagSlaveOk == 0 {
+		switch op.mode {
+		case Strong:
 			modeName = "primary"
-		} else {
-			switch op.mode {
-			case Strong:
-				modeName = "primary"
-			case Monotonic, Eventual:
-				modeName = "secondaryPreferred"
-			case PrimaryPreferred:
-				modeName = "primaryPreferred"
-			case Secondary:
-				modeName = "secondary"
-			case SecondaryPreferred:
-				modeName = "secondaryPreferred"
-			case Nearest:
-				modeName = "nearest"
-			default:
-				panic(fmt.Sprintf("unsupported read mode: %d", op.mode))
-			}
+		case Monotonic, Eventual:
+			modeName = "secondaryPreferred"
+		case PrimaryPreferred:
+			modeName = "primaryPreferred"
+		case Secondary:
+			modeName = "secondary"
+		case SecondaryPreferred:
+			modeName = "secondaryPreferred"
+		case Nearest:
+			modeName = "nearest"
+		default:
+			panic(fmt.Sprintf("unsupported read mode: %d", op.mode))
 		}
 		op.hasOptions = true
 		op.options.ReadPreference = make(bson.D, 0, 2)
@@ -166,9 +162,10 @@ type updateOp struct {
 }
 
 type deleteOp struct {
-	collection string // "database.collection"
-	selector   interface{}
-	flags      uint32
+	Collection string      `bson:"-"` // "database.collection"
+	Selector   interface{} `bson:"q"`
+	Flags      uint32      `bson:"-"`
+	Limit      int         `bson:"limit"`
 }
 
 type killCursorsOp struct {
@@ -392,6 +389,11 @@ func (socket *mongoSocket) Query(ops ...interface{}) (err error) {
 
 	for _, op := range ops {
 		debugf("Socket %p to %s: serializing op: %#v", socket, socket.addr, op)
+		if qop, ok := op.(*queryOp); ok {
+			if cmd, ok := qop.query.(*findCmd); ok {
+				debugf("Socket %p to %s: find command: %#v", socket, socket.addr, cmd)
+			}
+		}
 		start := len(buf)
 		var replyFunc replyFunc
 		switch op := op.(type) {
@@ -453,10 +455,10 @@ func (socket *mongoSocket) Query(ops ...interface{}) (err error) {
 		case *deleteOp:
 			buf = addHeader(buf, 2006)
 			buf = addInt32(buf, 0) // Reserved
-			buf = addCString(buf, op.collection)
-			buf = addInt32(buf, int32(op.flags))
-			debugf("Socket %p to %s: serializing selector document: %#v", socket, socket.addr, op.selector)
-			buf, err = addBSON(buf, op.selector)
+			buf = addCString(buf, op.Collection)
+			buf = addInt32(buf, int32(op.Flags))
+			debugf("Socket %p to %s: serializing selector document: %#v", socket, socket.addr, op.Selector)
+			buf, err = addBSON(buf, op.Selector)
 			if err != nil {
 				return err
 			}
@@ -546,7 +548,6 @@ func (socket *mongoSocket) readLoop() {
 	s := make([]byte, 4)
 	conn := socket.conn // No locking, conn never changes.
 	for {
-		// XXX Handle timeouts, , etc
 		err := fill(conn, p)
 		if err != nil {
 			socket.kill(err, true)
