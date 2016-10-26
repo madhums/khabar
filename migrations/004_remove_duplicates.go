@@ -36,11 +36,15 @@ func main() {
 	session, database, _ := Connect()
 	defer session.Close()
 
-	for collection, keys := range db.GetIndexes() {
+	for collection, index := range db.GetIndexes() {
+		if !index.Unique {
+			continue
+		}
+
 		var fields = bson.M{}
 
 		//grouping
-		for _, field := range strings.Split(keys, " ") {
+		for _, field := range strings.Split(index.Keys, " ") {
 			fields[field] = "$" + field
 		}
 
@@ -108,7 +112,7 @@ func Connect() (*mgo.Session, *mgo.Database, string) {
 	conn := db.GetConn(uri, mInfo.Database)
 	session := conn.Session
 	session.SetSafe(&mgo.Safe{})
-	fmt.Println("Connected to", uri, "\n")
+	fmt.Println("Connected to", uri)
 
 	sess := session.Clone()
 

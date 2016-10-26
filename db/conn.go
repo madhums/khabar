@@ -262,12 +262,18 @@ func (self *MConn) Insert(table string, arguments ...interface{}) (_id string) {
 	return
 }
 
-func GetIndexes() map[string]string {
-	// define unique indexes
-	indexes := make(map[string]string)
-	indexes["channel"] = "name"
-	indexes[AvailableTopicCollection] = "ident appname"
-	indexes[TopicCollection] = "ident org user"
+type index struct {
+	Keys   string
+	Unique bool
+}
+
+func GetIndexes() map[string]index {
+	// define indexes
+	indexes := make(map[string]index)
+	indexes["channel"] = index{Keys: "name", Unique: true}
+	indexes[AvailableTopicCollection] = index{Keys: "ident app_name", Unique: true}
+	indexes[TopicCollection] = index{Keys: "ident org user", Unique: true}
+	indexes[SentCollection] = index{Keys: "org user updated_on is_read", Unique: false}
 
 	return indexes
 }
@@ -279,11 +285,11 @@ func (self *MConn) InitIndexes() {
 
 	expireIndex(db)
 
-	for collection, keys := range GetIndexes() {
+	for collection, index := range GetIndexes() {
 		index := mgo.Index{
-			Key:        strings.Split(keys, " "),
-			Unique:     true,
-			DropDups:   true,
+			Key:        strings.Split(index.Keys, " "),
+			Unique:     index.Unique,
+			DropDups:   index.Unique,
 			Background: true,
 			Sparse:     true,
 		}
