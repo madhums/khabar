@@ -1,11 +1,23 @@
 package utils
 
 import (
+	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"gopkg.in/simversity/gottp.v3"
 	"gopkg.in/simversity/gottp.v3/utils"
 )
+
+func GetEnv(key string, required bool) string {
+	envKey := strings.ToUpper(key)
+	value := os.Getenv(envKey)
+	if len(os.Getenv(envKey)) == 0 && required {
+		log.Println(envKey, "is empty. Make sure you set this env variable")
+	}
+	return value
+}
 
 func ConcatenateErrors(errs *[]error) string {
 	var errString string

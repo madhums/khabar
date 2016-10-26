@@ -7,9 +7,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
+	"github.com/bulletind/khabar/utils"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/simversity/gottp.v3"
 )
@@ -55,9 +57,19 @@ func sysInit() {
 	log.Println("Translations have been parsed.")
 }
 
+func initCleaner() {
+	ticker := time.NewTicker(time.Hour * 1)
+	go func() {
+		for _ = range ticker.C {
+			utils.CleanupDownloads()
+		}
+	}()
+}
+
 func main() {
 
 	go sysInit()
+	go initCleaner()
 
 	registerHandlers()
 

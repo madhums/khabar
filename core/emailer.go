@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/mail"
 	"net/smtp"
-	"os"
 	"reflect"
 	"strings"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/dbapi/saved_item"
+	"github.com/bulletind/khabar/utils"
 	"github.com/scorredoira/email"
 )
 
@@ -35,7 +35,7 @@ type smtpSettings struct {
 	FromName  string
 }
 
-func (smtp smtpSettings) GetAddress() string {
+func (smtp smtpSettings) getAddress() string {
 	return smtp.HostName + ":" + smtp.Port
 }
 
@@ -51,12 +51,12 @@ func loadConfig() {
 		Base: getContentString("email/base.tmpl"),
 		//CSS:  getContentString("email/css.css"),
 		SMTP: &smtpSettings{
-			HostName:  getEnv("HostName", true),
-			UserName:  getEnv("UserName", true),
-			Password:  getEnv("Password", true),
-			Port:      getEnv("Port", true),
-			FromEmail: getEnv("From_Email", true),
-			FromName:  getEnv("From_Name", false),
+			HostName:  getSMTPEnv("HostName", true),
+			UserName:  getSMTPEnv("UserName", true),
+			Password:  getSMTPEnv("Password", true),
+			Port:      getSMTPEnv("Port", true),
+			FromEmail: getSMTPEnv("From_Email", true),
+			FromName:  getSMTPEnv("From_Name", false),
 		},
 	}
 }
@@ -94,29 +94,17 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 	}
 
 	emailauth := smtp.PlainAuth("", settings.SMTP.UserName, settings.SMTP.Password, settings.SMTP.HostName)
-	emailContent := email.NewHTMLMessage(subject, text)
-	emailContent.From = mail.Address{Name: sender, Address: settings.SMTP.FromEmail}
-	emailContent.To = []string{emailAddress}
-	//
-	//  files := []string{
-	//          "big.jpg",
-	//          "small.jpg",
-	//  } // change here to your own files
-	//
-	//  for _, filename := range files {
-	//          err := emailContent.Attach(filename)
-	//
-	//          if err != nil {
-	//                  fmt.Println(err)
-	//          }
-	//  }
+	message := email.NewHTMLMessage(subject, text)
+	message.From = mail.Address{Name: sender, Address: settings.SMTP.FromEmail}
+	message.To = []string{emailAddress}
+	attachments(item, message)
 
 	// send out the email
-	err := email.Send(settings.SMTP.GetAddress(), emailauth, emailContent)
+	err := email.Send(settings.SMTP.getAddress(), emailauth, message)
 	if err != nil {
 		log.Println("Error sending mail", err)
 	}
-	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: emailContent, Details: *item})
+	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: message, Details: *item})
 }
 
 func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
@@ -168,13 +156,8 @@ func getTemplateContext(locale string) map[string]interface{} {
 	return templateContext
 }
 
-func getEnv(key string, required bool) string {
-	envKey := strings.ToUpper("smtp_" + key)
-	value := os.Getenv(envKey)
-	if len(os.Getenv(envKey)) == 0 && required {
-		log.Println(envKey, "is empty. Make sure you set this env variable")
-	}
-	return value
+func getSMTPEnv(key string, required bool) string {
+	return utils.GetEnv("smtp_"+key, required)
 }
 
 func getContentString(subpath string) string {
@@ -220,5 +203,42 @@ func copy(item interface{}) interface{} {
 		return template.HTML(fmt.Sprint(item))
 	} else {
 		return item
+	}
+}
+
+func attachments(item *db.PendingItem, message *email.Message) {
+	totalSize := int64(0)
+	maxSize := int64(5242880) //5mb
+	for _, attachment := range item.Attachments {
+		downloadUrl := attachment.Url
+		extension := attachment.Extension
+		if strings.HasPrefix(attachment.Type, "image") || strings.HasPrefix(attachment.Type, "audio") {
+			downloadUrl = attachment.Url
+		} else if strings.HasPrefix(attachment.Type, "video") {
+			// only show a thumbnail
+			downloadUrl = attachment.ThumbnailUrl
+			extension = ".png"
+		} else if attachment.Type == "application/pdf" {
+			// may be a big file, but let's try
+			downloadUrl = attachment.Url
+		} else {
+			// skip
+			log.Println("Ignoring attachment as type is not supported", attachment.Url, attachment.Type)
+			continue
+		}
+
+		filename, size, err := utils.DownloadFile(downloadUrl, extension, attachment.IsPrivate)
+		if err == nil {
+			if totalSize+size > maxSize {
+				log.Println("Ignoring attachment as email would grow too big", attachment.Url, attachment.Type)
+			} else {
+				totalSize = totalSize + size
+				err = message.Attach(filename)
+			}
+		}
+
+		if err != nil {
+			log.Println("Error attching file", attachment.Url, err)
+		}
 	}
 }

@@ -293,8 +293,8 @@ $ khabar
       "destination_uri" : "http://...",
       "device_tokens": [{ "token": "5486d3d986ba633a207682b6", "type": "ios", "app_name": "myapp" }],
       "attachments": [
-        { "url": "http://lorempixel.com/128/64/animals?w=128&h=128", "public": true },
-        { "url": "http://private.com/5486d3d986ba633a207682b6", "public": false }
+        { "url": "http://lorempixel.com/128/64/animals?w=128&h=128", "extension": ".png", "is_public": true, "thumbnail_url":   "http://lorempixel.com/128/64/animals?w=128&h=128", "type": "image/jpeg" },
+        { "url": "http://private.com/5486d3d986ba633a207682b6", "extension": ".jpeg", "is_public": false }
       ],
       "context" : {
         "Organization" : "5486d3d986ba633a207682b6",
@@ -393,7 +393,7 @@ All styles defined in the `styles` section in the base template will be applied 
 
 When no topic entry is available the directory `<locale>_email` will be searched for the topic template `<topic>.tmpl`. More complex logic can be used within the template like loops etc.. See for more info the [html/template](https://golang.org/pkg/html/template/) package.
 
-All `attachments` are attached to the email. When the url is public, the file will be downloaded. When the url is private, the file is downloaded using the provided settings for the mediaserver.
+All `attachments` are attached to the email. When the url is public, the file will be downloaded. When the url is private, the file is downloaded using the provided settings for the [media server](https://github.com/khabar/moire) .
 
 You can configure the email notifications by setting the env variables. Except for `SMTP_FROM_NAME` all keys are required. `SMTP_FROM_NAME` will be used as sender name. When a `sender` is provided in the context, it will be combined to `SMTP_FROM_NAME (sender)`.
 
@@ -404,4 +404,7 @@ $ export SMTP_PASSWORD=***
 $ export SMTP_PORT=***
 $ export SMTP_FROM_EMAIL=***
 $ export SMTP_FROM_NAME=***
+$ export MEDIA_HOST=***
+$ export MEDIA_PUBLIC_KEY=***
+$ export MEDIA_SECRET_KEY=***
 ```

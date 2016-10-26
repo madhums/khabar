@@ -67,6 +67,7 @@ type PendingItem struct {
 	IsRead         bool                   `json:"is_read" bson:"is_read"`
 	Entity         string                 `json:"entity" bson:"entity" required:"true"`
 	DeviceTokens   []DeviceToken          `json:"device_tokens" bson:"device_tokens"`
+	Attachments    []Attachment           `json:"attachments" bson:"attachments"`
 }
 
 type DeviceToken struct {
@@ -80,6 +81,14 @@ func (self *PendingItem) IsValid() bool {
 		return false
 	}
 	return true
+}
+
+type Attachment struct {
+	Url          string `json:"url" bson:"url"`
+	ThumbnailUrl string `json:"thumbnail_url" bson:"thumbnail_url"`
+	Extension    string `json:"extension" bson:"extension"`
+	Type         string `json:"type" bson:"type"`
+	IsPrivate    bool   `json:"is_private" bson:"is_private"`
 }
 
 type LastSeen struct {
