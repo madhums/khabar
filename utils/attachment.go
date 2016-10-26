@@ -36,9 +36,9 @@ func loadConfig() {
 	os.MkdirAll(dir, 0777)
 
 	settings = &mediaSettings{
-		Host:        GetEnv("MEDIA_HOST", false),
-		PublicKey:   GetEnv("MEDIA_PUBLIC_KEY", false),
-		SecretKey:   GetEnv("MEDIA_SECRET_KEY", false),
+		Host:        GetEnv("MOIRE_HOST", false),
+		PublicKey:   GetEnv("MOIRE_PUBLIC_KEY", false),
+		SecretKey:   GetEnv("MOIRE_SECRET_KEY", false),
 		DownloadDir: dir,
 	}
 }
