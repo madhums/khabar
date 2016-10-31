@@ -40,14 +40,14 @@ func (smtp smtpSettings) getAddress() string {
 }
 
 // load once, store for reuse
-var settings *mailSettings
+var settingsMail *mailSettings
 
 func loadConfig() {
-	if settings != nil {
+	if settingsMail != nil {
 		return
 	}
 
-	settings = &mailSettings{
+	settingsMail = &mailSettings{
 		Base: getContentString("email/base.tmpl"),
 		//CSS:  getContentString("email/css.css"),
 		SMTP: &smtpSettings{
@@ -77,7 +77,7 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 	}
 
 	text = makeEmail(item, text, locale)
-	var sender string = settings.SMTP.FromName
+	var sender string = settingsMail.SMTP.FromName
 	var subject string = ""
 
 	if item.Context["sender"] != nil {
@@ -93,14 +93,14 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 		subject, ok = item.Context["subject"].(string)
 	}
 
-	emailauth := smtp.PlainAuth("", settings.SMTP.UserName, settings.SMTP.Password, settings.SMTP.HostName)
+	emailauth := smtp.PlainAuth("", settingsMail.SMTP.UserName, settingsMail.SMTP.Password, settingsMail.SMTP.HostName)
 	message := email.NewHTMLMessage(subject, text)
-	message.From = mail.Address{Name: sender, Address: settings.SMTP.FromEmail}
+	message.From = mail.Address{Name: sender, Address: settingsMail.SMTP.FromEmail}
 	message.To = []string{emailAddress}
 	attachments(item, message)
 
 	// send out the email
-	err := email.Send(settings.SMTP.getAddress(), emailauth, message)
+	err := email.Send(settingsMail.SMTP.getAddress(), emailauth, message)
 	if err != nil {
 		log.Println("Error sending mail", err)
 	}
@@ -125,7 +125,7 @@ func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
 		}
 
 		// 1st combine template with css, language specifixc texts and topic-mail or topic-text
-		combined := parse(settings.Base, templateContext)
+		combined := parse(settingsMail.Base, templateContext)
 		// now parse the context from the message
 		parsed := parse(combined, copy(item.Context))
 		// and change from css to style per element

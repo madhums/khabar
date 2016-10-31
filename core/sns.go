@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -9,11 +10,18 @@ import (
 	"github.com/bulletind/khabar/dbapi/devices"
 	"github.com/bulletind/khabar/dbapi/saved_item"
 	push "github.com/changer/pushnotification"
+	"github.com/streamrail/concurrent-map"
 )
 
 const (
 	PUSH_SOUND_SNS = "default"
 )
+
+var snsSettings cmap.ConcurrentMap
+
+func init() {
+	snsSettings = cmap.New()
+}
 
 func snsHandler(item *db.PendingItem, text string, locale string, appName string) {
 	log.Println("Sending Push Notification using SNS...")
@@ -57,11 +65,21 @@ func snsHandler(item *db.PendingItem, text string, locale string, appName string
 			EndpointArn: dbDevice.EndpointArn,
 		}
 
+		// custom apps have separate certificate for iOS
+		if userDevice.AppVariant != "" && userDevice.Type == "ios" {
+			pushDevice.Type = handleAppVariantType(service, appName, userDevice.AppVariant)
+		}
+
 		err = service.Send(pushDevice, data)
 
 		if err != nil {
-			log.Println(err)
+			// try again once
+			err = service.Send(pushDevice, data)
+			if err != nil {
+				log.Println(err)
+			}
 		} else {
+			log.Printf("Sent to token '%v' (%v) - app variant '%v' - '%v'", userDevice.Token, dbDevice.Type, userDevice.AppVariant, pushDevice.Type)
 			dbDevice.EndpointArn = pushDevice.EndpointArn
 			if !exists {
 				devices.Insert(dbDevice)
@@ -84,7 +102,12 @@ func getCustomData(item *db.PendingItem) map[string]interface{} {
 	}
 }
 
-func getService(appName string) push.Service {
+func getService(appName string) *push.Service {
+	// try to return existing settings 1st
+	if settings, ok := snsSettings.Get(appName); ok {
+		return settings.(*push.Service)
+	}
+
 	awsKey := getKey("SNS_KEY", true)
 	awsSecret := getKey("SNS_SECRET", true)
 	awsRegion := getKey("SNS_REGION", true)
@@ -92,14 +115,35 @@ func getService(appName string) push.Service {
 	//awsAPNSSandbox := getKey("SNS_APNSSANDBOX_"+appName, false)
 	awsGCM := getKey("SNS_GCM_"+appName, false)
 
-	return push.Service{
+	pushService := &push.Service{
 		Key:    awsKey,
 		Secret: awsSecret,
 		Region: awsRegion,
 		APNS:   awsAPNS,
 		//APNSSandbox: awsAPNSSandbox,
 		GCM: awsGCM,
+		Platforms: map[string]string{
+		},
 	}
+
+	snsSettings.Set(appName, pushService)
+	return pushService
+}
+
+/// return special devicetype to target the right platform
+func handleAppVariantType(service *push.Service, appName string, appVariant string) string {
+	// custom apps have separate certificate
+	specialType := "ios_" + appVariant
+	if _, ok := service.Platforms[specialType]; !ok {
+		key := getKey(fmt.Sprintf("SNS_APNS_%v_%v", appName, appVariant), false)
+		if key != "" {
+			service.Platforms[specialType] = key
+		} else {
+			// just fallback and send to default app
+			specialType = "ios"
+		}
+	}
+	return specialType
 }
 
 func getKey(key string, required bool) string {
