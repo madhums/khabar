@@ -111,9 +111,13 @@ func getService(appName string) *push.Service {
 	awsKey := getKey("SNS_KEY", true)
 	awsSecret := getKey("SNS_SECRET", true)
 	awsRegion := getKey("SNS_REGION", true)
-	awsAPNS := getKey("SNS_APNS_"+appName, false)
-	//awsAPNSSandbox := getKey("SNS_APNSSANDBOX_"+appName, false)
-	awsGCM := getKey("SNS_GCM_"+appName, false)
+
+	base := getKey("SNS_BASE", true)   // 'arn:aws:sns:eu-west-1:123454678:app'
+	env := getKey("ENVIRONMENT", true) // 'testing'
+
+	//arn:aws:sns:eu-west-1:123454678:app/APNS/testing_inspectionApp
+	awsAPNS := fmt.Sprintf("%v/%v/%v_%v", base, "APNS", env, appName)
+	awsGCM := fmt.Sprintf("%v/%v/%v_%v", base, "GCM", env, appName)
 
 	pushService := &push.Service{
 		Key:    awsKey,
@@ -121,9 +125,8 @@ func getService(appName string) *push.Service {
 		Region: awsRegion,
 		APNS:   awsAPNS,
 		//APNSSandbox: awsAPNSSandbox,
-		GCM: awsGCM,
-		Platforms: map[string]string{
-		},
+		GCM:       awsGCM,
+		Platforms: map[string]string{},
 	}
 
 	snsSettings.Set(appName, pushService)
@@ -133,15 +136,11 @@ func getService(appName string) *push.Service {
 /// return special devicetype to target the right platform
 func handleAppVariantType(service *push.Service, appName string, appVariant string) string {
 	// custom apps have separate certificate
+	base := getKey("SNS_BASE", true) // 'arn:aws:sns:eu-west-1:123454678:app'
+	env := getKey("ENVIRONMENT", true)
 	specialType := "ios_" + appVariant
 	if _, ok := service.Platforms[specialType]; !ok {
-		key := getKey(fmt.Sprintf("SNS_APNS_%v_%v", appName, appVariant), false)
-		if key != "" {
-			service.Platforms[specialType] = key
-		} else {
-			// just fallback and send to default app
-			specialType = "ios"
-		}
+		service.Platforms[specialType] = fmt.Sprintf("%v/%v/%v_%v_%v", base, "APNS", env, appName, appVariant)
 	}
 	return specialType
 }
