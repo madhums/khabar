@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -102,6 +101,9 @@ func getFilePath(rawURL string, extension string) (fileName string, err error) {
 
 	name := segments[len(segments)-1]
 	if !strings.Contains(name, ".") {
+		if !strings.HasPrefix(extension, ".") {
+			extension = "." + extension
+		}
 		name = name + extension
 	}
 	fileName = filepath.Join(fileName, name)
@@ -128,10 +130,6 @@ func download(url string, fileName string) (size int64, err error) {
 	}
 
 	defer resp.Body.Close()
-	if resp.ContentLength == -1 {
-		err = errors.New("Something went wrong, ContentLength == -1")
-		return
-	}
 
 	size, err = io.Copy(file, resp.Body)
 	if err != nil {

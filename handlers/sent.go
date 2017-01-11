@@ -93,14 +93,6 @@ func (self *Notifications) Post(request *gottp.Request) {
 		return
 	}
 
-	if pending_item.CreatedBy == pending_item.User {
-		MSG := "Receiver is the same as the notification creator. Skipping."
-
-		log.Println(MSG)
-		request.Raise(gottp.HttpError{http.StatusOK, MSG})
-		return
-	}
-
 	if pending.Throttled(pending_item) {
 		MSG := "Repeated Notifications are Blocked. Skipping."
 

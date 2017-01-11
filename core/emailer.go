@@ -125,9 +125,9 @@ func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
 		}
 
 		// 1st combine template with css, language specifixc texts and topic-mail or topic-text
-		combined := parse(settingsMail.Base, templateContext)
+		combined := parse(settingsMail.Base, htmlCopy(templateContext))
 		// now parse the context from the message
-		parsed := parse(combined, copy(item.Context))
+		parsed := parse(combined, htmlCopy(item.Context))
 		// and change from css to style per element
 		output, err := inliner.Inline(parsed)
 		if err != nil {
@@ -183,20 +183,21 @@ func parse(content string, data interface{}) string {
 	return buffer.String()
 }
 
-func copy(item interface{}) interface{} {
+// copy struct and HTML all string-entries
+func htmlCopy(item interface{}) interface{} {
 	kind := reflect.TypeOf(item).Kind()
 	original := reflect.ValueOf(item)
 
 	if kind == reflect.Slice {
 		clone := []interface{}{}
 		for i := 0; i < original.Len(); i += 1 {
-			clone = append(clone, copy(original.Index(i).Interface()))
+			clone = append(clone, htmlCopy(original.Index(i).Interface()))
 		}
 		return clone
 	} else if kind == reflect.Map {
 		clone := map[string]interface{}{}
 		for key, val := range item.(map[string]interface{}) {
-			clone[key] = copy(val)
+			clone[key] = htmlCopy(val)
 		}
 		return clone
 	} else if kind == reflect.String {
@@ -209,10 +210,12 @@ func copy(item interface{}) interface{} {
 func attachments(item *db.PendingItem, message *email.Message) {
 	totalSize := int64(0)
 	maxSize := int64(5242880) //5mb
+
 	for _, attachment := range item.Attachments {
 		downloadUrl := attachment.Url
 		extension := attachment.Extension
-		if strings.HasPrefix(attachment.Type, "image") || strings.HasPrefix(attachment.Type, "audio") {
+
+		if strings.HasPrefix(attachment.Type, "image") || strings.HasPrefix(attachment.Type, "audio") || strings.Contains(attachment.Type, "application/vnd.openxmlformats-officedocument") {
 			downloadUrl = attachment.Url
 		} else if strings.HasPrefix(attachment.Type, "video") {
 			// only show a thumbnail
