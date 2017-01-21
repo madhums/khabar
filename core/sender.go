@@ -147,6 +147,11 @@ func send(locale, channelName string, pending_item *db.PendingItem) {
 		log.Println("Subject not found.")
 	}
 
+	linktext := getText(locale, pending_item.Topic+"_linktext", channelName, pending_item)
+	if linktext != "" {
+		pending_item.Context["linktext"] = linktext
+	}
+
 	sendToChannel(pending_item, text, locale, pending_item.AppName, channelName)
 }
 

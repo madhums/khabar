@@ -73,7 +73,7 @@ func makeUrl(url string, isPrivate bool) string {
 				}
 				url = settings.Host + url
 			}
-			url = signature.MakeUrl(settings.PublicKey, settings.SecretKey, url)
+			url = signature.MakeUrl(settings.PublicKey, settings.SecretKey, url) + "&skip_ready_check=true"
 		}
 	}
 	return url

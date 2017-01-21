@@ -22,8 +22,8 @@ import (
 
 type mailSettings struct {
 	//CSS  string
-	Base string
-	SMTP *smtpSettings
+	BaseTemplate string
+	SMTP         *smtpSettings
 }
 
 type smtpSettings struct {
@@ -48,7 +48,7 @@ func loadConfig() {
 	}
 
 	settingsMail = &mailSettings{
-		Base: getContentString("email/base.tmpl"),
+		BaseTemplate: getContentString("email/base.tmpl"),
 		//CSS:  getContentString("email/css.css"),
 		SMTP: &smtpSettings{
 			HostName:  getSMTPEnv("HostName", true),
@@ -124,8 +124,13 @@ func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
 			templateContext["Subject"] = subject
 		}
 
-		// 1st combine template with css, language specifixc texts and topic-mail or topic-text
-		combined := parse(settingsMail.Base, htmlCopy(templateContext))
+		// expose all keys to base template as well so we can use them outside the Content as well
+		for key, val := range item.Context {
+			templateContext[key] = val
+		}
+
+		// 1st combine template with css, language specific texts and topic-mail or topic-text
+		combined := parse(settingsMail.BaseTemplate, htmlCopy(templateContext))
 		// now parse the context from the message
 		parsed := parse(combined, htmlCopy(item.Context))
 		// and change from css to style per element
@@ -176,8 +181,29 @@ func getContent(subpath string) (output []byte) {
 	return
 }
 
+func templateNullIf(one interface{}, two interface{}) interface{} {
+	if one != nil && len(one.(string)) > 0 {
+		return one
+	}
+	return two
+}
+
+func templateReplace(original string, old string, new string) string {
+	return strings.Replace(original, old, new, -1)
+}
+
 func parse(content string, data interface{}) string {
 	buffer := new(bytes.Buffer)
+
+	// funcMap := template.FuncMap{
+	// 	"ToUpper": strings.ToUpper,
+	// 	"ToLower": strings.ToLower,
+	// 	"Title":   strings.Title,
+	// 	"Replace": templateReplace,
+	// 	"NullIf":  templateNullIf,
+	// }
+
+	//t := template.Must(template.New("email").Funcs(funcMap).Parse(string(content)))
 	t := template.Must(template.New("email").Parse(string(content)))
 	t.Execute(buffer, &data)
 	return buffer.String()
