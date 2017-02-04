@@ -58,7 +58,8 @@ func sysInit() {
 }
 
 func initCleaner() {
-	ticker := time.NewTicker(time.Hour * 1)
+	utils.CleanupDownloads()
+	ticker := time.NewTicker(time.Minute * 20)
 	go func() {
 		for _ = range ticker.C {
 			utils.CleanupDownloads()

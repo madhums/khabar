@@ -2,6 +2,7 @@ package utils
 
 import (
 	"io"
+	deflog "log"
 	"net/http"
 	"net/url"
 	"os"
@@ -154,7 +155,8 @@ func cleanUp(path string, f os.FileInfo, err error) error {
 	if f.IsDir() {
 		if name, err := strconv.Atoi(f.Name()); err == nil {
 			if name < now {
-				os.Remove(path)
+				deflog.Println("remove:", path)
+				os.RemoveAll(path)
 			}
 		}
 	}
