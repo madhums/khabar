@@ -87,7 +87,7 @@ func (self *PendingItem) IsValid() bool {
 type Attachment struct {
 	Url          string `json:"url" bson:"url"`
 	ThumbnailUrl string `json:"thumbnail_url" bson:"thumbnail_url"`
-	Extension    string `json:"extension" bson:"extension"`
+	Name         string `json:"name" bson:"name"`
 	Type         string `json:"type" bson:"type"`
 	IsPrivate    bool   `json:"is_private" bson:"is_private"`
 }

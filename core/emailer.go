@@ -239,14 +239,15 @@ func attachments(item *db.PendingItem, message *email.Message) {
 
 	for _, attachment := range item.Attachments {
 		downloadUrl := attachment.Url
-		extension := attachment.Extension
+		name := attachment.Name
 
 		if strings.HasPrefix(attachment.Type, "image") || strings.HasPrefix(attachment.Type, "audio") || strings.Contains(attachment.Type, "application/vnd.openxmlformats-officedocument") {
 			downloadUrl = attachment.Url
 		} else if strings.HasPrefix(attachment.Type, "video") {
 			// only show a thumbnail
 			downloadUrl = attachment.ThumbnailUrl
-			extension = ".png"
+			//extension = ".png"
+			continue
 		} else if attachment.Type == "application/pdf" {
 			// may be a big file, but let's try
 			downloadUrl = attachment.Url
@@ -256,7 +257,7 @@ func attachments(item *db.PendingItem, message *email.Message) {
 			continue
 		}
 
-		filename, size, err := utils.DownloadFile(downloadUrl, extension, attachment.IsPrivate)
+		filename, size, err := utils.DownloadFile(downloadUrl, name, attachment.IsPrivate)
 		if err == nil {
 			if totalSize+size > maxSize {
 				log.Println("Ignoring attachment as email would grow too big", attachment.Url, attachment.Type)

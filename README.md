@@ -293,8 +293,8 @@ $ khabar
       "destination_uri" : "http://...",
       "device_tokens": [{ "token": "5486d3d986ba633a207682b6", "type": "ios", "app_name": "myapp" }],
       "attachments": [
-        { "url": "http://lorempixel.com/128/64/animals?w=128&h=128", "extension": ".png", "is_public": true, "thumbnail_url":   "http://lorempixel.com/128/64/animals?w=128&h=128", "type": "image/jpeg" },
-        { "url": "http://private.com/5486d3d986ba633a207682b6", "extension": ".jpeg", "is_public": false }
+        { "url": "http://lorempixel.com/128/64/animals?w=128&h=128", "name": "nicename.png", "is_public": true, "thumbnail_url":   "http://lorempixel.com/128/64/animals?w=128&h=128", "type": "image/jpeg" },
+        { "url": "http://private.com/5486d3d986ba633a207682b6", "name": "nicename.jpeg", "is_public": false }
       ],
       "context" : {
         "Organization" : "5486d3d986ba633a207682b6",

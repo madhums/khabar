@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -43,22 +44,22 @@ func loadConfig() {
 	}
 }
 
-func DownloadFile(url string, extension string, isPrivate bool) (fileName string, size int64, err error) {
+func DownloadFile(url string, fileName string, isPrivate bool) (filePath string, size int64, err error) {
 	loadConfig()
 
-	fileName, err = getFilePath(url, extension)
+	filePath, err = getFilePath(url, fileName)
 	if err != nil {
 		return
 	}
 
 	// simply check if file exists
-	if _, err = os.Stat(fileName); err == nil {
+	if _, err = os.Stat(filePath); err == nil {
 		return
 	}
 
 	// so we need to download
 	url = makeUrl(url, isPrivate)
-	size, err = download(url, fileName)
+	size, err = download(url, filePath)
 	return
 }
 
@@ -80,7 +81,7 @@ func makeUrl(url string, isPrivate bool) string {
 	return url
 }
 
-func getFilePath(rawURL string, extension string) (fileName string, err error) {
+func getFilePath(rawURL string, fileName string) (filePath string, err error) {
 	fileURL, err := url.Parse(rawURL)
 
 	if err != nil {
@@ -89,25 +90,35 @@ func getFilePath(rawURL string, extension string) (fileName string, err error) {
 
 	path := fileURL.Path
 	segments := strings.Split(path, "/")
-	// add date and hour path so we can re-use downloaded files
-	fileName = filepath.Join(settings.DownloadDir, time.Now().Format("2006010215"))
-	fileName = filepath.Join(fileName, fileURL.Host)
+	// add date path so we can re-use downloaded files
+	filePath = filepath.Join(settings.DownloadDir, time.Now().Format("20060102"))
+	filePath = filepath.Join(filePath, fileURL.Host)
 	for i := 1; i < len(segments)-1; i++ {
-		fileName = filepath.Join(fileName, segments[i])
-	}
-	err = os.MkdirAll(fileName, 0777)
-	if err != nil {
-		return
+		filePath = filepath.Join(filePath, segments[i])
 	}
 
-	name := segments[len(segments)-1]
-	if !strings.Contains(name, ".") {
-		if !strings.HasPrefix(extension, ".") {
-			extension = "." + extension
+	// some urls may contain filename
+	// if so, we replcae that by our provided name, otherwise we add the filename
+	lastSegment := segments[len(segments)-1]
+	if !strings.Contains(lastSegment, ".") {
+		filePath = filepath.Join(filePath, lastSegment)
+		err = os.MkdirAll(filePath, 0777)
+		if err != nil {
+			return
 		}
-		name = name + extension
+		reg, err := regexp.Compile("[^A-Za-z0-9.]+")
+		if err != nil {
+			log.Fatal(err)
+		}
+		filePath = filepath.Join(filePath, reg.ReplaceAllString(fileName, "_"))
+	} else if len(fileName) == 0 {
+		err = os.MkdirAll(filePath, 0777)
+		if err != nil {
+			return
+		}
+		// we have no filename, so let's use the one that's provided
+		filePath = filepath.Join(filePath, lastSegment)
 	}
-	fileName = filepath.Join(fileName, name)
 	return
 }
 
@@ -149,8 +160,8 @@ func CleanupDownloads() {
 }
 
 func cleanUp(path string, f os.FileInfo, err error) error {
-	// 2 hours ago
-	now, _ := strconv.Atoi(time.Now().Add(-2 * time.Hour).Format("2006010215"))
+	// 2 days ago
+	now, _ := strconv.Atoi(time.Now().Add(-48 * time.Hour).Format("20060102"))
 
 	if f.IsDir() {
 		if name, err := strconv.Atoi(f.Name()); err == nil {
