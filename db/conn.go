@@ -283,7 +283,10 @@ func (self *MConn) InitIndexes() {
 	db := session.DB(self.Dbname)
 	defer session.Close()
 
-	expireIndex(db)
+	expireIndex(db, DeviceCollection, 180)
+	expireIndex(db, SavedEmailCollection, 90)
+	expireIndex(db, SavedPushCollection, 90)
+	expireIndex(db, SentCollection, 90)
 
 	for collection, index := range GetIndexes() {
 		index := mgo.Index{
@@ -302,16 +305,16 @@ func (self *MConn) InitIndexes() {
 	}
 }
 
-func expireIndex(db *mgo.Database) {
+func expireIndex(db *mgo.Database, collection string, days int) {
 	index := mgo.Index{
 		Key:         []string{"updated_on"},
 		Unique:      false,
 		DropDups:    false,
 		Background:  true,
-		ExpireAfter: time.Duration(24*180) * time.Hour,
+		ExpireAfter: time.Duration(24*days) * time.Hour,
 	}
 
-	err := db.C(DeviceCollection).EnsureIndex(index)
+	err := db.C(collection).EnsureIndex(index)
 	if err != nil {
 		log.Println("Error creating index:", err)
 		panic(err)
