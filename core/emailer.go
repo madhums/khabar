@@ -76,7 +76,6 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 		return
 	}
 
-	text = makeEmail(item, text, locale)
 	var sender string = settingsMail.SMTP.FromName
 	var subject string = ""
 
@@ -94,10 +93,12 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 	}
 
 	emailauth := smtp.PlainAuth("", settingsMail.SMTP.UserName, settingsMail.SMTP.Password, settingsMail.SMTP.HostName)
-	message := email.NewHTMLMessage(subject, text)
+	message := email.NewHTMLMessage(subject, "Dummy")
 	message.From = mail.Address{Name: sender, Address: settingsMail.SMTP.FromEmail}
 	message.To = []string{emailAddress}
-	attachments(item, message)
+	// inform the user the expected attachments are not there
+	item.Context["khabar_attached"] = attachments(item, message)
+	message.Body = makeEmail(item, text, locale)
 
 	// send out the email
 	err := email.Send(settingsMail.SMTP.getAddress(), emailauth, message)
@@ -181,29 +182,8 @@ func getContent(subpath string) (output []byte) {
 	return
 }
 
-func templateNullIf(one interface{}, two interface{}) interface{} {
-	if one != nil && len(one.(string)) > 0 {
-		return one
-	}
-	return two
-}
-
-func templateReplace(original string, old string, new string) string {
-	return strings.Replace(original, old, new, -1)
-}
-
 func parse(content string, data interface{}) string {
 	buffer := new(bytes.Buffer)
-
-	// funcMap := template.FuncMap{
-	// 	"ToUpper": strings.ToUpper,
-	// 	"ToLower": strings.ToLower,
-	// 	"Title":   strings.Title,
-	// 	"Replace": templateReplace,
-	// 	"NullIf":  templateNullIf,
-	// }
-
-	//t := template.Must(template.New("email").Funcs(funcMap).Parse(string(content)))
 	t := template.Must(template.New("email").Parse(string(content)))
 	t.Execute(buffer, &data)
 	return buffer.String()
@@ -233,34 +213,32 @@ func htmlCopy(item interface{}) interface{} {
 	}
 }
 
-func attachments(item *db.PendingItem, message *email.Message) {
+func attachments(item *db.PendingItem, message *email.Message) bool {
 	totalSize := int64(0)
-	maxSize := int64(52428800) //50mb
+	maxSize := int64(5242880) //5mb
 
+	attachments := []db.Attachment{}
 	for _, attachment := range item.Attachments {
-		downloadUrl := attachment.Url
-		name := attachment.Name
+		if strings.HasPrefix(attachment.Type, "image") ||
+			strings.HasPrefix(attachment.Type, "audio") ||
+			strings.Contains(attachment.Type, "application/vnd.openxmlformats-officedocument") ||
+			attachment.Type == "application/pdf" {
 
-		if strings.HasPrefix(attachment.Type, "image") || strings.HasPrefix(attachment.Type, "audio") || strings.Contains(attachment.Type, "application/vnd.openxmlformats-officedocument") {
-			downloadUrl = attachment.Url
-		} else if strings.HasPrefix(attachment.Type, "video") {
-			// only show a thumbnail
-			downloadUrl = attachment.ThumbnailUrl
-			//extension = ".png"
-			continue
-		} else if attachment.Type == "application/pdf" {
-			// may be a big file, but let's try
-			downloadUrl = attachment.Url
-		} else {
-			// skip
-			log.Println("Ignoring attachment as type is not supported", attachment.Url, attachment.Type)
-			continue
+			attachments = append(attachments, attachment)
 		}
+	}
 
-		filename, size, err := utils.DownloadFile(downloadUrl, name, attachment.IsPrivate)
+	if len(attachments) > 5 {
+		return false
+	}
+
+	for _, attachment := range attachments {
+		filename, size, err := utils.DownloadFile(attachment.Url, attachment.Name, attachment.IsPrivate)
 		if err == nil {
 			if totalSize+size > maxSize {
 				log.Println("Ignoring attachment as email would grow too big", attachment.Url, attachment.Type)
+				message.Attachments = make(map[string]*email.Attachment)
+				return false
 			} else {
 				totalSize = totalSize + size
 				err = message.Attach(filename)
@@ -268,7 +246,8 @@ func attachments(item *db.PendingItem, message *email.Message) {
 		}
 
 		if err != nil {
-			log.Println("Error attching file", attachment.Url, err)
+			log.Println("Error attaching file", attachment.Url, err)
 		}
 	}
+	return true
 }
