@@ -215,7 +215,7 @@ func htmlCopy(item interface{}) interface{} {
 
 func attachments(item *db.PendingItem, message *email.Message) bool {
 	totalSize := int64(0)
-	maxSize := int64(5242880) //5mb
+	maxSize := int64(8912896) //8.5mb
 
 	attachments := []db.Attachment{}
 	for _, attachment := range item.Attachments {
@@ -226,10 +226,6 @@ func attachments(item *db.PendingItem, message *email.Message) bool {
 
 			attachments = append(attachments, attachment)
 		}
-	}
-
-	if len(attachments) > 5 {
-		return false
 	}
 
 	for _, attachment := range attachments {
