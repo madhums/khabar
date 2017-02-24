@@ -144,7 +144,7 @@
 		},
 		{
 			"ImportPath": "github.com/changer/pushnotification",
-			"Rev": "23bc0ba664bab6997f1365465ef5b8fa61825d0b"
+			"Rev": "428f78a0c6dfd99877df89c366a46c2be66a75ea"
 		},
 		{
 			"ImportPath": "github.com/go-ini/ini",

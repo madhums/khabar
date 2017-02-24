@@ -16,8 +16,9 @@ func newMessageJSON(data *Data) (m string, err error) {
 				"body":  data.Alert,
 				"title": data.Subject,
 			},
-			"sound": data.Sound,
-			"badge": data.Badge,
+			"sound":             data.Sound,
+			"badge":             data.Badge,
+			"content-available": 1,
 		}, data.Data),
 	})
 	if err != nil {
