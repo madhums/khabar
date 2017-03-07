@@ -353,11 +353,15 @@ func GetConn(connString, db_name string) *MConn {
 func getNewSession(connString, db_name string) *mgo.Session {
 	// quick hack to allow SSL based connections, may be removed in future when parseURL supports it
 	// see also: https://github.com/go-mgo/mgo/issues/84
-	const SSL_SUFFIX = "?ssl=true"
+	const SSL_STRING = "ssl=true"
 	useSsl := false
 
-	if strings.HasSuffix(connString, SSL_SUFFIX) {
-		connString = strings.TrimSuffix(connString, SSL_SUFFIX)
+	if strings.Contains(connString, SSL_STRING) {
+		if strings.Contains(connString, SSL_STRING+"&") {
+			connString = strings.Replace(connString, SSL_STRING+"&", "", 1)
+		} else {
+			connString = strings.Replace(connString, SSL_STRING, "", 1)
+		}
 		useSsl = true
 	}
 
