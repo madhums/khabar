@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/bulletind/khabar/db"
@@ -35,14 +36,6 @@ func snsHandler(item *db.PendingItem, text string, locale string, appName string
 	custom := getCustomData(item)
 	custom["data"] = getCustomData(item)
 
-	data := &push.Data{
-		Alert:   aws.String(text),
-		Subject: aws.String(subject),
-		Sound:   aws.String(PUSH_SOUND_SNS),
-		Badge:   aws.Int(1),
-		Data:    custom,
-	}
-
 	for _, userDevice := range item.DeviceTokens {
 		// only send if appname is provided or app name is same
 		if len(userDevice.AppName) == 0 || userDevice.AppName != appName {
@@ -63,6 +56,18 @@ func snsHandler(item *db.PendingItem, text string, locale string, appName string
 			Token:       dbDevice.Token,
 			Type:        dbDevice.Type,
 			EndpointArn: dbDevice.EndpointArn,
+		}
+
+		data := &push.Data{
+			Alert:   aws.String(text),
+			Subject: aws.String(subject),
+			Sound:   aws.String(PUSH_SOUND_SNS),
+			Badge:   aws.Int(1),
+			Data:    custom,
+		}
+
+		if len(getSound(userDevice.Type)) > 0 {
+			data.Sound = aws.String(getSound(userDevice.Type))
 		}
 
 		// custom apps have separate certificate for iOS
@@ -131,6 +136,17 @@ func getService(appName string) *push.Service {
 
 	snsSettings.Set(appName, pushService)
 	return pushService
+}
+
+func getSound(deviceType string) string {
+	// try to return existing settings 1st
+	if settings, ok := snsSettings.Get(deviceType); ok {
+		return settings.(string)
+	}
+
+	sound := getKey("SNS_SOUND_"+strings.ToUpper(deviceType), false)
+	snsSettings.Set(deviceType, sound)
+	return sound
 }
 
 /// return special devicetype to target the right platform
