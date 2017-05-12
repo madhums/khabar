@@ -11,3 +11,7 @@ func EpochNow() int64 {
 	now := time.Now()
 	return now.UnixNano() / int64(time.Millisecond) //Convert to Milliseconds
 }
+
+func EpochDate(date time.Time) int64 {
+	return date.UnixNano() / int64(time.Millisecond) //Convert to Milliseconds
+}

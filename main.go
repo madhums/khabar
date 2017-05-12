@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/simversity/gottp.v3"
+
 	"github.com/bulletind/khabar/config"
 	"github.com/bulletind/khabar/db"
 	"github.com/bulletind/khabar/utils"
 	"github.com/nicksnyder/go-i18n/i18n"
-	"gopkg.in/simversity/gottp.v3"
 )
 
 func sysInit() {
@@ -59,16 +60,18 @@ func sysInit() {
 
 func initCleaner() {
 	utils.CleanupDownloads()
-	ticker := time.NewTicker(time.Hour * 6)
+	db.CleanupCollections()
+
+	ticker := time.NewTicker(time.Minute * 9)
 	go func() {
 		for _ = range ticker.C {
 			utils.CleanupDownloads()
+			db.CleanupCollections()
 		}
 	}()
 }
 
 func main() {
-
 	go sysInit()
 	go initCleaner()
 
