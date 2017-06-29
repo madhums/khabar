@@ -53,7 +53,9 @@ func DownloadFile(url string, fileName string, isPrivate bool) (filePath string,
 	}
 
 	// simply check if file exists
-	if _, err = os.Stat(filePath); err == nil {
+	var fi os.FileInfo
+	if fi, err = os.Stat(filePath); err == nil {
+		size = fi.Size()
 		return
 	}
 

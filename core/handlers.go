@@ -15,8 +15,8 @@ const (
 )
 
 var ChannelMap = map[string]func(*db.PendingItem, string, string, string){
-	EMAIL: emailHandler,
 	WEB:   webHandler,
+	EMAIL: emailHandler,
 	PUSH:  pushHandler,
 }
 
