@@ -143,13 +143,15 @@ func send(locale, channelName string, pending_item *db.PendingItem) {
 
 	if subject != "" {
 		pending_item.Context["subject"] = subject
-	} else {
+	} else if channelName == EMAIL {
 		log.Println("Subject not found.")
 	}
 
-	linktext := getText(locale, pending_item.Topic+"_linktext", channelName, pending_item)
-	if linktext != "" {
-		pending_item.Context["linktext"] = linktext
+	if channelName == EMAIL {
+		linktext := getText(locale, pending_item.Topic+"_linktext", channelName, pending_item)
+		if linktext != "" {
+			pending_item.Context["linktext"] = linktext
+		}
 	}
 
 	sendToChannel(pending_item, text, locale, pending_item.AppName, channelName)

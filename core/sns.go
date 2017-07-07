@@ -25,7 +25,11 @@ func init() {
 }
 
 func snsHandler(item *db.PendingItem, text string, locale string, appName string) {
-	log.Println("Sending Push Notification using SNS...")
+	if len(item.DeviceTokens) == 0 {
+		log.Printf("No devices found, so no push messages sent out")
+		return
+	}
+
 	service := getService(appName)
 
 	subject, ok := item.Context["subject"].(string)

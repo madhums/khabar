@@ -62,7 +62,6 @@ func loadConfig() {
 }
 
 func emailHandler(item *db.PendingItem, text string, locale string, appName string) {
-	log.Println("Sending email...")
 	loadConfig()
 
 	if item.Context["email"] == nil {
@@ -104,7 +103,10 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 	err := email.Send(settingsMail.SMTP.getAddress(), emailauth, message)
 	if err != nil {
 		log.Println("Error sending mail", err)
+	} else {
+		log.Println("Mail sent to " + emailAddress)
 	}
+
 	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: message, Details: *item})
 }
 
