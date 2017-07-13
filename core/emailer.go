@@ -106,6 +106,8 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 	} else {
 		log.Println("Mail sent to " + emailAddress)
 	}
+	// don't store attchments
+	message.Attachments = make(map[string]*email.Attachment)
 
 	saved_item.Insert(db.SavedEmailCollection, &db.SavedItem{Data: message, Details: *item})
 }
