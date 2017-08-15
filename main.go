@@ -32,11 +32,11 @@ func sysInit() {
 
 	if len(transDir) == 0 {
 		cwd := os.Getenv("PWD")
-		transDir = cwd + "/translations"
 		config.Settings.Khabar.TranslationDirectory = cwd
+	} else if strings.Contains(transDir, "translations") {
+		config.Settings.Khabar.TranslationDirectory = strings.Replace(transDir, "translations", "", -1)
+		transDir = config.Settings.Khabar.TranslationDirectory
 	}
-
-	log.Println("Directory for translation :" + transDir)
 
 	filepath.Walk(transDir, func(path string, _ os.FileInfo, err error) error {
 		fileExt := filepath.Ext(path)

@@ -48,8 +48,7 @@ func loadConfig() {
 	}
 
 	settingsMail = &mailSettings{
-		BaseTemplate: getContentString("email/base.tmpl"),
-		//CSS:  getContentString("email/css.css"),
+		BaseTemplate: getContentString("base/content.html"),
 		SMTP: &smtpSettings{
 			HostName:  getSMTPEnv("HostName", true),
 			UserName:  getSMTPEnv("UserName", true),
@@ -115,15 +114,15 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
 	// get json translations for template
 	templateContext := getTemplateContext(locale)
+	email := settingsMail.BaseTemplate
 
 	if topicMail == "" {
-		topicMail = getContentString(fmt.Sprintf("%v_email/%v.tmpl", locale, item.Topic))
+		email = getContentString(fmt.Sprintf("%v_email/%v.html", locale, item.Topic))
+	} else if templateContext != nil {
+		templateContext["Content"] = template.HTML(topicMail)
 	}
 
-	if templateContext != nil && topicMail != "" {
-		templateContext["Content"] = template.HTML(topicMail)
-		//templateContext["CSS"] = settings.CSS
-
+	if templateContext != nil && email != "" {
 		subject, ok := item.Context["subject"].(string)
 		if ok && subject != "" {
 			templateContext["Subject"] = subject
@@ -135,7 +134,7 @@ func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
 		}
 
 		// 1st combine template with css, language specific texts and topic-mail or topic-text
-		combined := parse(settingsMail.BaseTemplate, htmlCopy(templateContext))
+		combined := parse(email, htmlCopy(templateContext))
 		// now parse the context from the message
 		parsed := parse(combined, htmlCopy(item.Context))
 		// and change from css to style per element
@@ -145,6 +144,7 @@ func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
 		}
 		return output
 	}
+
 	return ""
 }
 
@@ -175,8 +175,7 @@ func getContentString(subpath string) string {
 }
 
 func getContent(subpath string) (output []byte) {
-	transDir := config.Settings.Khabar.TranslationDirectory
-	path := transDir + "/" + subpath
+	path := config.Settings.Khabar.TranslationDirectory + "/" + subpath
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Println("Cannot Load the template:", path)
