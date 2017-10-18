@@ -135,10 +135,13 @@ func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
 
 		// 1st combine template with css, language specific texts and topic-mail or topic-text
 		combined := parse(email, htmlCopy(templateContext))
+
 		// now parse the context from the message
 		parsed := parse(combined, htmlCopy(item.Context))
+
 		// and change from css to style per element
 		output, err := inliner.Inline(parsed)
+
 		if err != nil {
 			log.Println("Error parsing css:", err)
 		}
@@ -188,7 +191,10 @@ func getContent(subpath string) (output []byte) {
 func parse(content string, data interface{}) string {
 	buffer := new(bytes.Buffer)
 	t := template.Must(template.New("email").Parse(string(content)))
-	t.Execute(buffer, &data)
+	err := t.Execute(buffer, &data)
+	if err != nil {
+		log.Println(err, content, data)
+	}
 	return buffer.String()
 }
 
