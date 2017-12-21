@@ -224,7 +224,7 @@ func htmlCopy(item interface{}) interface{} {
 
 func attachments(item *db.PendingItem, message *email.Message) bool {
 	totalSize := int64(0)
-	maxSize := int64(8500000) //8.5mb
+	maxSize := int64(8000000) //8mb
 
 	attachments := []db.Attachment{}
 	for _, attachment := range item.Attachments {
