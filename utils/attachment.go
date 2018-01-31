@@ -21,7 +21,6 @@ type mediaSettings struct {
 	Host        string
 	PublicKey   string
 	SecretKey   string
-	AuthKey     string
 	DownloadDir string
 }
 
@@ -41,7 +40,6 @@ func loadConfig() {
 		Host:        GetEnv("MOIRE_HOST", false),
 		PublicKey:   GetEnv("MOIRE_PUBLIC_KEY", false),
 		SecretKey:   GetEnv("MOIRE_SECRET_KEY", false),
-		AuthKey:     GetEnv("MOIRE_AUTH_KEY", false),
 		DownloadDir: dir,
 	}
 }
@@ -49,11 +47,10 @@ func loadConfig() {
 func DeleteFile(id string) {
 	loadConfig()
 
-	url := settings.Host + "/assets/" + id
+	url := makeUrl(settings.Host+"/assets/"+id, true)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", url, nil)
-	req.Header.Add("Authorization", settings.AuthKey)
 
 	_, err = client.Do(req)
 	if err != nil {

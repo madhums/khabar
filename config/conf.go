@@ -19,20 +19,20 @@ type config struct {
 func (self *config) MakeConfig(configPath string) {
 	self.Gottp.Listen = "127.0.0.1:8911"
 
-	if DbUrl := os.Getenv("MONGODB_URL"); DbUrl != "" {
-		self.Khabar.DbUrl = DbUrl
-	} else {
-		self.Khabar.DbUrl = "mongodb://localhost/notifications_testing"
-	}
-
-	self.Khabar.DbName = "notifications_testing"
-
-	if Dir := os.Getenv("TRANSLATION_DIRECTORY"); Dir != "" {
-		self.Khabar.TranslationDirectory = Dir
-	}
+	self.Khabar.DbUrl = getEnv("MONGODB_URL", "mongodb://localhost/notifications_testing")
+	self.Khabar.DbName = getEnv("MONGODB_NAME", "notifications_testing")
+	self.Khabar.TranslationDirectory = getEnv("TRANSLATION_DIRECTORY", "")
 
 	if configPath != "" {
 		conf.MakeConfig(configPath, self)
+	}
+}
+
+func getEnv(key string, defaultVal string) string {
+	if env := os.Getenv(key); env != "" {
+		return env
+	} else {
+		return defaultVal
 	}
 }
 

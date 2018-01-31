@@ -17,7 +17,7 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func sysInit() {
+func sysInit(done chan bool) {
 	<-(gottp.SysInitChan) //Buffered Channel to receive the server upstart boolean
 
 	config.InitTracer()
@@ -56,9 +56,11 @@ func sysInit() {
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
 	log.Println("Translations have been parsed.")
+	done <- true
 }
 
-func initCleaner() {
+func initCleaner(done chan bool) {
+	<-done
 	utils.CleanupDownloads()
 	db.CleanupCollections()
 
@@ -72,8 +74,9 @@ func initCleaner() {
 }
 
 func main() {
-	go sysInit()
-	go initCleaner()
+	initialized := make(chan bool)
+	go sysInit(initialized)
+	go initCleaner(initialized)
 
 	registerHandlers()
 
