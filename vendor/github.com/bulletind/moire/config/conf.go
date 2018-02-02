@@ -1,8 +1,9 @@
 package config
 
 import (
-	"gopkg.in/simversity/gottp.v3/conf"
 	"os"
+
+	"gopkg.in/simversity/gottp.v3/conf"
 )
 
 type config struct {
@@ -14,8 +15,8 @@ type config struct {
 		Region    string
 	}
 	Moire struct {
-		DbUrl		       string
-		DbName		       string
+		DbUrl                  string
+		DbName                 string
 		TranslationDirectory   string
 		Debug                  bool
 		FFmpeg                 string
@@ -34,13 +35,12 @@ type config struct {
 func (self *config) MakeConfig(configPath string) {
 	self.Gottp.Listen = "127.0.0.1:8811"
 
-	if DbUrl := os.Getenv("MONGODB_URL"); DbUrl != "" {
-		self.Moire.DbUrl = DbUrl
-	} else {
-		self.Moire.DbUrl = "mongodb://localhost/gallery"
-	}
+	self.Moire.DbUrl = getEnv("MONGODB_URL", "mongodb://localhost/gallery")
+	self.Moire.DbName = getEnv("MONGODB_NAME", "gallery")
+	self.S3.AccessKey = getEnv("S3_ACCESS_KEY", "")
+	self.S3.SecretKey = getEnv("S3_SECRET_KEY", "")
+	self.S3.Bucket = getEnv("S3_BUCKET", "moire-gallery")
 
-	self.Moire.DbName = "gallery"
 	self.Moire.Debug = false
 	self.Moire.FFmpeg = "ffmpeg"
 	self.Moire.SignRequests = false
@@ -54,10 +54,17 @@ func (self *config) MakeConfig(configPath string) {
 	self.Moire.RedirectUrlCacheExpiry = 45 // 45 minutes, must be lower than GetUrlExpiry
 
 	self.S3.Region = "eu-west-1"
-	self.S3.Bucket = "moire-gallery"
 
 	if configPath != "" {
 		conf.MakeConfig(configPath, self)
+	}
+}
+
+func getEnv(key string, defaultVal string) string {
+	if env := os.Getenv(key); env != "" {
+		return env
+	} else {
+		return defaultVal
 	}
 }
 

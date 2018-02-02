@@ -15,7 +15,7 @@ func CleanupCollections() {
 	rec := new(BaseModel)
 	sent := new(SentItem)
 	moireHost := utils.GetEnv("MOIRE_HOST", true)
-	dayToKeep := utils.EpochDate(time.Now().AddDate(0, 0, -60))
+	dayToKeep := utils.EpochDate(time.Now().AddDate(0, 0, -30))
 
 	go func() {
 		session := Conn.Session.Copy()

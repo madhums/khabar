@@ -31,11 +31,6 @@ func isTimestampValid(signed_on string, expiry int64) error {
 	}
 	max_time_offset := current_time.Add(time.Duration(int64(time.Minute) * -expiry))
 
-	log.Debug("Current:", current_time)
-	log.Debug("Timestamp:", timestamp)
-	log.Debug("Skew", max_time_skew)
-	log.Debug("Offset", max_time_offset)
-
 	if timestamp.Sub(max_time_skew) > 0 {
 		err := "Timestamp max skew validation error"
 		log.Warn(err)
@@ -51,13 +46,20 @@ func isTimestampValid(signed_on string, expiry int64) error {
 	return nil
 }
 
-func canonicalQuery(public_key, timestamp string, expiry int64) string {
+func canonicalQuery(public_key, timestamp string, expiry int64, forDelete bool) string {
 	values := url.Values{"public_key": {public_key}, "timestamp": {timestamp}}
 	if expiry != 0 {
 		values = url.Values{
 			"public_key": {public_key},
 			"timestamp":  {timestamp},
 			"expiry":     {strconv.FormatInt(expiry, 10)},
+		}
+	}
+	if forDelete {
+		values = url.Values{
+			"public_key": {public_key},
+			"timestamp":  {timestamp},
+			"fordelete":  {strconv.FormatBool(true)},
 		}
 	}
 	sorted := values.Encode()
@@ -97,23 +99,16 @@ func stringToSign(path, query string) string {
 	return val
 }
 
-func MakeSignature(public_key, secret_key, timestamp string, expiry int64, path string) string {
+func MakeSignature(public_key, secret_key, timestamp string, expiry int64, forDelete bool, path string) string {
 	//Stage1: Find public Key
 
 	//Construct Canonical Query
-	query := canonicalQuery(public_key, timestamp, expiry)
-	log.Debug("CanonicalQuery:", query)
-
-	//Construct Path
-	log.Debug("CanonicalPath:", path)
-
+	query := canonicalQuery(public_key, timestamp, expiry, forDelete)
 	//Sign the strings, by joining \n
 	signed_string := stringToSign(path, query)
-	log.Debug("SignedString:", signed_string)
 
 	//Create Sha512 HMAC string
 	hmac_string := makeHmac512(signed_string, secret_key)
-	log.Debug("Hmac string:", hmac_string)
 
 	//Encode the resultant to base64
 	base64_string := makeBase64(hmac_string)
@@ -122,7 +117,7 @@ func MakeSignature(public_key, secret_key, timestamp string, expiry int64, path 
 }
 
 func IsRequestValid(
-	public_key, private_key, timestamp, signature string, expiry int64, path string,
+	public_key, private_key, timestamp, signature string, expiry int64, forDelete bool, path string,
 ) error {
 
 	err := isTimestampValid(timestamp, expiry)
@@ -130,23 +125,16 @@ func IsRequestValid(
 		return err
 	}
 
-	computed_signature := MakeSignature(public_key, private_key, timestamp, expiry, path)
-
-	log.Debug("PublicKey:", public_key)
-	log.Debug("PrivateKey:", private_key)
-	log.Debug("Expiry:", expiry)
-	log.Debug("Computed: => ", computed_signature)
+	computed_signature := MakeSignature(public_key, private_key, timestamp, expiry, forDelete, path)
 
 	if signature != computed_signature {
-		log.Debug("Passed: => ", signature)
-		log.Warn("Signature mismatch occured")
 		return errors.New("Invalid signature")
 	}
 
 	return nil
 }
 
-func MakeUrl(public_key, secret_key, path string) string {
+func MakeUrl(public_key, secret_key string, forDelete bool, path string) string {
 	subpath := path
 	if strings.HasPrefix(path, "http") {
 		parsed, _ := url.Parse(path)
@@ -155,12 +143,20 @@ func MakeUrl(public_key, secret_key, path string) string {
 
 	timestamp := time.Now().Format(time.RFC3339)
 
-	sign := MakeSignature(public_key, secret_key, timestamp, 0, subpath)
+	sign := MakeSignature(public_key, secret_key, timestamp, 0, forDelete, subpath)
 
 	values := url.Values{
 		"signature":  {sign},
 		"timestamp":  {timestamp},
 		"public_key": {public_key},
+	}
+	if forDelete {
+		values = url.Values{
+			"signature":  {sign},
+			"timestamp":  {timestamp},
+			"public_key": {public_key},
+			"fordelete":  {strconv.FormatBool(forDelete)},
+		}
 	}
 
 	sorted := values.Encode()

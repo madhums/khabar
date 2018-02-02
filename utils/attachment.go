@@ -47,7 +47,7 @@ func loadConfig() {
 func DeleteFile(id string) {
 	loadConfig()
 
-	url := makeUrl(settings.Host+"/assets/"+id, true)
+	url := makeUrl(settings.Host+"/assets/"+id, true, true)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", url, nil)
@@ -74,12 +74,12 @@ func DownloadFile(url string, fileName string, isPrivate bool) (filePath string,
 	}
 
 	// so we need to download
-	url = makeUrl(url, isPrivate)
+	url = makeUrl(url, isPrivate, false)
 	size, err = download(url, filePath)
 	return
 }
 
-func makeUrl(url string, isPrivate bool) string {
+func makeUrl(url string, isPrivate bool, forDelete bool) string {
 	if isPrivate {
 		if settings.PublicKey == "" {
 			log.Error("When using private urls, you need to provide keys for the mediaserver")
@@ -91,7 +91,7 @@ func makeUrl(url string, isPrivate bool) string {
 				}
 				url = settings.Host + url
 			}
-			url = signature.MakeUrl(settings.PublicKey, settings.SecretKey, url) + "&skip_ready_check=true"
+			url = signature.MakeUrl(settings.PublicKey, settings.SecretKey, forDelete, url) + "&skip_ready_check=true"
 		}
 	}
 	return url
