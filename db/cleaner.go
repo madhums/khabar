@@ -33,7 +33,7 @@ func CleanupCollections() {
 			if table == SentCollection {
 				for cursor.Next(sent) {
 					ids = append(ids, sent.Id)
-					if strings.Contains(sent.DestinationUri, moireHost) {
+					if len(moireHost) > 0 && strings.Contains(sent.DestinationUri, moireHost) {
 						re, _ := regexp.Compile("^(" + moireHost + "/assets/)(.*)([?].*)")
 						utils.DeleteFile(re.FindStringSubmatch(sent.DestinationUri)[2])
 					}

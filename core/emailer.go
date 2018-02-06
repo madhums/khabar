@@ -50,14 +50,33 @@ func loadConfig() {
 	settingsMail = &mailSettings{
 		BaseTemplate: getContentString("base/content.html"),
 		SMTP: &smtpSettings{
-			HostName:  getSMTPEnv("HostName", true),
-			UserName:  getSMTPEnv("UserName", true),
-			Password:  getSMTPEnv("Password", true),
+			HostName: getSMTPEnv("HostName", true),
+			UserName: getSMTPEnv("UserName", true),
+			Password: getSMTPEnv("Password", true),
+
 			Port:      getSMTPEnv("Port", true),
 			FromEmail: getSMTPEnv("From_Email", true),
 			FromName:  getSMTPEnv("From_Name", false),
 		},
 	}
+}
+
+func getSMTPEnv(key string, required bool) string {
+	return utils.GetEnv("smtp_"+key, required)
+}
+
+func getSender(item *db.PendingItem) (email, name string) {
+	email = settingsMail.SMTP.FromEmail
+	name = settingsMail.SMTP.FromName
+
+	if item.Context["from"] != nil {
+		email = item.Context["from"].(map[string]interface{})["email"].(string)
+		name = item.Context["from"].(map[string]interface{})["name"].(string)
+	} else if item.Context["sender"] != nil {
+		ctxSender, _ := item.Context["sender"].(string)
+		name = fmt.Sprintf("%v (%v)", name, ctxSender)
+	}
+	return
 }
 
 func emailHandler(item *db.PendingItem, text string, locale string, appName string) {
@@ -74,25 +93,15 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 		return
 	}
 
-	var sender string = settingsMail.SMTP.FromName
+	senderEmail, senderName := getSender(item)
 	var subject string = ""
-
-	if item.Context["sender"] != nil {
-		ctxSender, _ := item.Context["sender"].(string)
-		if sender != "" {
-			sender = fmt.Sprintf("%v (%v)", sender, ctxSender)
-		} else {
-			sender = ctxSender
-		}
-	}
-
 	if item.Context["subject"] != nil {
 		subject, ok = item.Context["subject"].(string)
 	}
 
 	emailauth := smtp.PlainAuth("", settingsMail.SMTP.UserName, settingsMail.SMTP.Password, settingsMail.SMTP.HostName)
 	message := email.NewHTMLMessage(subject, "Dummy")
-	message.From = mail.Address{Name: sender, Address: settingsMail.SMTP.FromEmail}
+	message.From = mail.Address{Name: senderName, Address: senderEmail}
 	message.To = []string{emailAddress}
 	// inform the user the expected attachments are not there
 	item.Context["khabar_attached"] = attachments(item, message)
@@ -169,10 +178,6 @@ func getTemplateContext(locale string) map[string]interface{} {
 	return templateContext
 }
 
-func getSMTPEnv(key string, required bool) string {
-	return utils.GetEnv("smtp_"+key, required)
-}
-
 func getContentString(subpath string) string {
 	return string(getContent(subpath))
 }
@@ -181,7 +186,7 @@ func getContent(subpath string) (output []byte) {
 	path := config.Settings.Khabar.TranslationDirectory + "/" + subpath
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Println("Cannot Load the template:", path)
+		log.Println("Cannot load the template:", path)
 	} else {
 		output = content
 	}

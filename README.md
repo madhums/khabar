@@ -310,6 +310,20 @@ $ khabar
         "severity" : "low",
         "subject" : "New log"
       },
+      settings: {
+        header: '<td><div>My nice header</div></td>', // not required
+        logo: 'path_to_logo', // not required
+        footer: 'nice story', // not required
+        help: 'nice story', // not required
+        administrator: { // required!
+          name: 'John Doe',
+          email: 'name@domain.com'
+        },
+        sender: { // not required
+          name: 'John Doe',
+          email: 'name@domain.com'
+        }
+      },
       "entity" : "554caa744aca430a00de5324"
     }
     ```
