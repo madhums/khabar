@@ -19,12 +19,12 @@ func CleanupCollections() {
 		for _, table := range tables {
 			ids := []bson.ObjectId{}
 			cursor := Conn.GetCursor(session, table, utils.M{
-				"updated_on": utils.M{
+				"created_on": utils.M{
 					"$lt": dayToKeep,
 				},
 			}).Select(bson.M{
 				"_id": 1, "destination_uri": 1,
-			}).Limit(500).Sort("updated_on").Iter()
+			}).Limit(500).Iter()
 
 			for cursor.Next(rec) {
 				ids = append(ids, rec.Id)
