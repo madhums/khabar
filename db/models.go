@@ -71,10 +71,12 @@ type PendingItem struct {
 }
 
 type DeviceToken struct {
-	Type       string `json:"type" bson:"type"`
-	Token      string `json:"token" bson:"token"`
-	AppName    string `json:"app_name" bson:"app_name"`
-	AppVariant string `bson:"app_variant" json:"app_variant"`
+	Type         string `json:"type" bson:"type"`
+	Token        string `json:"token" bson:"token"`
+	AppName      string `json:"app_name" bson:"app_name"`
+	AppVariant   string `bson:"app_variant" json:"app_variant"`
+	AppVersion   string `bson:"app_version" json:"app_version"`
+	AppUniversal bool   `bson:"app_universal" json:"app_universal"`
 }
 
 func (self *PendingItem) IsValid() bool {

@@ -30,7 +30,7 @@ func snsHandler(item *db.PendingItem, text string, locale string, appName string
 		return
 	}
 
-	service := getService(appName)
+	services := []*push.Service{getService(appName)}
 
 	subject, ok := item.Context["subject"].(string)
 	if !ok || subject == "" {
@@ -42,7 +42,7 @@ func snsHandler(item *db.PendingItem, text string, locale string, appName string
 
 	for _, userDevice := range item.DeviceTokens {
 		// only send if appname is provided or app name is same
-		if len(userDevice.AppName) == 0 || userDevice.AppName != appName {
+		if len(userDevice.AppName) == 0 || (userDevice.AppName != appName && !userDevice.AppUniversal) {
 			continue
 		}
 
@@ -72,6 +72,16 @@ func snsHandler(item *db.PendingItem, text string, locale string, appName string
 
 		if len(getSound(userDevice.Type)) > 0 {
 			data.Sound = aws.String(getSound(userDevice.Type))
+		}
+
+		service := services[0]
+		// device has universal app, app differs from topic-app
+		if userDevice.AppUniversal && userDevice.AppName != appName {
+			// did we wire service yet?
+			if len(services) == 1 {
+				services = append(services, getService(userDevice.AppName))
+			}
+			service = services[1]
 		}
 
 		// custom apps have separate certificate for iOS
