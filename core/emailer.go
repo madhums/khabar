@@ -103,15 +103,25 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 	message := email.NewHTMLMessage(subject, "Dummy")
 	message.From = mail.Address{Name: senderName, Address: senderEmail}
 	message.To = []string{emailAddress}
+	message.Body = makeEmail(item, text, locale)
 	// inform the user the expected attachments are not there
 	item.Context["khabar_attached"] = attachments(item, message)
-	message.Body = makeEmail(item, text, locale)
 
 	// send out the email
 	err := email.Send(settingsMail.SMTP.getAddress(), emailauth, message)
 	if err != nil {
-		log.Println("Error sending mail", err)
-	} else {
+		retry := strings.Contains(err.Error(), "Message rejected: Stream is more than 10485760 bytes long")
+		if retry {
+			message.Attachments = make(map[string]*email.Attachment)
+			log.Println("Removing attachments as email was still too big")
+			err = email.Send(settingsMail.SMTP.getAddress(), emailauth, message)
+			retry = err != nil
+		}
+		if retry {
+			log.Println("Error sending mail", err)
+		}
+	}
+	if err != nil {
 		log.Println("Mail sent to " + emailAddress)
 	}
 	// don't store attchments
@@ -229,7 +239,7 @@ func htmlCopy(item interface{}) interface{} {
 
 func attachments(item *db.PendingItem, message *email.Message) bool {
 	totalSize := int64(0)
-	maxSize := int64(7000000) //8mb
+	maxSize := int64(10000000) //10mb
 
 	attachments := []db.Attachment{}
 	for _, attachment := range item.Attachments {
@@ -251,7 +261,7 @@ func attachments(item *db.PendingItem, message *email.Message) bool {
 				message.Attachments = make(map[string]*email.Attachment)
 				return false
 			} else {
-				totalSize = totalSize + size
+				totalSize = int64(len(message.Bytes()))
 				err = message.Attach(filename)
 			}
 		}
