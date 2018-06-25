@@ -1,4 +1,7 @@
-services: mongodb
+services:
+  - mongodb
+  - docker
+
 language: go
 go:
 - "1.10"
