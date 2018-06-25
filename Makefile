@@ -9,7 +9,7 @@ deps:
 build: deps
 	go build -v -o ./bin/$(PKG_NAME)
 
-sanitize: fmt lint vet
+sanitize: fmt lint
 
 build_linux: deps
 	env GOOS=linux GARCH=amd64 CGO_ENABLED=0 go build -o $(PKG_NAME) -a -installsuffix cgo .
