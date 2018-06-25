@@ -5,9 +5,18 @@ PKG_NAME=$(shell basename `pwd`)
 install:
 	go get -t -v ./...
 
-build: vet \
-	test \
+deps:
+	dep version || (curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh)
+	dep ensure
+
+build: deps
 	go build -v -o ./bin/$(PKG_NAME)
+
+build_linux: deps
+	env GOOS=linux GARCH=amd64 CGO_ENABLED=0 go build -o $(PKG_NAME) -a -installsuffix cgo .
+
+docker: build_linux
+	docker-compose -f docker-compose.yaml build khabar
 
 doc:
 	godoc -http=:6060
@@ -34,5 +43,8 @@ bench:
 vet:
 	go vet ./...
 
-godep:
-	godep save ./...
+docker_login:
+	echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
+
+docker_upload: #docker_login
+	docker-compose -f docker-compose.yaml push khabar

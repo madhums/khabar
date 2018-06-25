@@ -1,0 +1,11 @@
+version: '3.1'
+
+services:
+  khabar:
+    build: .
+    image: capptions/khabar
+    restart: always
+    command: /app/server
+    ports:
+      - 8911:8911
+

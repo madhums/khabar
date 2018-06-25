@@ -26,3 +26,5 @@ _testmain.go
 # live reload debug file and build file
 gin-bin
 bin/*
+vendor/*
+khabar
