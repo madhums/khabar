@@ -1,5 +1,6 @@
 .PHONY: build doc fmt lint dev test vet godep install bench
 
+REPO := "capptions/khabar"
 PKG_NAME=$(shell basename `pwd`)
 
 deps:
