@@ -2,9 +2,6 @@
 
 PKG_NAME=$(shell basename `pwd`)
 
-install:
-	go get -t -v ./...
-
 deps:
 	dep version || (curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh)
 	dep ensure
@@ -12,35 +9,30 @@ deps:
 build: deps
 	go build -v -o ./bin/$(PKG_NAME)
 
+sanitize: fmt lint vet
+
 build_linux: deps
 	env GOOS=linux GARCH=amd64 CGO_ENABLED=0 go build -o $(PKG_NAME) -a -installsuffix cgo .
 
 docker: build_linux
 	docker-compose -f docker-compose.yaml build khabar
 
-doc:
-	godoc -http=:6060
-
-fmt:
+fmt: deps
 	go fmt ./...
 
 # https://github.com/golang/lint
 # go get github.com/golang/lint/golint
-lint:
+lint: deps
 	golint ./...
 
 dev:
 	DEBUG=* go get && go install && gin -p 8911 -i
 
-test:
+test: deps
 	go test ./...
 
-# Runs benchmarks
-bench:
-	go test ./... -bench=.
-
 # https://godoc.org/golang.org/x/tools/cmd/vet
-vet:
+vet: deps
 	go vet ./...
 
 docker_login:
