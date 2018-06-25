@@ -1,38 +1,20 @@
 services: mongodb
 language: go
 go:
-- 1.6
-
-env:
-  global:
-    - PATH=$HOME/gopath/bin:$HOME/bin:$PATH
-    - ARTIFACTS_WORKING_DIR: $HOME/gopath/bin
-    - ARTIFACTS_TARGET_PATHS="$TRAVIS_BRANCH/$TRAVIS_JOB_NUMBER:$TRAVIS_BRANCH/latest"
-    - ARTIFACTS_PERMISSIONS=public-read
-    - ARTIFACTS_CACHE_CONTROL='public, max-age=315360000'
-    - ARTIFACTS_LOG_FORMAT=multiline
-    - ARTIFACTS_DEBUG=1
-
-before_script:
-  - curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
+- "1.10"
 
 before_install:
-  - go get github.com/axw/gocov/gocov
-  - go get github.com/mattn/goveralls
-  - go get -d golang.org/x/tools/cmd/cover
-  - go get github.com/pierrre/gotestcover
-  - cd $HOME/gopath/src/github.com/bulletind/khabar
-
-install: make install
+  - make sanitize
+  - make test
 
 script:
-  - go test -v $(go list ./... | grep -v /vendor/)
-  - go build -v $(go list ./... | grep -v /vendor/)
+  - make build_linux
 
-after_success:
-  - artifacts upload $HOME/gopath/bin/khabar
-  - $HOME/gopath/bin/gotestcover -coverprofile=coverage.out $(go list ./... | grep -v /vendor/)
-  - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+deploy:
+  - provider: script
+    script: make docker_upload
+    on:
+      branch: master
 
 notifications:
   email:

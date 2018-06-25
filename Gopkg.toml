@@ -39,10 +39,6 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/bulletind/spyder"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/changer/pushnotification"
 
 [[constraint]]
