@@ -11,7 +11,8 @@ before_install:
   - make test
 
 script:
-  - make build_linux
+  - make docker
+  - docker-compose up -d
 
 deploy:
   - provider: script

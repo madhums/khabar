@@ -39,7 +39,7 @@ vet: deps
 docker_login:
 	echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
 
-docker_upload: docker docker_login
+docker_upload: docker_login
 	docker-compose -f docker-compose.yaml push khabar
 	docker tag $(REPO):latest $(REPO):$(TRAVIS_BRANCH)-$(TRAVIS_BUILD_NUMBER)
 	docker push $(REPO):$(TRAVIS_BRANCH)-$(TRAVIS_BUILD_NUMBER)
