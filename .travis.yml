@@ -1,4 +1,7 @@
-services: mongodb
+services:
+  - mongodb
+  - docker
+
 language: go
 go:
 - "1.10"
@@ -14,7 +17,8 @@ deploy:
   - provider: script
     script: make docker_upload
     on:
-      branch: master
+      all_branches: true
+      condition: $TRAVIS_BRANCH =~ ^develop|master$
 
 notifications:
   email:
