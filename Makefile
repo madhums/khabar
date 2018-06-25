@@ -23,6 +23,7 @@ fmt: deps
 # https://github.com/golang/lint
 # go get github.com/golang/lint/golint
 lint: deps
+	go get github.com/golang/lint/golint
 	golint ./...
 
 dev:
