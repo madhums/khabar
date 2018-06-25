@@ -2,7 +2,7 @@ package utils
 
 import (
 	"io"
-	deflog "log"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 
 	"github.com/bulletind/moire/signature"
-	"github.com/bulletind/spyder/log"
 )
 
 type mediaSettings struct {
@@ -54,7 +53,7 @@ func DeleteFile(id string) {
 
 	_, err = client.Do(req)
 	if err != nil {
-		log.Error("Error deleting asset "+id, err)
+		log.Println("Error deleting asset "+id, err)
 	}
 }
 
@@ -82,7 +81,7 @@ func DownloadFile(url string, fileName string, isPrivate bool) (filePath string,
 func makeUrl(url string, isPrivate bool, forDelete bool) string {
 	if isPrivate {
 		if settings.PublicKey == "" {
-			log.Error("When using private urls, you need to provide keys for the mediaserver")
+			log.Println("When using private urls, you need to provide keys for the mediaserver")
 		} else {
 			// add host info when needed
 			if !strings.HasPrefix(url, "http") {
@@ -124,7 +123,7 @@ func getFilePath(rawURL string, fileName string) (filePath string, err error) {
 		}
 		reg, err := regexp.Compile("[^A-Za-z0-9.]+")
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		filePath = filepath.Join(filePath, reg.ReplaceAllString(fileName, "_"))
 	} else if len(fileName) == 0 {
@@ -171,7 +170,7 @@ func CleanupDownloads() {
 	loadConfig()
 	err := filepath.Walk(settings.DownloadDir, cleanUp)
 	if err != nil {
-		log.Error(err)
+		log.Println(err)
 	}
 }
 
@@ -182,7 +181,7 @@ func cleanUp(path string, f os.FileInfo, err error) error {
 	if f.IsDir() {
 		if name, err := strconv.Atoi(f.Name()); err == nil {
 			if name < now {
-				deflog.Println("remove:", path)
+				log.Println("remove:", path)
 				os.RemoveAll(path)
 			}
 		}
