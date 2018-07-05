@@ -17,7 +17,7 @@ type config struct {
 }
 
 func (self *config) MakeConfig(configPath string) {
-	self.Gottp.Listen = "127.0.0.1:8911"
+	self.Gottp.Listen = ":8911"
 
 	self.Khabar.DbUrl = getEnv("MONGODB_URL", "mongodb://localhost/notifications_testing")
 	self.Khabar.DbName = getEnv("MONGODB_NAME", "notifications_testing")
