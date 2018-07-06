@@ -38,7 +38,7 @@ vet: deps
 	go vet ./...
 
 docker_login:
-	echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
+	docker login -u "$(DOCKER_USERNAME)" -p "$(DOCKER_PASSWORD)"
 
 docker_upload: docker_login
 	docker-compose -f docker-compose.yaml push khabar
