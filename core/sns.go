@@ -86,7 +86,7 @@ func snsHandler(item *db.PendingItem, text string, locale string, appName string
 
 		// custom apps have separate certificate for iOS
 		if userDevice.AppVariant != "" && userDevice.Type == "ios" {
-			pushDevice.Type = handleAppVariantType(service, appName, userDevice.AppVariant)
+			pushDevice.Type = handleAppVariantType(service, userDevice.AppName, userDevice.AppVariant)
 		}
 
 		err = service.Send(pushDevice, data)
