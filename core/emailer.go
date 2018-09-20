@@ -136,7 +136,7 @@ func makeEmail(item *db.PendingItem, topicMail string, locale string) string {
 	email := settingsMail.BaseTemplate
 
 	if topicMail == "" {
-		email = getContentString(fmt.Sprintf("%v_email/%v.html", locale, item.Topic))
+		email = getContentString(fmt.Sprintf("html/%v.html", item.Topic))
 	} else if templateContext != nil {
 		templateContext["Content"] = template.HTML(topicMail)
 	}
