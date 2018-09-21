@@ -98,6 +98,9 @@ func emailHandler(item *db.PendingItem, text string, locale string, appName stri
 	if item.Context["subject"] != nil {
 		subject, ok = item.Context["subject"].(string)
 	}
+	if item.Download != (db.Attachment{}) && len(item.Download.Url) > 0 {
+		item.Context["download_uri"] = utils.MakeUrl(item.Download.Url, item.Download.IsPrivate, false, false)
+	}
 
 	emailauth := smtp.PlainAuth("", settingsMail.SMTP.UserName, settingsMail.SMTP.Password, settingsMail.SMTP.HostName)
 	message := email.NewHTMLMessage(subject, "Dummy")

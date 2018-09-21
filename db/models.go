@@ -67,6 +67,7 @@ type PendingItem struct {
 	IsRead         bool                   `json:"is_read" bson:"is_read"`
 	Entity         string                 `json:"entity" bson:"entity" required:"true"`
 	DeviceTokens   []DeviceToken          `json:"device_tokens" bson:"device_tokens"`
+	Download       Attachment             `json:"download" bson:"download"`
 	Attachments    []Attachment           `json:"attachments" bson:"attachments"`
 }
 
