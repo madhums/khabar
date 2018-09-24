@@ -43,20 +43,6 @@ func loadConfig() {
 	}
 }
 
-func DeleteFile(id string) {
-	loadConfig()
-
-	url := MakeUrl(settings.Host+"/assets/"+id, true, true, true)
-
-	client := &http.Client{}
-	req, err := http.NewRequest("DELETE", url, nil)
-
-	_, err = client.Do(req)
-	if err != nil {
-		log.Println("Error deleting asset "+id, err)
-	}
-}
-
 func DownloadFile(url string, fileName string, isPrivate bool) (filePath string, size int64, err error) {
 	loadConfig()
 
@@ -73,30 +59,55 @@ func DownloadFile(url string, fileName string, isPrivate bool) (filePath string,
 	}
 
 	// so we need to download
-	url = MakeUrl(url, isPrivate, false, true)
+	url = MakeUrl(url, isPrivate, true, 0)
 	size, err = download(url, filePath)
 	return
 }
 
-func MakeUrl(url string, isPrivate bool, forDelete bool, skip_check bool) string {
-	if isPrivate {
-		if settings.PublicKey == "" {
-			log.Println("When using private urls, you need to provide keys for the mediaserver")
-		} else {
-			// add host info when needed
-			if !strings.HasPrefix(url, "http") {
-				if !strings.HasSuffix(settings.Host, "/") && !strings.HasPrefix(url, "/") {
-					url = "/" + url
-				}
-				url = settings.Host + url
-			}
-			url = signature.MakeUrl(settings.PublicKey, settings.SecretKey, forDelete, url)
-			if skip_check {
-				url = url + "&skip_ready_check=true"
-			}
+func MakeUrl(url string, isPrivate bool, skip_check bool, expiry int64) string {
+	if !isPrivate {
+		return url
+	}
+	if settings.PublicKey == "" {
+		log.Println("When using private urls, you need to provide keys for the mediaserver")
+		return url
+	}
+
+	// add host info when needed
+	if !strings.HasPrefix(url, "http") {
+		if !strings.HasSuffix(settings.Host, "/") && !strings.HasPrefix(url, "/") {
+			url = "/" + url
 		}
+		url = settings.Host + url
+	}
+	url = signUrl(url, expiry)
+	if skip_check {
+		url = url + "&skip_ready_check=true"
 	}
 	return url
+}
+
+func signUrl(path string, expiry int64) string {
+	subpath := path
+	if strings.HasPrefix(path, "http") {
+		parsed, _ := url.Parse(path)
+		subpath = parsed.Path
+	}
+
+	timestamp := time.Now().Format(time.RFC3339)
+
+	sign := signature.MakeSignature(settings.PublicKey, settings.SecretKey, timestamp, expiry, false, subpath)
+
+	values := url.Values{
+		"signature":  {sign},
+		"timestamp":  {timestamp},
+		"public_key": {settings.PublicKey},
+		"expiry":     {strconv.FormatInt(expiry, 10)},
+	}
+
+	sorted := values.Encode()
+	escaped := strings.Replace(sorted, "+", "%20", -1)
+	return path + "?" + escaped
 }
 
 func getFilePath(rawURL string, fileName string) (filePath string, err error) {
