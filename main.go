@@ -66,7 +66,7 @@ func initCleaner(done chan bool) {
 
 	ticker := time.NewTicker(time.Minute * 9)
 	go func() {
-		for _ = range ticker.C {
+		for range ticker.C {
 			utils.CleanupDownloads()
 			db.CleanupCollections()
 		}
