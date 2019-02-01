@@ -80,7 +80,7 @@ func MakeUrl(url string, isPrivate bool, skip_check bool, expiry int64) string {
 		}
 		url = settings.Host + url
 	}
-	url = signUrl(url, expiry)
+	url = signUrl(strings.Split(url, "?")[0], expiry)
 	if skip_check {
 		url = url + "&skip_ready_check=true"
 	}
