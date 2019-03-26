@@ -364,23 +364,7 @@ $ khabar
 
 We use environment variables to fetch the keys and secrets.
 
-#### Push notifications
-We support both Parse and AWS SNS to send out push notifications. As long as env variable `SNS_KEY` is not there push notifications are sent out using Parse.
-
-#### Push notifications (PARSE)
-
-We use [parse](https://www.parse.com/) to send push notifications. When you are sending out a notification using the [`POST /notifications`](#send-notification) api call, it looks for certain environment variables. These env variables are based on the categories (`app_name`s) you are using in the `topics_available` collection.
-
-For example: You have an event (ident) `log_incoming` configured for the category (app_name) `myapp` in the `topics_available` collection. Now, when you make a call to `POST /notifications`, it looks for `PARSE_myapp_API_KEY` and `PARSE_myapp_APP_ID` enviroment variables and uses them to send the push notifications.
-
-You can set them by doing
-
-```sh
-$ export PARSE_myapp_API_KEY=***
-$ export PARSE_myapp_APP_ID=***
-```
-
-#### Push notifications (SNS)
+### Push notifications (SNS)
 
 We use [sns](https://aws.amazon.com/sns/) to send push notifications.
 For setup see README of https://github.com/changer/pushnotification.
@@ -400,7 +384,35 @@ $ export SNS_APNS_myapp=***
 $ export SNS_APNSSANDBOX_myapp=***
 ```
 
-#### Email notifications
+#### Configuration
+Per combination of OS, environment and (branded) app, a SNS application needs to be created. So for the default app this can be `production_inspectionapp` and a custom app can be `production_inspectionapp_customer`.
+Each app needs to be added to the policy as well.
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Stmt1472041226000",
+            "Effect": "Allow",
+            "Action": [
+                "sns:Publish",
+                "sns:CreatePlatformEndpoint",
+                "sns:GetEndpointAttributes",
+                "sns:SetEndpointAttributes"
+            ],
+            "Resource": [
+                "arn:aws:sns:eu-west-1:{KEY}:app/APNS/production_inspectionapp",
+                "arn:aws:sns:eu-west-1:{KEY}:app/GCM/production_inspectionapp",
+                "arn:aws:sns:eu-west-1:{KEY}:app/APNS/production_inspectionapp_customer"
+            ]
+        }
+    ]
+}
+```
+
+
+### Email notifications
 
 When sending emails, some magic is involved. The supplied translations will be searched for a base email `base.tmpl` template in directory `email`. This template needs to have a `Subject` and a `Content` section. Besides that a basic translation file `<locale>_email.json` will be loaded so footers and other 'static' content can be provided to the base template.
 All styles defined in the `styles` section in the base template will be applied to all relevant elements, so no inline styling is needed.
