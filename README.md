@@ -95,242 +95,242 @@ $ khabar
 
   1. ##### List all preferences of user or org
 
-    ```
-    GET /topics
-    ```
+      ```
+      GET /topics
+      ```
 
-    Query params:
+      Query params:
 
-    - `org`: organization id
-    - `user`: user id
+      - `org`: organization id
+      - `user`: user id
 
-    If org and user are not sent in query params, then it will send global preferences.
+      If org and user are not sent in query params, then it will send global preferences.
 
-    If org is sent and user is not, then it will send org preferences.
+      If org is sent and user is not, then it will send org preferences.
 
-    If org and user are both sent, then it will send user preferences.
+      If org and user are both sent, then it will send user preferences.
 
-    Response:
-    ```js
-    [
-      {
-        "_id": "",
-        "created_on": 1425547531188,
-        "updated_on": 1425879125700,
-        "user": "",
-        "org": "",
-        "app_name": "",
-        "channels": [
-          "",
-          ""
-        ],
-        "ident": ""
-      }
-    ]
-    ```
+      Response:
+      ```js
+      [
+        {
+          "_id": "",
+          "created_on": 1425547531188,
+          "updated_on": 1425879125700,
+          "user": "",
+          "org": "",
+          "app_name": "",
+          "channels": [
+            "",
+            ""
+          ],
+          "ident": ""
+        }
+      ]
+      ```
 
   2. ##### Set an user preference
 
-    ```
-    POST /topics/:ident/channels/:channel
-    ```
+      ```
+      POST /topics/:ident/channels/:channel
+      ```
 
-    Query params:
+      Query params:
 
-    - `org`: (required) organization id
-    - `user`: (required) user id
+      - `org`: (required) organization id
+      - `user`: (required) user id
 
   3. ##### Unset an user preference
 
-    ```
-    DELETE /topics/:ident/channels/:channel
-    ```
+      ```
+      DELETE /topics/:ident/channels/:channel
+      ```
 
-    Query params:
+      Query params:
 
-    - `org`: (required) organization id
-    - `user`: (required) user id
+      - `org`: (required) organization id
+      - `user`: (required) user id
 
   4. ##### Set an org preference
 
-    ```
-    POST /topics/:type/:ident/channels/:channel
-    ```
+      ```
+      POST /topics/:type/:ident/channels/:channel
+      ```
 
-    `:type` here is either `defaults` or `locked`
+      `:type` here is either `defaults` or `locked`
 
-    Query params:
+      Query params:
 
-    - `org`: (required) organization id
+      - `org`: (required) organization id
 
   5. ##### Unset an org preference
 
-    ```
-    DELETE /topics/:type/:ident/channels/:channel
-    ```
+      ```
+      DELETE /topics/:type/:ident/channels/:channel
+      ```
 
-    `:type` here is either `defaults` or `locked`
+      `:type` here is either `defaults` or `locked`
 
-    Query params:
+      Query params:
 
-    - `org`: (required) organization id
+      - `org`: (required) organization id
 
 2. #### Notifications
 
   1. ##### List all notifications
 
-    ```
-    GET /notifications
-    ```
+      ```
+      GET /notifications
+      ```
 
-    Query params:
+      Query params:
 
-    - `user`: user id
-    - `org`: organization id
+      - `user`: user id
+      - `org`: organization id
 
-    Response:
-    ```js
-    [
-      {
-        org: "",
-        user: "",
-        destination_uri: "",
-        text: "",
-        topic: "",
-        destination_uri: "",
-        is_read:false,
-        created_on: <milliseconds_since_epoch>
-       },
-       // and so on...
-    ]
-    ```
+      Response:
+      ```js
+      [
+        {
+          org: "",
+          user: "",
+          destination_uri: "",
+          text: "",
+          topic: "",
+          destination_uri: "",
+          is_read:false,
+          created_on: <milliseconds_since_epoch>
+         },
+         // and so on...
+      ]
+      ```
 
-    This can be polled periodically
+      This can be polled periodically
 
   2. ##### Mark a single notification as read
 
-    ```
-    PUT /notification/:_id
-    ```
+      ```
+      PUT /notification/:_id
+      ```
 
-    Request Body:
-    ```json
-    {
-      "destination_uri": "http://link-to-entity",
-      "text": "Notification text",
-      "topic": "Notification topic"
-    }
-    ```
+      Request Body:
+      ```json
+      {
+        "destination_uri": "http://link-to-entity",
+        "text": "Notification text",
+        "topic": "Notification topic"
+      }
+      ```
 
-    - `destination_uri`: (required) Link to relevant entity. (i.e action, incident)
-    - `text`: (required) Notification text (long text)
-    - `topic`: (required) Notification topic (short text)
+      - `destination_uri`: (required) Link to relevant entity. (i.e action, incident)
+      - `text`: (required) Notification text (long text)
+      - `topic`: (required) Notification topic (short text)
 
   3. ##### Mark all unread notifications as read
 
-    ```
-    PUT /notifications
-    ```
+      ```
+      PUT /notifications
+      ```
 
-    Request Body:
-    ```json
-    {
-      "org": "123",
-      "user": "456"
-    }
-    ```
+      Request Body:
+      ```json
+      {
+        "org": "123",
+        "user": "456"
+      }
+      ```
 
-    - `org`: (required) org id
-    - `user`: (required) user id
-    - `app_name`: (optional) name of the app or category
+      - `org`: (required) org id
+      - `user`: (required) user id
+      - `app_name`: (optional) name of the app or category
 
   4. ##### Get notification stats
 
-    ```
-    GET /notifications/stats
-    ```
+      ```
+      GET /notifications/stats
+      ```
 
-    Query params:
+      Query params:
 
-    - `user`: (required) user id
-    - `org`: (required) organization id
+      - `user`: (required) user id
+      - `org`: (required) organization id
 
-    Response:
-    ```
-    {
-      "last_seen": "2015-08-03T14:26:05.860Z",
-      "total_count": 37,
-      "unread_count": 0,
-      "total_unread": 32
-    }
-    ```
+      Response:
+      ```
+      {
+        "last_seen": "2015-08-03T14:26:05.860Z",
+        "total_count": 37,
+        "unread_count": 0,
+        "total_unread": 32
+      }
+      ```
 
   5. ##### Update last seen time stamp
 
-    ```
-    PUT /notifications/stats
-    ```
+      ```
+      PUT /notifications/stats
+      ```
 
-    Query params:
+      Query params:
 
-    - `user`: (required) user id
-    - `org`: (required) organization id
+      - `user`: (required) user id
+      - `org`: (required) organization id
 
   6. ##### Send notification
 
-    ```
-    POST /notifications?topic=text
-    ```
+      ```
+      POST /notifications?topic=text
+      ```
 
-    Request Body:
-    ```js
-    {
-      "created_by" : "5486e02870a0d30200bdcfd3",
-      "org" : "5486d3d986ba633a207682b6",
-      "app_name" : "myapp", // <- this is the category
-      "topic" : "log_incoming",
-      "user" : "5486e02870a0d30200bdcfe0",
-      "destination_uri" : "http://...",
-      "device_tokens": [{ "token": "5486d3d986ba633a207682b6", "type": "ios", "app_name": "myapp" }],
-      "attachments": [
-        { "url": "http://lorempixel.com/128/64/animals?w=128&h=128", "name": "nicename.png", "is_public": true, "thumbnail_url":   "http://lorempixel.com/128/64/animals?w=128&h=128", "type": "image/jpeg" },
-        { "url": "http://private.com/5486d3d986ba633a207682b6", "name": "nicename.jpeg", "is_public": false }
-      ],
-      "context" : {
-        "Organization" : "5486d3d986ba633a207682b6",
-        "sender" : "org name",
-        "fullname" : "John hopkins",
-        "logger" : "Elvis",
-        "refnumber" : "IL2958",
-        "Collection" : "collection_name",
-        "Id" : "554caa744aca430a00de5324",
-        "User" : "5486e02870a0d30200bdcfe0",
+      Request Body:
+      ```js
+      {
+        "created_by" : "5486e02870a0d30200bdcfd3",
+        "org" : "5486d3d986ba633a207682b6",
+        "app_name" : "myapp", // <- this is the category
+        "topic" : "log_incoming",
+        "user" : "5486e02870a0d30200bdcfe0",
         "destination_uri" : "http://...",
-        "email" : "john.hopkins@email",
-        "severity" : "low",
-        "subject" : "New log"
-      },
-      settings: {
-        header: '<td><div>My nice header</div></td>', // not required
-        logo: 'path_to_logo', // not required
-        footer: 'nice story', // not required
-        help: 'nice story', // not required
-        administrator: { // required!
-          name: 'John Doe',
-          email: 'name@domain.com'
+        "device_tokens": [{ "token": "5486d3d986ba633a207682b6", "type": "ios", "app_name": "myapp" }],
+        "attachments": [
+          { "url": "http://lorempixel.com/128/64/animals?w=128&h=128", "name": "nicename.png", "is_public": true, "thumbnail_url":   "http://lorempixel.com/128/64/animals?w=128&h=128", "type": "image/jpeg" },
+          { "url": "http://private.com/5486d3d986ba633a207682b6", "name": "nicename.jpeg", "is_public": false }
+        ],
+        "context" : {
+          "Organization" : "5486d3d986ba633a207682b6",
+          "sender" : "org name",
+          "fullname" : "John hopkins",
+          "logger" : "Elvis",
+          "refnumber" : "IL2958",
+          "Collection" : "collection_name",
+          "Id" : "554caa744aca430a00de5324",
+          "User" : "5486e02870a0d30200bdcfe0",
+          "destination_uri" : "http://...",
+          "email" : "john.hopkins@email",
+          "severity" : "low",
+          "subject" : "New log"
         },
-        sender: { // not required
-          name: 'John Doe',
-          email: 'name@domain.com'
-        }
-      },
-      "entity" : "554caa744aca430a00de5324"
-    }
-    ```
+        settings: {
+          header: '<td><div>My nice header</div></td>', // not required
+          logo: 'path_to_logo', // not required
+          footer: 'nice story', // not required
+          help: 'nice story', // not required
+          administrator: { // required!
+            name: 'John Doe',
+            email: 'name@domain.com'
+          },
+          sender: { // not required
+            name: 'John Doe',
+            email: 'name@domain.com'
+          }
+        },
+        "entity" : "554caa744aca430a00de5324"
+      }
+      ```
 
-    Query params:
+      Query params:
 
-    - `topic`: Text that is used for sending notification (short text)
+      - `topic`: Text that is used for sending notification (short text)
 
 #### Some general conventions:
 
